@@ -38,7 +38,7 @@ export default function RootLayout({
         enableSystem
         disableTransitionOnChange
       >
-        <head>
+        <head suppressHydrationWarning>
           <script
             defer
             src="https://cloud.umami.is/script.js"
