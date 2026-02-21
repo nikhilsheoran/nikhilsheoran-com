@@ -1,0 +1,801 @@
+.window {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 42;
+  overflow: hidden;
+  resize: both;
+  min-width: min(980px, calc(100vw - 24px));
+  min-height: min(560px, calc(100vh - 72px));
+  max-width: calc(100vw - 12px);
+  max-height: calc(100vh - 44px);
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  background: #ececec;
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.38),
+    0 1px 0 rgba(255, 255, 255, 0.52) inset;
+  color: #2a2a2a;
+  font-family:
+    "SF Pro Text",
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.window::-webkit-resizer {
+  background:
+    linear-gradient(135deg, transparent 0 45%, rgba(80, 80, 80, 0.5) 45% 50%, transparent 50% 100%);
+}
+
+.window * {
+  cursor: default;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 286px minmax(0, 1fr);
+  height: 100%;
+  width: 100%;
+  background: #efefef;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0 6px 6px;
+  border-radius: 22px;
+  border: 1px solid #d7d7d7;
+  box-shadow:
+    0 0 40px rgba(43, 43, 43, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  background: linear-gradient(180deg, #e6e6e7 0%, #dfdfe0 100%);
+  overflow: hidden;
+  z-index: 100;
+}
+
+.sidebarTop {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  padding-left: 18px;
+}
+
+.searchWrap {
+  padding: 0 8px 8px;
+}
+
+.searchField {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 30px;
+  border-radius: 9999px;
+  padding: 0 12px;
+  background: #cdcdcf;
+  color: #6f6f70;
+  font-size: 23px;
+  font-size: 14px;
+  font-weight: 520;
+}
+
+.sidebarScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px 10px;
+}
+
+.accountRow {
+  width: 100%;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  padding: 8px 8px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2b2b2b;
+}
+
+.accountRowActive {
+  background: #1669d4;
+  color: #fff;
+}
+
+.accountAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 20%, #727272 0%, #222 70%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.accountMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.accountName {
+  font-size: 25px;
+  font-size: 23px;
+  font-size: 16px;
+  font-size: 14px;
+  font-weight: 640;
+  line-height: 1.2;
+}
+
+.accountSub {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.updateNotice {
+  margin: 8px 0;
+  padding: 7px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28px;
+  font-size: 21px;
+  font-size: 16px;
+  font-size: 15px;
+  color: #303030;
+  line-height: 1.2;
+}
+
+.updateBadge {
+  width: 19px;
+  height: 19px;
+  border-radius: 9999px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.sidebarGroup {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #cecece;
+}
+
+.sidebarItem,
+.sidebarItemStatic {
+  min-height: 33px;
+  border-radius: 9px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebarItem {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.sidebarItemActive {
+  background: #1669d4;
+}
+
+.sidebarItemActive .sidebarItemLabel {
+  color: #fff;
+}
+
+.sidebarItemLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 15px;
+  color: #2f2f2f;
+}
+
+.iconBadge {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #9d9d9d 0%, #7d7d7d 100%);
+}
+
+.iconBadgewifi,
+.iconBadgebluetooth,
+.iconBadgenetwork,
+.iconBadgevpn,
+.iconBadgeaccessibility,
+.iconBadgefamily,
+.iconBadgestore,
+.iconBadgedate,
+.iconBadgelanguage {
+  background: linear-gradient(180deg, #2f9dff 0%, #0d72dc 100%);
+}
+
+.iconBadgegeneral,
+.iconBadgeperson,
+.iconBadgeshield,
+.iconBadgecard,
+.iconBadgeabout,
+.iconBadgestorage,
+.iconBadgedesktop,
+.iconBadgemenu,
+.iconBadgesiri {
+  background: linear-gradient(180deg, #9ea2a9 0%, #81858f 100%);
+}
+
+.iconBadgebattery,
+.iconBadgecloud {
+  background: linear-gradient(180deg, #65c160 0%, #36a246 100%);
+}
+
+.iconBadgeapple {
+  background: linear-gradient(180deg, #252525 0%, #0d0d0d 100%);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  background: #ececed;
+}
+
+.contentHeader {
+  min-height: 56px;
+  padding: 0 18px 0 10px;
+  border-bottom: 1px solid #d5d5d6;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.navButtons {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.navButton {
+  width: 36px;
+  height: 30px;
+  border-radius: 9999px;
+  border: 0;
+  background: #e2e2e3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navButtonDisabled {
+  opacity: 0.5;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 29px;
+  font-size: 22px;
+  font-size: 17px;
+  font-weight: 640;
+  color: #444;
+}
+
+.contentScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 20px 26px;
+}
+
+.card {
+  border-radius: 12px;
+  background: #f0f0f1;
+  border: 1px solid #e4e4e4;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.cardRow {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 1px solid #e0e0e0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.cardRow:last-child {
+  border-bottom: 0;
+}
+
+.cardRowLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 29px;
+  font-size: 20px;
+  font-size: 17px;
+  font-size: 15px;
+  color: #303030;
+}
+
+.devicesSection {
+  margin-top: 4px;
+}
+
+.sectionHeading {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-size: 20px;
+  font-size: 17px;
+  font-size: 15px;
+  font-weight: 640;
+  color: #343434;
+}
+
+.deviceTile {
+  width: 30px;
+  height: 20px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #58beff 0%, #265ec9 100%);
+}
+
+.accountProfile {
+  text-align: center;
+  padding: 4px 0 14px;
+}
+
+.accountProfileAvatar {
+  width: 94px;
+  height: 94px;
+  border-radius: 9999px;
+  margin: 0 auto 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 20%, #787878 0%, #222 72%);
+  color: #fff;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.accountProfileName {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 680;
+  color: #303030;
+}
+
+.accountProfileEmail {
+  margin: 1px 0 0;
+  font-size: 16px;
+  color: #444;
+}
+
+.settingsHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.settingsHeaderLeft {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.settingsHeaderTitle {
+  display: block;
+  font-size: 16px;
+  font-weight: 620;
+  color: #2f2f2f;
+  line-height: 1.1;
+}
+
+.settingsHeaderText {
+  display: block;
+  margin-top: 3px;
+  font-size: 16px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: #787878;
+}
+
+.learnMore {
+  color: #276fd9;
+}
+
+.wifiConnectedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+}
+
+.wifiConnectedTitle {
+  margin: 0;
+  font-size: 28px;
+  font-size: 20px;
+  font-size: 17px;
+  font-size: 15px;
+  font-weight: 530;
+  color: #323232;
+}
+
+.wifiConnectedMeta {
+  margin: 3px 0 0;
+  font-size: 16px;
+  font-size: 13px;
+  color: #7b7b7b;
+  line-height: 1.2;
+}
+
+.dotGreen,
+.dotYellow,
+.dotRed {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  margin-right: 6px;
+}
+
+.dotGreen {
+  background: #33b84b;
+}
+
+.dotYellow {
+  background: #f0b72b;
+}
+
+.dotRed {
+  background: #ff4646;
+}
+
+.offLineText {
+  margin: 0;
+  color: #808080;
+  font-size: 15px;
+}
+
+.inlineButton {
+  border: 0;
+  border-radius: 8px;
+  height: 30px;
+  padding: 0 12px;
+  background: #dedede;
+  color: #3b3b3b;
+  font-size: 28px;
+  font-size: 20px;
+  font-size: 17px;
+  font-size: 14px;
+  font-weight: 520;
+}
+
+.emptyNetworks {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8b8b8b;
+  font-size: 28px;
+  font-size: 20px;
+  font-size: 17px;
+  font-size: 29px;
+  font-size: 20px;
+  font-size: 17px;
+  font-size: 14px;
+}
+
+.cardFooterRight {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.preferenceRow {
+  min-height: 58px;
+  padding: 9px 10px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.preferenceRow:last-child {
+  border-bottom: 0;
+}
+
+.preferenceTitle {
+  display: block;
+  font-size: 27px;
+  font-size: 20px;
+  font-size: 17px;
+  font-size: 28px;
+  font-size: 20px;
+  font-size: 17px;
+  font-size: 15px;
+  color: #2f2f2f;
+  font-weight: 520;
+}
+
+.preferenceText {
+  display: block;
+  margin-top: 2px;
+  max-width: 470px;
+  font-size: 13px;
+  color: #828282;
+  line-height: 1.25;
+}
+
+.preferenceValue {
+  font-size: 14px;
+  color: #2f2f2f;
+  white-space: nowrap;
+}
+
+.offFooterActions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.helpButton {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 9999px;
+  background: #dedede;
+  color: #4d4d4d;
+  font-size: 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bluetoothNote {
+  padding: 10px;
+  font-size: 15px;
+  font-size: 14px;
+  color: #7a7a7a;
+}
+
+.bluetoothDeviceIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #5b5b5b 0%, #282828 100%);
+}
+
+.deviceName {
+  display: block;
+  font-size: 15px;
+  color: #2f2f2f;
+}
+
+.deviceStatus {
+  display: block;
+  font-size: 12px;
+  color: #7a7a7a;
+  line-height: 1.2;
+}
+
+.infoButton {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #a6a6a6;
+  border-radius: 9999px;
+  background: transparent;
+  color: #7e7e7e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rowMeta {
+  color: #7e7e7e;
+  font-size: 13px;
+}
+
+.checkMark {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.generalHero {
+  margin-bottom: 12px;
+  padding: 18px 14px 14px;
+  border-radius: 12px;
+  background: #f0f0f1;
+  border: 1px solid #e4e4e4;
+  text-align: center;
+}
+
+.generalHeroIcon {
+  display: inline-flex;
+}
+
+.generalHeroIcon .iconBadge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  font-size: 21px;
+}
+
+.generalHeroTitle {
+  margin: 8px 0 0;
+  font-size: 39px;
+  font-size: 29px;
+  font-size: 22px;
+  font-size: 17px;
+  font-weight: 690;
+  color: #303030;
+}
+
+.generalHeroText {
+  margin: 4px auto 0;
+  max-width: 460px;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #767676;
+}
+
+.appearanceHeaderRow {
+  padding: 8px 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modeOptions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.modeOption {
+  width: 72px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: center;
+}
+
+.modePreview {
+  display: block;
+  height: 42px;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #7ab6ff 0%, #0f4fa8 70%);
+  border: 2px solid transparent;
+}
+
+.modeOptionActive .modePreview {
+  border-color: #2b83e5;
+}
+
+.modeLabel {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: #666;
+}
+
+.modeOptionActive .modeLabel {
+  color: #1f5faf;
+  font-weight: 620;
+}
+
+.colorRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.multicolorDot,
+.colorDot {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+}
+
+.multicolorDot {
+  background:
+    conic-gradient(
+      #ff5151 0deg 60deg,
+      #f3c521 60deg 120deg,
+      #55ba4a 120deg 180deg,
+      #248bff 180deg 240deg,
+      #7d3eb2 240deg 300deg,
+      #e24a9d 300deg 360deg
+    );
+  border: 2px solid #2b83e5;
+}
+
+.toggle {
+  width: 43px;
+  height: 24px;
+  border: 0;
+  border-radius: 9999px;
+  background: #b9b9ba;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.toggleOn {
+  background: #2479ec;
+}
+
+.toggleGray:not(.toggleOn) {
+  background: #c9c9ca;
+}
+
+.toggleThumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.toggleThumbOn {
+  transform: translateX(19px);
+}
+
+.sidebarScroll::-webkit-scrollbar,
+.contentScroll::-webkit-scrollbar {
+  width: 7px;
+}
+
+.sidebarScroll::-webkit-scrollbar-thumb,
+.contentScroll::-webkit-scrollbar-thumb {
+  background: rgba(90, 90, 90, 0.34);
+  border-radius: 9999px;
+}
+
+.sidebarScroll::-webkit-scrollbar-track,
+.contentScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (max-width: 1080px) {
+  .shell {
+    grid-template-columns: 256px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    display: none;
+  }
+}

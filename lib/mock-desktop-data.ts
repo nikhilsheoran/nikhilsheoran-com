@@ -1,4 +1,10 @@
-export type DesktopAppId = "finder" | "notes" | "messages" | "music" | "tv";
+export type DesktopAppId =
+  | "finder"
+  | "notes"
+  | "system-settings"
+  | "messages"
+  | "music"
+  | "tv";
 
 export type NoteBodyBlock =
   | { type: "paragraph"; text: string }

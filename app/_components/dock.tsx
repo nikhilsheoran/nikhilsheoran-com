@@ -13,6 +13,7 @@ import {
 const dockApps = [
   { id: "finder", name: "Finder", icon: "/icons/finder.png", running: true },
   { id: "notes", name: "Notes", icon: "/icons/notes.png", running: true },
+  { id: "system-settings", name: "System Settings", icon: "/icons/settings.png", running: false },
   { id: "messages", name: "Messages", icon: "/icons/messages.png", running: true },
   { id: "music", name: "Music", icon: "/icons/music.png", running: true },
   { id: "tv", name: "TV", icon: "/icons/tv.png", running: false },

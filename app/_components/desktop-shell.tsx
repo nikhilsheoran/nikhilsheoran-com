@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Dock, type DockAppId } from "@/app/_components/dock";
 import { NotesWindow } from "@/app/_components/notes-window";
+import { SettingsWindow } from "@/app/_components/settings-window";
 import { TopBar } from "@/app/_components/top-bar";
 import { useMediaQuery } from "@/lib/use-media-query";
 import {
@@ -20,6 +21,7 @@ const APP_NAME_BY_ID: Record<string, string> = {
   notes: "Notes",
   messages: "Messages",
   music: "Music",
+  "system-settings": "System Settings",
   tv: "TV",
 };
 
@@ -87,6 +89,7 @@ export function DesktopShell({ initialPathname }: DesktopShellProps) {
   const { pathname, navigate } = useDesktopPathname(initialPathname);
   const route = useMemo(() => parseDesktopPath(pathname), [pathname]);
   const isNotesWindowOpen = route.appId === "notes";
+  const isSystemSettingsWindowOpen = route.appId === "system-settings";
   const selectedFolder = getFolderById(notesData, selectedFolderId) ?? notesData.folders[0];
   const routeNoteSlug =
     route.noteSlug && notesData.notesBySlug[route.noteSlug] ? route.noteSlug : null;
@@ -169,10 +172,11 @@ export function DesktopShell({ initialPathname }: DesktopShellProps) {
         onNoteSelect={handleNoteSelect}
         onClose={() => navigate("/")}
       />
+      <SettingsWindow isOpen={isSystemSettingsWindowOpen} onClose={() => navigate("/")} />
       <TopBar activeAppName={formatAppName(route.appId)} />
       <Dock
         disableMagnification={isMobile}
-        runningApps={{ notes: isNotesWindowOpen }}
+        runningApps={{ notes: isNotesWindowOpen, "system-settings": isSystemSettingsWindowOpen }}
         onAppOpen={handleAppOpen}
       />
     </div>
