@@ -178,41 +178,11 @@ export function NotesWindow({ isOpen, onClose }: NotesWindowProps) {
       }}
     >
       <div className={styles.layout}>
-        <div className={styles.headerSidebar} onPointerDown={handleDragStart}>
-          <WindowControls onClose={onClose} />
-        </div>
-
-        <div className={styles.headerList} onPointerDown={handleDragStart}>
-          <div className={styles.listHeadingBlock}>
-            <p className={styles.listHeadingTitle}>All iCloud</p>
-            <p className={styles.listHeadingMeta}>462 notes</p>
+        <aside className={styles.leftPane}>
+          <div className={styles.leftPaneHeader} onPointerDown={handleDragStart}>
+            <WindowControls onClose={onClose} />
           </div>
-          <div className={styles.headerListSpacer} />
-        </div>
-
-        <div className={styles.headerEditor} onPointerDown={handleDragStart}>
-          <div className={styles.editorToolbar}>
-            <button
-              type="button"
-              data-window-drag-ignore
-              className={styles.toolbarButtonPrimary}
-              aria-label="Share note"
-            >
-              <ShareIcon />
-            </button>
-          </div>
-
-          <div className={styles.searchField} data-window-drag-ignore>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-              <circle cx="6.2" cy="6.2" r="4.7" stroke="#787878" strokeWidth="1.2" />
-              <path d="M9.7 9.7L12.7 12.7" stroke="#787878" strokeWidth="1.2" strokeLinecap="round" />
-            </svg>
-            <span>Search</span>
-          </div>
-        </div>
-
-        <aside className={styles.sidebarContent}>
-          <div className={styles.sidebarInner}>
+          <div className={styles.leftPaneContent}>
             <div className={styles.quickGroup}>
               {quickGroups.map((item) => (
                 <div key={item.label} className={styles.quickRow}>
@@ -244,6 +214,35 @@ export function NotesWindow({ isOpen, onClose }: NotesWindowProps) {
             </div>
           </div>
         </aside>
+
+        <div className={styles.headerList} onPointerDown={handleDragStart}>
+          <div className={styles.listHeadingBlock}>
+            <p className={styles.listHeadingTitle}>All iCloud</p>
+            <p className={styles.listHeadingMeta}>462 notes</p>
+          </div>
+          <div className={styles.headerListSpacer} />
+        </div>
+
+        <div className={styles.headerEditor} onPointerDown={handleDragStart}>
+          <div className={styles.editorToolbar}>
+            <button
+              type="button"
+              data-window-drag-ignore
+              className={styles.toolbarButtonPrimary}
+              aria-label="Share note"
+            >
+              <ShareIcon />
+            </button>
+          </div>
+
+          <div className={styles.searchField} data-window-drag-ignore>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+              <circle cx="6.2" cy="6.2" r="4.7" stroke="#787878" strokeWidth="1.2" />
+              <path d="M9.7 9.7L12.7 12.7" stroke="#787878" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+            <span>Search</span>
+          </div>
+        </div>
 
         <section className={styles.noteList}>
           {noteGroups.map((group) => (

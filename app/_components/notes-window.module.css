@@ -34,21 +34,43 @@
   width: 100%;
 }
 
-.headerSidebar,
 .headerList,
 .headerEditor {
   display: flex;
   min-width: 0;
   align-items: center;
-  border-bottom: 1px solid #d9d9d9;
-  background: #ececec;
+  border-bottom: 0;
   user-select: none;
 }
 
-.headerSidebar {
+.leftPane {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  margin: 6px 0px 6px 6px;
+  border-radius: 22px;
+  border: 1px solid #d7d7d7;
+  box-shadow:
+    0 0 40px rgba(43, 43, 43, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  background: linear-gradient(180deg, #efefef 0%, #ebebeb 100%);
+  z-index: 100;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.leftPaneHeader {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
   justify-content: flex-start;
-  padding: 0 0 0 18px;
-  border-right: 1px solid #d8d8d8;
+  padding-left: 18px;
+}
+
+.leftPaneContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 8px 10px;
 }
 
 .headerList {
@@ -60,6 +82,9 @@
 .headerEditor {
   justify-content: space-between;
   padding: 0 14px 0 16px;
+  background-color: #f6f6f6;
+  overflow: visible;
+  z-index: 100;
 }
 
 .listHeadingBlock {
@@ -100,9 +125,9 @@
   cursor: default;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.58);
+  border: 1px solid #d7d7d7;
   box-shadow:
-    0 0 0 1px rgba(191, 191, 191, 0.8),
+    0 0 40px rgba(43, 43, 43, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
   border-radius: 9999px;
   background: rgba(252, 252, 252, 0.45);
@@ -120,6 +145,9 @@
   padding: 0 14px;
   border-radius: 9999px;
   border: 1px solid #d7d7d7;
+  box-shadow:
+    0 0 40px rgba(43, 43, 43, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
   background: #f1f1f1;
   color: #747474;
   font-size: 15px;
@@ -127,15 +155,8 @@
   letter-spacing: -0.01em;
 }
 
-.sidebarContent {
-  overflow-y: auto;
-  border-right: 1px solid #d8d8d8;
-  background: #ededed;
-  padding: 18px 12px 20px;
-}
-
 .quickGroup {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .quickRow,
@@ -180,7 +201,7 @@
 }
 
 .sectionLabel {
-  margin: 10px 10px 6px;
+  margin: 8px 10px 5px;
   color: #adadad;
   font-size: 13px;
   font-weight: 560;
@@ -290,7 +311,7 @@
 .editorTitle {
   margin: 0 0 14px;
   color: #363636;
-  font-size: 42px;
+  font-size: 20px;
   line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -299,14 +320,15 @@
 .editorBody {
   color: #3d3d3d;
   font-size: 16px;
-  line-height: 1.34;
+  line-height: 1.28;
   font-weight: 450;
 }
 
 .editorBody ol,
 .editorBody ul {
   margin: 0 0 18px;
-  padding-left: 28px;
+  padding-left: 0;
+  list-style: none;
 }
 
 .editorBody p {
@@ -323,16 +345,19 @@
   text-decoration-color: #da8f3a;
 }
 
+.leftPaneContent::-webkit-scrollbar,
 .noteList::-webkit-scrollbar,
 .editorContent::-webkit-scrollbar {
   width: 6px;
 }
 
+.leftPaneContent::-webkit-scrollbar-track,
 .noteList::-webkit-scrollbar-track,
 .editorContent::-webkit-scrollbar-track {
   background: transparent;
 }
 
+.leftPaneContent::-webkit-scrollbar-thumb,
 .noteList::-webkit-scrollbar-thumb,
 .editorContent::-webkit-scrollbar-thumb {
   background: rgba(93, 93, 93, 0.24);
@@ -361,12 +386,8 @@
 
   .headerList,
   .headerEditor,
-  .sidebarContent,
+  .leftPane,
   .noteList {
     display: none;
-  }
-
-  .headerSidebar {
-    border-right: 0;
   }
 }
