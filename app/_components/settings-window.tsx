@@ -15,6 +15,8 @@ type SettingsScreen = "account" | "wifi" | "bluetooth" | "general" | "accessibil
 interface SettingsWindowProps {
   isOpen: boolean;
   onClose: () => void;
+  onActivate?: () => void;
+  zIndex?: number;
 }
 
 const primarySidebarItems: { id: SettingsScreen; label: string; icon: string }[] = [
@@ -163,7 +165,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   return <p className={styles.sectionHeading}>{children}</p>;
 }
 
-export function SettingsWindow({ isOpen, onClose }: SettingsWindowProps) {
+export function SettingsWindow({ isOpen, onClose, onActivate, zIndex }: SettingsWindowProps) {
   const getBounds = useCallback((windowSize: WindowSize) => {
     return {
       minX: -(windowSize.width - WINDOW_VISIBLE_EDGE),
@@ -223,9 +225,11 @@ export function SettingsWindow({ isOpen, onClose }: SettingsWindowProps) {
     <section
       ref={windowRef}
       className={styles.window}
+      onPointerDownCapture={onActivate}
       style={{
         width: "min(1240px, calc(100vw - 84px))",
         height: "min(760px, calc(100vh - 108px))",
+        zIndex,
         transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
         willChange: isDragging ? "transform" : "auto",
       }}

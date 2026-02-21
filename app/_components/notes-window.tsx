@@ -19,6 +19,8 @@ const WINDOW_VISIBLE_TOP = 64;
 interface NotesWindowProps {
   isOpen: boolean;
   onClose: () => void;
+  onActivate?: () => void;
+  zIndex?: number;
   notesData: NotesData;
   selectedFolderId: string;
   selectedNoteSlug: string | null;
@@ -110,6 +112,8 @@ function renderBodyBlock(block: NoteBodyBlock, index: number) {
 export function NotesWindow({
   isOpen,
   onClose,
+  onActivate,
+  zIndex,
   notesData,
   selectedFolderId,
   selectedNoteSlug,
@@ -143,9 +147,11 @@ export function NotesWindow({
     <section
       ref={windowRef}
       className={styles.window}
+      onPointerDownCapture={onActivate}
       style={{
         width: "min(1280px, calc(100vw - 72px))",
         height: "min(640px, calc(100vh - 98px))",
+        zIndex,
         transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
         willChange: isDragging ? "transform" : "auto",
       }}
@@ -278,4 +284,3 @@ export function NotesWindow({
     </section>
   );
 }
-
