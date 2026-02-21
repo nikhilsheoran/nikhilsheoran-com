@@ -148,13 +148,55 @@ function DockItem({
 
 function BatteryIndicator() {
   const batteryState = useBattery();
+  const [isLowPowerMode, setIsLowPowerMode] = useState(false);
+
+  useEffect(() => {
+    type BatteryWithPowerMode = {
+      addEventListener?: (type: string, listener: () => void) => void;
+      removeEventListener?: (type: string, listener: () => void) => void;
+      powerSaveMode?: boolean;
+      lowPowerMode?: boolean;
+    };
+
+    let isMounted = true;
+    let battery: BatteryWithPowerMode | null = null;
+
+    const readPowerMode = () => {
+      if (!isMounted || !battery) return;
+      const powerMode =
+        typeof battery.powerSaveMode === "boolean"
+          ? battery.powerSaveMode
+          : typeof battery.lowPowerMode === "boolean"
+            ? battery.lowPowerMode
+            : false;
+      setIsLowPowerMode(powerMode);
+    };
+
+    const nav = navigator as Navigator & {
+      getBattery?: () => Promise<BatteryWithPowerMode>;
+    };
+
+    nav.getBattery?.().then((result) => {
+      if (!isMounted) return;
+      battery = result;
+      readPowerMode();
+      battery.addEventListener?.("chargingchange", readPowerMode);
+      battery.addEventListener?.("levelchange", readPowerMode);
+    });
+
+    return () => {
+      isMounted = false;
+      battery?.removeEventListener?.("chargingchange", readPowerMode);
+      battery?.removeEventListener?.("levelchange", readPowerMode);
+    };
+  }, []);
 
   const width = 0.1 + batteryState.level * 0.96;
   const colorClass = batteryState.charging
     ? "bg-green-400"
     : batteryState.level < 0.2
       ? "bg-red-500"
-      : batteryState.level < 0.5
+      : isLowPowerMode
         ? "bg-yellow-500"
         : "bg-white";
 
