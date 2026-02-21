@@ -2,6 +2,12 @@
 
 import { useCallback } from "react";
 import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
+import {
+  getFolderById,
+  getGroupedNotesForFolder,
+  type NoteBodyBlock,
+  type NotesData,
+} from "@/lib/mock-desktop-data";
 import { WindowControls } from "@/app/_components/window-controls";
 import styles from "./notes-window.module.css";
 
@@ -10,83 +16,14 @@ const DOCK_RESERVED_HEIGHT = 92;
 const WINDOW_VISIBLE_EDGE = 140;
 const WINDOW_VISIBLE_TOP = 64;
 
-const quickGroups = [
-  { label: "Shared", count: 6, icon: "shared" },
-] as const;
-
-const iCloudFolders = [
-  { label: "All iCloud", count: 462, selected: true },
-  { label: "Notes", count: 432, selected: false },
-  { label: "Archive", count: 6, selected: false },
-  { label: "Documents", count: 9, selected: false },
-  { label: "Imported Notes", count: 0, selected: false },
-  { label: "Passwords", count: 15, selected: false },
-  { label: "Quick Notes", count: 0, selected: false },
-] as const;
-
-const noteGroups = [
-  {
-    heading: "Previous 30 Days",
-    items: [
-      {
-        title: "Problem Statement",
-        subtitle: "Imagine that your mobile",
-        date: "19/01/26",
-        selected: false,
-      },
-      {
-        title: "Problem Statement",
-        subtitle: "You are given two numeri",
-        date: "19/01/26",
-        selected: false,
-      },
-      {
-        title: "Here is the clean, reconstru...",
-        subtitle: "in text form, with examp...",
-        date: "19/01/26",
-        selected: false,
-      },
-      {
-        title: "tally server setup readme",
-        subtitle: "setup cloudflare tunnel +",
-        date: "17/01/26",
-        selected: true,
-      },
-      {
-        title: "opendictate readme",
-        subtitle: "# OpenDictate",
-        date: "15/01/26",
-        selected: false,
-      },
-    ],
-  },
-  {
-    heading: "January",
-    items: [
-      {
-        title: "to order - amazon",
-        subtitle: "instamart",
-        date: "05/01/26",
-        selected: false,
-      },
-    ],
-  },
-  {
-    heading: "2025",
-    items: [
-      {
-        title: "bunx --bun shadcn@latest...",
-        subtitle: "?base=radix&style=maia",
-        date: "30/12/25",
-        selected: false,
-      },
-    ],
-  },
-] as const;
-
 interface NotesWindowProps {
   isOpen: boolean;
   onClose: () => void;
+  notesData: NotesData;
+  selectedFolderId: string;
+  selectedNoteSlug: string | null;
+  onFolderSelect: (folderId: string) => void;
+  onNoteSelect: (noteSlug: string) => void;
 }
 
 function FolderIcon({ active }: { active: boolean }) {
@@ -146,7 +83,39 @@ function ShareIcon() {
   );
 }
 
-export function NotesWindow({ isOpen, onClose }: NotesWindowProps) {
+function renderBodyBlock(block: NoteBodyBlock, index: number) {
+  if (block.type === "paragraph") {
+    return <p key={`paragraph-${index}`}>{block.text}</p>;
+  }
+
+  if (block.type === "ordered-list") {
+    return (
+      <ol key={`ordered-${index}`}>
+        {block.items.map((item, itemIndex) => (
+          <li key={`${item}-${itemIndex}`}>{item}</li>
+        ))}
+      </ol>
+    );
+  }
+
+  return (
+    <ul key={`unordered-${index}`}>
+      {block.items.map((item, itemIndex) => (
+        <li key={`${item}-${itemIndex}`}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+export function NotesWindow({
+  isOpen,
+  onClose,
+  notesData,
+  selectedFolderId,
+  selectedNoteSlug,
+  onFolderSelect,
+  onNoteSelect,
+}: NotesWindowProps) {
   const getBounds = useCallback((windowSize: WindowSize) => {
     return {
       minX: -(windowSize.width - WINDOW_VISIBLE_EDGE),
@@ -166,13 +135,17 @@ export function NotesWindow({ isOpen, onClose }: NotesWindowProps) {
     return null;
   }
 
+  const selectedFolder = getFolderById(notesData, selectedFolderId) ?? notesData.folders[0];
+  const groupedNotes = getGroupedNotesForFolder(notesData, selectedFolder.id);
+  const selectedNote = selectedNoteSlug ? notesData.notesBySlug[selectedNoteSlug] ?? null : null;
+
   return (
     <section
       ref={windowRef}
       className={styles.window}
       style={{
-        width: "min(1460px, calc(100vw - 72px))",
-        height: "min(792px, calc(100vh - 98px))",
+        width: "min(1280px, calc(100vw - 72px))",
+        height: "min(640px, calc(100vh - 98px))",
         transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
         willChange: isDragging ? "transform" : "auto",
       }}
@@ -184,8 +157,8 @@ export function NotesWindow({ isOpen, onClose }: NotesWindowProps) {
           </div>
           <div className={styles.leftPaneContent}>
             <div className={styles.quickGroup}>
-              {quickGroups.map((item) => (
-                <div key={item.label} className={styles.quickRow}>
+              {notesData.quickGroups.map((item) => (
+                <div key={item.id} className={styles.quickRow}>
                   <div className={styles.quickLabel}>
                     <span className={styles.quickIcon} aria-hidden>
                       <SharedIcon />
@@ -199,26 +172,34 @@ export function NotesWindow({ isOpen, onClose }: NotesWindowProps) {
 
             <p className={styles.sectionLabel}>iCloud</p>
             <div className={styles.folderList}>
-              {iCloudFolders.map((folder) => (
-                <div
-                  key={folder.label}
-                  className={`${styles.folderRow} ${folder.selected ? styles.folderRowActive : ""}`}
-                >
-                  <div className={styles.folderLabel}>
-                    <FolderIcon active={folder.selected} />
-                    <span>{folder.label}</span>
-                  </div>
-                  <span className={styles.countValue}>{folder.count}</span>
-                </div>
-              ))}
+              {notesData.folders.map((folder) => {
+                const isActive = folder.id === selectedFolder.id;
+                return (
+                  <button
+                    key={folder.id}
+                    type="button"
+                    data-window-drag-ignore
+                    onClick={() => onFolderSelect(folder.id)}
+                    className={`${styles.folderRow} ${isActive ? styles.folderRowActive : ""}`}
+                  >
+                    <div className={styles.folderLabel}>
+                      <FolderIcon active={isActive} />
+                      <span>{folder.label}</span>
+                    </div>
+                    <span className={styles.countValue}>{folder.noteSlugs.length}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </aside>
 
         <div className={styles.headerList} onPointerDown={handleDragStart}>
           <div className={styles.listHeadingBlock}>
-            <p className={styles.listHeadingTitle}>All iCloud</p>
-            <p className={styles.listHeadingMeta}>462 notes</p>
+            <p className={styles.listHeadingTitle}>{selectedFolder.label}</p>
+            <p className={styles.listHeadingMeta}>
+              {selectedFolder.noteSlugs.length} note{selectedFolder.noteSlugs.length === 1 ? "" : "s"}
+            </p>
           </div>
           <div className={styles.headerListSpacer} />
         </div>
@@ -245,80 +226,56 @@ export function NotesWindow({ isOpen, onClose }: NotesWindowProps) {
         </div>
 
         <section className={styles.noteList}>
-          {noteGroups.map((group) => (
+          {groupedNotes.map((group) => (
             <div key={group.heading} className={styles.noteGroup}>
               <h3 className={styles.noteGroupTitle}>{group.heading}</h3>
-              {group.items.map((note) => (
-                <article
-                  key={`${group.heading}-${note.title}`}
-                  className={`${styles.noteCard} ${note.selected ? styles.noteCardActive : ""}`}
-                >
-                  <p className={styles.noteCardTitle}>{note.title}</p>
-                  <div className={styles.noteCardMeta}>
-                    <span className={styles.noteDate}>{note.date}</span>
-                    <span className={styles.notePreview}>{note.subtitle}</span>
-                  </div>
-                  <div className={styles.noteSource}>
-                    <NotesIcon />
-                    <span>Notes</span>
-                  </div>
-                </article>
-              ))}
+              {group.items.map((note) => {
+                const isActive = selectedNote?.slug === note.slug;
+                return (
+                  <button
+                    key={note.slug}
+                    type="button"
+                    data-window-drag-ignore
+                    onClick={() => onNoteSelect(note.slug)}
+                    className={`${styles.noteCard} ${isActive ? styles.noteCardActive : ""}`}
+                  >
+                    <p className={styles.noteCardTitle}>{note.title}</p>
+                    <div className={styles.noteCardMeta}>
+                      <span className={styles.noteDate}>{note.dateLabel}</span>
+                      <span className={styles.notePreview}>{note.preview}</span>
+                    </div>
+                    <div className={styles.noteSource}>
+                      <NotesIcon />
+                      <span>Notes</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           ))}
         </section>
 
         <article className={styles.editorContent}>
-          <p className={styles.editorMeta}>17 January 2026 at 1:16 PM - Shared</p>
-          <h1 className={styles.editorTitle}>tally server setup readme</h1>
-          <div className={styles.editorBody}>
-            <ol>
-              <li>
-                setup <span className={styles.inlineLink}>cloudflare</span> tunnel + wrap zero trust on
-                server and all clients
-              </li>
-              <li>go to network/connectors -&gt; add tunnel(cloudflared) -&gt; in cidr tab enter pvt ip.</li>
-              <li>create users and security stuff give access.</li>
-            </ol>
-
-            <ul>
-              <li>
-                Type <span className={styles.inlineLink}>sysdm.cpl</span> and hit Enter.
-              </li>
-              <li>Go to the Advanced tab.</li>
-              <li>Under Performance, click Settings.</li>
-              <li>Select &quot;Adjust for best performance&quot;.</li>
-              <li>
-                Recommendation: check the box for &quot;Smooth edges of screen fonts&quot; so text is
-                still readable.
-              </li>
-            </ul>
-
-            <p>turn off virus and threat protection</p>
-
-            <p>
-              Navigate to: Computer Configuration -&gt; Administrative Templates -&gt; Windows Components
-              -&gt; Remote Desktop Services.
-            </p>
-
-            <ul>
-              <li>
-                &quot;Enforce Removal of Remote Desktop Wallpaper&quot;: Set to <strong>Enabled</strong>.
-              </li>
-              <li>
-                &quot;Limit maximum color depth&quot;: Set to <strong>Enabled</strong> -&gt;{" "}
-                <strong>16 bit</strong>.
-              </li>
-              <li>
-                &quot;Configure image quality for RemoteFX Adaptive Graphics&quot;: Set to{" "}
-                <strong>Enabled</strong> -&gt; <strong>Medium</strong>.
-              </li>
-            </ul>
-
-            <p className={styles.inlineLink}>https://github.com/sebaxakerhtc/rdpwrap/releases</p>
-          </div>
+          {selectedNote ? (
+            <>
+              <p className={styles.editorMeta}>
+                {selectedNote.updatedAtLabel}
+                {selectedNote.isShared ? " - Shared" : ""}
+              </p>
+              <h1 className={styles.editorTitle}>{selectedNote.title}</h1>
+              <div className={styles.editorBody}>
+                {selectedNote.body.map((block, index) => renderBodyBlock(block, index))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className={styles.editorMeta}>No note selected</p>
+              <h1 className={styles.editorTitle}>Select a note</h1>
+            </>
+          )}
         </article>
       </div>
     </section>
   );
 }
+

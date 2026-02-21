@@ -77,6 +77,15 @@ export function useDraggableWindow({
     [getBounds],
   );
 
+  const clampAndCommitPosition = useCallback(
+    (size: WindowSize) => {
+      const clampedPosition = clampToBounds(positionRef.current, size);
+      applyPosition(clampedPosition);
+      setPosition(clampedPosition);
+    },
+    [applyPosition, clampToBounds],
+  );
+
   const flushPointerMove = useCallback(() => {
     rafIdRef.current = null;
 
@@ -174,23 +183,46 @@ export function useDraggableWindow({
   useEffect(() => {
     const windowSize = getWindowSize();
     if (!windowSize) return;
-    const clampedPosition = clampToBounds(positionRef.current, windowSize);
-    applyPosition(clampedPosition);
-    setPosition(clampedPosition);
-  }, [applyPosition, clampToBounds, getWindowSize]);
+    clampAndCommitPosition(windowSize);
+  }, [clampAndCommitPosition, getWindowSize]);
 
   useEffect(() => {
     const handleResize = () => {
       const windowSize = getWindowSize();
       if (!windowSize) return;
-      const clampedPosition = clampToBounds(positionRef.current, windowSize);
-      applyPosition(clampedPosition);
-      setPosition(clampedPosition);
+      clampAndCommitPosition(windowSize);
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [applyPosition, clampToBounds, getWindowSize]);
+  }, [clampAndCommitPosition, getWindowSize]);
+
+  useEffect(() => {
+    const windowElement = windowRef.current;
+    if (!windowElement || typeof ResizeObserver === "undefined") return;
+
+    let rafId: number | null = null;
+    const observer = new ResizeObserver(() => {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        const windowSize = getWindowSize();
+        if (!windowSize) return;
+        clampAndCommitPosition(windowSize);
+      });
+    });
+
+    observer.observe(windowElement);
+    return () => {
+      observer.disconnect();
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, [clampAndCommitPosition, getWindowSize]);
 
   useEffect(
     () => () => {

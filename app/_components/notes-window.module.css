@@ -4,6 +4,11 @@
   left: 0;
   z-index: 40;
   overflow: hidden;
+  resize: both;
+  min-width: min(920px, calc(100vw - 24px));
+  min-height: min(520px, calc(100vh - 72px));
+  max-width: calc(100vw - 12px);
+  max-height: calc(100vh - 44px);
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.46);
   background: #efefef;
@@ -20,6 +25,11 @@
     "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.window::-webkit-resizer {
+  background:
+    linear-gradient(135deg, transparent 0 45%, rgba(80, 80, 80, 0.5) 45% 50%, transparent 50% 100%);
 }
 
 .window * {
@@ -52,7 +62,7 @@
   box-shadow:
     0 0 40px rgba(43, 43, 43, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
-  background: linear-gradient(180deg, #efefef 0%, #ebebeb 100%);
+  background: linear-gradient(180deg, rgb(244, 233, 233) 0%, #e3e5f4 100%);
   z-index: 100;
   overflow: hidden;
   display: flex;
@@ -173,6 +183,13 @@
   letter-spacing: -0.01em;
 }
 
+.folderRow {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
 .quickLabel,
 .folderLabel {
   display: inline-flex;
@@ -242,6 +259,10 @@
 }
 
 .noteCard {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
   border-radius: 12px;
   padding: 8px 10px 9px;
   margin-bottom: 7px;
