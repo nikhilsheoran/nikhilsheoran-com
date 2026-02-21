@@ -26,7 +26,7 @@ const dockApps = [
 ] as const;
 const menuItems = ["File", "Edit", "View", "Window", "Help"] as const;
 
-const DOCK_BASE_SIZE = 50;
+const DOCK_BASE_SIZE = 60;
 const DOCK_MAG = 2;
 
 function CCMIcon({ size }: { size: number }) {
