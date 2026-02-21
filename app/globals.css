@@ -139,19 +139,18 @@
   justify-content: center;
   height: 1.5rem;
   border-radius: 0.3rem;
-  transition: background-color 120ms ease;
-}
-
-.topbar-item:hover {
-  background: rgba(243, 244, 246, 0.28);
 }
 
 .topbar-item-active {
   background: rgba(243, 244, 246, 0.28);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .topbar-item {
-    transition: none;
-  }
+.battery-level {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  margin-left: 2px;
+  margin-top: -4px;
+  height: 8px;
+  border-radius: 1px;
 }
