@@ -7,53 +7,65 @@ export interface BatteryState {
   level: number;
 }
 
-interface BatteryManager extends Readonly<BatteryState>, EventTarget {
-  onchargingchange: () => void;
-  onchargingtimechange: () => void;
-  ondischargingtimechange: () => void;
-  onlevelchange: () => void;
+interface BatteryManagerWithPowerMode extends Readonly<BatteryState>, EventTarget {
+  lowPowerMode?: boolean;
+  powerSaveMode?: boolean;
 }
 
-interface NavigatorWithPossibleBattery extends Navigator {
-  getBattery?: () => Promise<BatteryManager>;
+interface NavigatorWithBattery extends Navigator {
+  getBattery?: () => Promise<BatteryManagerWithPowerMode>;
 }
 
 export interface UseBatteryState extends BatteryState {
   isSupported: boolean;
-  fetched?: boolean;
+  fetched: boolean;
+  lowPowerMode: boolean;
 }
 
-const isNavigator = typeof navigator !== "undefined";
-const nav: NavigatorWithPossibleBattery | undefined = isNavigator ? navigator : undefined;
-const isBatteryApiSupported = nav && typeof nav.getBattery === "function";
-
-const defaultState: BatteryState = {
+const defaultBattery: BatteryState = {
   charging: false,
   chargingTime: 0,
   dischargingTime: 0,
   level: 1,
 };
 
-const useBatteryMock = (): UseBatteryState => {
-  return {
-    isSupported: false,
-    ...defaultState,
-  };
+const defaultState: UseBatteryState = {
+  ...defaultBattery,
+  isSupported: false,
+  fetched: false,
+  lowPowerMode: false,
 };
 
-const useBatteryReal = (): UseBatteryState => {
+export function useBattery(): UseBatteryState {
   const [state, setState] = useState<UseBatteryState>({
-    isSupported: true,
-    fetched: false,
     ...defaultState,
   });
 
   useEffect(() => {
+    const nav = navigator as NavigatorWithBattery;
+
+    if (typeof nav.getBattery !== "function") {
+      setState((currentState) => ({
+        ...currentState,
+        isSupported: false,
+        fetched: true,
+      }));
+      return;
+    }
+
     let isMounted = true;
-    let battery: BatteryManager | null = null;
+    let battery: BatteryManagerWithPowerMode | null = null;
 
     const handleChange = () => {
       if (!isMounted || !battery) return;
+
+      const lowPowerMode =
+        typeof battery.powerSaveMode === "boolean"
+          ? battery.powerSaveMode
+          : typeof battery.lowPowerMode === "boolean"
+            ? battery.lowPowerMode
+            : false;
+
       setState({
         isSupported: true,
         fetched: true,
@@ -61,18 +73,30 @@ const useBatteryReal = (): UseBatteryState => {
         charging: battery.charging,
         dischargingTime: battery.dischargingTime,
         chargingTime: battery.chargingTime,
+        lowPowerMode,
       });
     };
 
-    nav?.getBattery?.().then((bat: BatteryManager) => {
-      if (!isMounted) return;
-      battery = bat;
-      battery.addEventListener("chargingchange", handleChange);
-      battery.addEventListener("chargingtimechange", handleChange);
-      battery.addEventListener("dischargingtimechange", handleChange);
-      battery.addEventListener("levelchange", handleChange);
-      handleChange();
-    });
+    nav
+      .getBattery()
+      .then((result) => {
+        if (!isMounted) return;
+
+        battery = result;
+        battery.addEventListener("chargingchange", handleChange);
+        battery.addEventListener("chargingtimechange", handleChange);
+        battery.addEventListener("dischargingtimechange", handleChange);
+        battery.addEventListener("levelchange", handleChange);
+        handleChange();
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setState((currentState) => ({
+          ...currentState,
+          fetched: true,
+          isSupported: false,
+        }));
+      });
 
     return () => {
       isMounted = false;
@@ -85,6 +109,4 @@ const useBatteryReal = (): UseBatteryState => {
   }, []);
 
   return state;
-};
-
-export const useBattery = isBatteryApiSupported ? useBatteryReal : useBatteryMock;
+}
