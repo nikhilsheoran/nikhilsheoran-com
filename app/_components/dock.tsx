@@ -11,17 +11,18 @@ import {
 } from "framer-motion";
 
 const dockApps = [
-  { name: "Finder", icon: "/icons/finder.png", running: true },
-  { name: "Notes", icon: "/icons/notes.png", running: true },
-  { name: "Messages", icon: "/icons/messages.png", running: true },
-  { name: "Music", icon: "/icons/music.png", running: true },
-  { name: "TV", icon: "/icons/tv.png", running: false },
+  { id: "finder", name: "Finder", icon: "/icons/finder.png", running: true },
+  { id: "notes", name: "Notes", icon: "/icons/notes.png", running: true },
+  { id: "messages", name: "Messages", icon: "/icons/messages.png", running: true },
+  { id: "music", name: "Music", icon: "/icons/music.png", running: true },
+  { id: "tv", name: "TV", icon: "/icons/tv.png", running: false },
 ] as const;
 
 const DOCK_BASE_SIZE = 60;
 const DOCK_MAGNIFICATION = 2;
 
 type DockApp = (typeof dockApps)[number];
+export type DockAppId = DockApp["id"];
 
 function useDockHoverAnimation(
   mouseX: MotionValue<number | null>,
@@ -78,10 +79,14 @@ function DockItem({
   app,
   mouseX,
   disableMagnification,
+  isRunning,
+  onAppOpen,
 }: {
   app: DockApp;
   mouseX: MotionValue<number | null>;
   disableMagnification: boolean;
+  isRunning: boolean;
+  onAppOpen?: (appId: DockAppId) => void;
 }) {
   const imgRef = useRef<HTMLImageElement>(null);
   const { width } = useDockHoverAnimation(
@@ -93,32 +98,43 @@ function DockItem({
 
   return (
     <li className="dock-item relative mb-1 flex flex-col justify-end">
-      <p className="dock-tooltip">{app.name}</p>
-      <motion.img
-        ref={imgRef}
-        src={app.icon}
-        alt={app.name}
-        draggable={false}
-        style={
-          disableMagnification
-            ? { width: `${DOCK_BASE_SIZE}px` }
-            : { width, willChange: "width" }
-        }
-        className="h-auto"
-      />
-      {app.running ? (
-        <span className="mx-auto h-1 w-1 rounded-full bg-gray-800" />
-      ) : (
-        <span className="mx-auto h-1 w-1 invisible" />
-      )}
+      <button
+        type="button"
+        onClick={() => onAppOpen?.(app.id)}
+        className="group flex cursor-default flex-col justify-end bg-transparent p-0"
+        aria-label={`Open ${app.name}`}
+      >
+        <p className="dock-tooltip">{app.name}</p>
+        <motion.img
+          ref={imgRef}
+          src={app.icon}
+          alt={app.name}
+          draggable={false}
+          style={
+            disableMagnification
+              ? { width: `${DOCK_BASE_SIZE}px` }
+              : { width, willChange: "width" }
+          }
+          className="h-auto"
+        />
+        {isRunning ? (
+          <span className="mx-auto h-1 w-1 rounded-full bg-gray-800" />
+        ) : (
+          <span className="mx-auto h-1 w-1 invisible" />
+        )}
+      </button>
     </li>
   );
 }
 
 export function Dock({
   disableMagnification,
+  runningApps,
+  onAppOpen,
 }: {
   disableMagnification: boolean;
+  runningApps?: Partial<Record<DockAppId, boolean>>;
+  onAppOpen?: (appId: DockAppId) => void;
 }) {
   const mouseX = useMotionValue<number | null>(null);
 
@@ -138,10 +154,12 @@ export function Dock({
       >
         {dockApps.map((app) => (
           <DockItem
-            key={app.name}
+            key={app.id}
             app={app}
             mouseX={mouseX}
             disableMagnification={disableMagnification}
+            isRunning={runningApps?.[app.id] ?? app.running}
+            onAppOpen={onAppOpen}
           />
         ))}
       </ul>

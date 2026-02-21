@@ -54,7 +54,7 @@ function BatteryIndicator() {
   );
 }
 
-export function TopBar() {
+export function TopBar({ activeAppName = "Finder" }: { activeAppName?: string }) {
   const clock = useClock();
 
   return (
@@ -68,7 +68,7 @@ export function TopBar() {
             <Icon icon={appleFill} className="text-base" />
           </span>
           <span className="topbar-item px-2 font-semibold tracking-[0.01em]">
-            Finder
+            {activeAppName}
           </span>
           {menuItems.map((item) => (
             <span key={item} className="topbar-item px-2 text-white/95">
