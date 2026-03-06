@@ -8,13 +8,19 @@ import authConfig from "./auth.config";
 
 const siteUrl = process.env.SITE_URL!;
 
+const trustedOrigins = [
+  siteUrl,
+  "http://localhost:3000",
+  "http://localhost:3001",
+];
+
 // The component client exposes adapter, getAuth, registerRoutes, etc.
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
   return betterAuth({
     baseURL: siteUrl,
-    trustedOrigins: [siteUrl],
+    trustedOrigins,
     database: authComponent.adapter(ctx),
     socialProviders: {
       google: {
