@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import { useMusicPlayer } from "@/lib/use-music-player";
@@ -756,6 +756,10 @@ export function MusicWindow({ isOpen, onClose, onActivate, zIndex }: MusicWindow
   });
 
   const player = useMusicPlayer();
+
+  useEffect(() => {
+    if (!isOpen) player.pause();
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [view, setView] = useState<View>({ id: "home" });
   const [viewHistory, setViewHistory] = useState<View[]>([{ id: "home" }]);

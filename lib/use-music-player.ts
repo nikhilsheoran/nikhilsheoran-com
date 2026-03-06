@@ -147,8 +147,13 @@ export function useMusicPlayer(): MusicPlayer {
   }, [getAudio]);
 
   const resume = useCallback(() => {
-    getAudio().play().catch(() => {});
-  }, [getAudio]);
+    const audio = getAudio();
+    // If audio has no src yet (e.g. default song shown but never loaded), load it now
+    if (!audio.src && state.currentSong) {
+      audio.src = state.currentSong.previewUrl;
+    }
+    audio.play().catch(() => {});
+  }, [getAudio, state.currentSong]);
 
   const togglePlay = useCallback(
     (songId?: string, contextIds?: string[]) => {
@@ -156,13 +161,18 @@ export function useMusicPlayer(): MusicPlayer {
         play(songId, contextIds);
         return;
       }
+      const audio = getAudio();
       if (state.isPlaying) {
-        getAudio().pause();
+        audio.pause();
       } else {
-        getAudio().play().catch(() => {});
+        // If audio has no src yet (default song shown but never loaded), load it now
+        if (!audio.src && state.currentSong) {
+          audio.src = state.currentSong.previewUrl;
+        }
+        audio.play().catch(() => {});
       }
     },
-    [state.currentSong?.id, state.isPlaying, play, getAudio]
+    [state.currentSong, state.isPlaying, play, getAudio]
   );
 
   const next = useCallback(() => {
