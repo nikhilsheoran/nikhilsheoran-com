@@ -33,6 +33,8 @@ export interface NotesQuickGroup {
   id: "shared";
   label: string;
   count: number;
+  /** Virtual folder id that clicking this quick row navigates to */
+  folderId: string;
 }
 
 export interface NotesFolder {
@@ -50,6 +52,7 @@ export interface NoteRecord {
   groupHeading: string;
   folderIds: string[];
   isShared: boolean;
+  isPinned: boolean;
   /** Pre-compiled MDX source for client-side rendering */
   mdxSource: MDXRemoteSerializeResult | null;
   /** Reading time in minutes */
@@ -83,6 +86,8 @@ const folderDefinitions = [
   { id: "imported-notes", label: "Imported Notes" },
   { id: "passwords", label: "Passwords" },
   { id: "quick-notes", label: "Quick Notes" },
+  // Virtual folder — populated with all shared notes
+  { id: "shared", label: "Shared" },
 ] as const;
 
 const DEFAULT_FOLDER_ID = "all-icloud";
@@ -113,9 +118,10 @@ export function buildNotesData(
       preview: entry.preview,
       dateLabel: entry.dateLabel,
       updatedAtLabel: entry.updatedAtLabel,
-      groupHeading: computeGroupHeading(entry.frontmatter.date),
+      groupHeading: (entry.frontmatter.pinned ?? false) ? "Pinned" : computeGroupHeading(entry.frontmatter.date),
       folderIds: uniqueFolderIds,
       isShared: entry.frontmatter.shared ?? false,
+      isPinned: entry.frontmatter.pinned ?? false,
       mdxSource: serializedMap[entry.slug] ?? null,
       readingTime: entry.readingTime,
     };
@@ -131,6 +137,10 @@ export function buildNotesData(
       const list = folderNoteSlugs.get(folderId);
       if (list) list.push(record.slug);
     }
+    // Also push into the virtual "shared" folder
+    if (record.isShared) {
+      folderNoteSlugs.get("shared")?.push(record.slug);
+    }
   }
 
   const folders: NotesFolder[] = folderDefinitions.map((folder) => ({
@@ -145,9 +155,14 @@ export function buildNotesData(
 
   const sharedCount = records.filter((r) => r.isShared).length;
 
-  // Compute ordered unique group headings (preserving the date-sort order)
+  // Compute ordered unique group headings — "Pinned" always first
   const seenGroups = new Set<string>();
   const groupOrder: string[] = [];
+  // Seed Pinned first if any pinned notes exist
+  if (records.some((r) => r.isPinned)) {
+    seenGroups.add("Pinned");
+    groupOrder.push("Pinned");
+  }
   for (const record of records) {
     if (!seenGroups.has(record.groupHeading)) {
       seenGroups.add(record.groupHeading);
@@ -163,7 +178,7 @@ export function buildNotesData(
   return {
     defaultFolderId: DEFAULT_FOLDER_ID,
     defaultNoteSlug,
-    quickGroups: [{ id: "shared", label: "Shared", count: sharedCount }],
+    quickGroups: [{ id: "shared", label: "Shared", count: sharedCount, folderId: "shared" }],
     folders,
     notesBySlug,
     noteOrder: records.map((r) => r.slug),

@@ -17,6 +17,8 @@ export interface NoteFrontmatter {
   folders: string[];
   /** Whether this note is shared */
   shared?: boolean;
+  /** Whether this note is pinned (shown at top of list) */
+  pinned?: boolean;
   /** Draft notes are excluded from production */
   draft?: boolean;
   /** Optional tags for categorization */

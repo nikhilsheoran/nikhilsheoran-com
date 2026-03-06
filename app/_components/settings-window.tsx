@@ -637,7 +637,7 @@ export function SettingsWindow({ isOpen, onClose, onActivate, zIndex }: Settings
   });
 
   // Display sub-screen state
-  const [brightness, setBrightness] = useState(72);
+  const [brightness, setBrightness] = useState(100);
   const [autoBrightness, setAutoBrightness] = useState(true);
   const [trueTone, setTrueTone] = useState(true);
 
