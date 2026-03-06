@@ -358,7 +358,73 @@
   font-size: 13px;
 }
 
-/* ========== Scrollbars ========== */
+/* ========== Search bar (replaces pathTitle when active) ========== */
+
+.searchBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  height: 34px;
+  min-width: 240px;
+  max-width: 420px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  border: 1px solid #c8c8c8;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.searchBarIcon {
+  flex-shrink: 0;
+  color: #8c8c8c;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  font-weight: 440;
+  color: #1d1d1f;
+  font-family: inherit;
+  letter-spacing: -0.006em;
+  cursor: text !important;
+  min-width: 0;
+}
+
+.searchInput::placeholder {
+  color: #aaa;
+}
+
+.searchClearBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer !important;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s;
+}
+
+.searchClearBtn:hover {
+  opacity: 1;
+}
+
+/* Active state for search toolbar button */
+.toolbarButtonActive {
+  background: rgba(0, 122, 255, 0.12) !important;
+  color: #007aff !important;
+  border-color: rgba(0, 122, 255, 0.3) !important;
+}
+
+
 
 .sidebarScroll::-webkit-scrollbar,
 .tableBody::-webkit-scrollbar {

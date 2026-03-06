@@ -1,0 +1,499 @@
+/* ================================================================
+   Mobile Notes — liquid glass aesthetic
+   ================================================================ */
+
+/* ── Shared tokens ── */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --glass-blur: blur(24px) saturate(180%);
+}
+
+/* ================================================================
+   Note List
+   ================================================================ */
+
+.listRoot {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #f0f0f0;
+}
+
+/* Glass header bar */
+.listHeader {
+  position: relative;
+  z-index: 10;
+  background: #f0f0f0;
+  border-bottom: 0.5px solid #d8d8d8;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  padding: env(safe-area-inset-top, 0) 0 0;
+}
+
+.listHeaderInner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+}
+
+.listTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 760;
+  letter-spacing: -0.03em;
+  color: #1a1a1a;
+}
+
+.listCount {
+  font-size: 13px;
+  color: #888;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+}
+
+/* Scrollable body */
+.listBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.listBody::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Group heading ── */
+.noteGroup + .noteGroup {
+  margin-top: 24px;
+}
+
+.groupHeading {
+  margin: 16px 0 8px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 660;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #888;
+}
+
+/* ── Note card — liquid glass pill ── */
+.noteCard {
+  width: 100%;
+  border: none;
+  text-align: left;
+  padding: 13px 16px 14px;
+  border-radius: 16px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: background 0.15s ease, transform 0.1s ease;
+  cursor: pointer !important;
+  display: block;
+}
+
+.noteCard:active {
+  background: rgba(255, 255, 255, 0.9);
+  transform: scale(0.98);
+}
+
+.noteCardActive {
+  background: #f8e37f;
+  border-color: rgba(200, 160, 0, 0.25);
+}
+
+.noteCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.noteCardTitle {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 640;
+  letter-spacing: -0.016em;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.noteCardBottom {
+  margin-top: 3px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.noteDate {
+  font-size: 13px;
+  font-weight: 620;
+  color: #444;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.notePreview {
+  font-size: 13px;
+  color: #888;
+  font-weight: 430;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ================================================================
+   Note Reader
+   ================================================================ */
+
+.readerRoot {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #f6f6f6;
+}
+
+/* Glass top bar with back button */
+.readerHeader {
+  position: relative;
+  z-index: 10;
+  background: #f6f6f6;
+  border-bottom: 0.5px solid #d8d8d8;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  padding: env(safe-area-inset-top, 0) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 4px;
+}
+
+/* Back button — liquid glass pill */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 8px 8px 8px 12px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 9999px;
+  border: 0.5px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  font-size: 15px;
+  font-weight: 500;
+  color: #e2a727;
+  letter-spacing: -0.01em;
+  cursor: pointer !important;
+  transition: background 0.12s ease, transform 0.1s ease;
+}
+
+.backBtn:active {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(0.96);
+}
+
+.readerHeaderMeta {
+  padding-right: 16px;
+}
+
+.sharedBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: rgba(61, 130, 224, 0.12);
+  border: 0.5px solid rgba(61, 130, 224, 0.25);
+  font-size: 11.5px;
+  font-weight: 580;
+  color: #3d82e0;
+  letter-spacing: -0.005em;
+}
+
+/* Scrollable reader body */
+.readerBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 40px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.readerBody::-webkit-scrollbar {
+  display: none;
+}
+
+.readerMeta {
+  margin: 0 0 8px;
+  text-align: center;
+  color: #949494;
+  font-size: 14px;
+  font-weight: 450;
+}
+
+.readerTitle {
+  margin: 0 0 14px;
+  color: #363636;
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+}
+
+/* ── MDX body ── */
+.mdxBody {
+  color: #3d3d3d;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 450;
+}
+
+.mdxBody p {
+  margin: 0 0 16px;
+}
+
+.mdxBody ol,
+.mdxBody ul {
+  margin: 0 0 24px;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.mdxBody li {
+  padding-left: 4px;
+  margin-bottom: 0;
+}
+
+.mdxBody img {
+  max-width: 50%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: 0 0 18px;
+}
+
+.mdxH1 {
+  margin: 0 0 14px;
+  color: #363636;
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.mdxH2 {
+  margin: 16px 0 12px;
+  color: #3a3a3a;
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 660;
+  letter-spacing: -0.015em;
+}
+
+.mdxH3 {
+  margin: 16px 0 10px;
+  color: #404040;
+  font-size: 15.5px;
+  line-height: 1.2;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+}
+
+.inlineLink {
+  color: #e2a727;
+  text-decoration: underline;
+  text-decoration-color: #e2a727;
+  font-weight: 400;
+  cursor: pointer !important;
+}
+
+.inlineCode {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 13.5px;
+  font-weight: 480;
+  color: #3d3d3d;
+}
+
+.codeBlock {
+  margin: 6px 0 18px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  overflow-x: auto;
+  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #3d3d3d;
+  font-weight: 440;
+}
+
+.codeBlock code {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+/* ================================================================
+   Guestbook
+   ================================================================ */
+
+.guestBook {
+  margin-top: 32px;
+}
+
+.guestBookDivider {
+  height: 0.5px;
+  background: rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.commentRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.commentAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.commentAvatarEmpty {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.08);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  display: inline-block;
+}
+
+.commentBubble {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 13px;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.commentText {
+  font-size: 14px;
+  color: #2e2e2e;
+  line-height: 1.5;
+}
+
+.commentInputRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.commentInputWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 22px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  padding: 0 6px 0 14px;
+  height: 40px;
+}
+
+.commentInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  font-weight: 400;
+  color: #1a1a1a;
+  font-family: inherit;
+  cursor: text !important;
+  min-width: 0;
+}
+
+.commentInput::placeholder {
+  color: #aaa;
+}
+
+.commentSubmitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: rgba(245, 245, 245, 0.9);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 570;
+  color: #1a1a1a;
+  cursor: pointer !important;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+
+.commentSubmitBtn:disabled {
+  opacity: 0.4;
+}
+
+.signOutBtn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-size: 11.5px;
+  color: #999;
+  cursor: pointer !important;
+}

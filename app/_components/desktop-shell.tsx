@@ -9,6 +9,7 @@ import { NotesWindow } from "@/app/_components/notes-window";
 import { SettingsWindow } from "@/app/_components/settings-window";
 import { TVWindow } from "@/app/_components/tv-window";
 import { TopBar } from "@/app/_components/top-bar";
+import { MobileNotes } from "@/app/_components/mobile-notes";
 import { useMediaQuery } from "@/lib/use-media-query";
 import {
   getFirstNoteSlugForFolder,
@@ -94,7 +95,7 @@ interface DesktopShellProps {
 }
 
 export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) {
-  const isMobile = useMediaQuery("(max-width: 639px)");
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const initialRoute = useMemo(() => parseDesktopPath(initialPathname), [initialPathname]);
   const didAutoOpenRootRef = useRef(false);
   const [selectedFolderId, setSelectedFolderId] = useState(notesData.defaultFolderId);
@@ -283,6 +284,27 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
     ? formatAppName(activeWindowId)
     : formatAppName(pathname === "/" ? "finder" : route.appId);
 
+  // ── Mobile view (< 768px) ─────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div className="fixed inset-0">
+        <Image
+          src="/wallpapers/Sonoma.jpeg"
+          alt="Background"
+          fill
+          priority
+          className="-z-10 inset-0 object-cover"
+        />
+        <MobileNotes
+          notesData={notesData}
+          selectedNoteSlug={resolvedNoteSlug}
+          onNoteSelect={handleNoteSelect}
+        />
+      </div>
+    );
+  }
+
+  // ── Desktop view (≥ 768px) ────────────────────────────────────
   return (
     <div className="fixed inset-0 select-none">
       <Image

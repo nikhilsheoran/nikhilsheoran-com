@@ -38,6 +38,8 @@ export interface FSDirectory {
   path: string;
   dateModified: string;
   children: FSNode[];
+  /** Optional URL to open when double-clicked (e.g. GitHub repo) */
+  url?: string;
 }
 
 export type FSNode = FSFile | FSDirectory;
@@ -131,7 +133,7 @@ export function breadcrumbs(absolutePath: string): { name: string; path: string 
 // Builder helpers
 // ---------------------------------------------------------------------------
 
-function dir(name: string, parentPath: string, children: FSNode[], dateModified?: string): FSDirectory {
+function dir(name: string, parentPath: string, children: FSNode[], dateModified?: string, url?: string): FSDirectory {
   const path = parentPath === "/" ? `/${name}` : `${parentPath}/${name}`;
   return {
     kind: "directory",
@@ -139,6 +141,7 @@ function dir(name: string, parentPath: string, children: FSNode[], dateModified?
     path,
     dateModified: dateModified ?? "Today",
     children,
+    ...(url ? { url } : {}),
   };
 }
 
@@ -167,8 +170,16 @@ export interface ProjectEntry {
 
 const projects: ProjectEntry[] = [
   {
+    name: "OpenDictate",
+    description: "Open-source macOS dictation app with local Whisper inference",
+    tech: ["Swift", "SwiftUI", "Whisper"],
+    github: "https://github.com/nikhilsheoran/OpenDictate",
+    dateModified: "Today at 10:14 AM",
+    status: "active",
+  },
+  {
     name: "superclarity",
-    description: "AI-powered clarity tool",
+    description: "AI-powered writing clarity tool",
     tech: ["TypeScript", "Next.js", "OpenAI"],
     github: "https://github.com/nikhilsheoran/superclarity",
     dateModified: "Today at 4:43 PM",
@@ -176,38 +187,58 @@ const projects: ProjectEntry[] = [
   },
   {
     name: "nikhilsheoran-com",
-    description: "Personal website (this site)",
+    description: "Personal website — macOS desktop simulation",
     tech: ["TypeScript", "Next.js", "React"],
     github: "https://github.com/nikhilsheoran/nikhilsheoran-com",
     dateModified: "Today at 2:27 PM",
     status: "active",
   },
   {
-    name: "playground-macos",
-    description: "macOS UI playground",
-    tech: ["TypeScript", "React"],
+    name: "OpenCut",
+    description: "Open-source video editor built on the web",
+    tech: ["TypeScript", "Next.js", "FFmpeg"],
+    github: "https://github.com/nikhilsheoran/OpenCut",
     dateModified: "Today at 12:45 PM",
+    status: "active",
+  },
+  {
+    name: "playground-macos",
+    description: "macOS UI component playground",
+    tech: ["TypeScript", "React"],
+    github: "https://github.com/nikhilsheoran/playground-macos",
+    dateModified: "Yesterday at 3:20 PM",
     status: "wip",
   },
   {
+    name: "manim-ai",
+    description: "Generate Manim animations from natural language",
+    tech: ["Python", "OpenAI", "Manim"],
+    github: "https://github.com/nikhilsheoran/manim-ai",
+    dateModified: "Yesterday at 11:30 AM",
+    status: "active",
+  },
+  {
     name: "spot-the-scam",
-    description: "Scam detection tool",
-    tech: ["Python", "ML"],
-    dateModified: "Yesterday at 4:05 PM",
+    description: "AI-powered scam and phishing detection",
+    tech: ["Python", "ML", "FastAPI"],
+    github: "https://github.com/nikhilsheoran/spot-the-scam",
+    dateModified: "2 Mar 2026 at 9:00 AM",
+    status: "active",
+  },
+  {
+    name: "scira",
+    description: "Minimal AI search engine",
+    tech: ["TypeScript", "Next.js", "AI SDK"],
+    github: "https://github.com/nikhilsheoran/scira",
+    dateModified: "25 Feb 2026 at 6:44 PM",
     status: "active",
   },
   {
     name: "nullclaw",
-    description: "Command-line utility",
+    description: "Command-line utility toolkit in Rust",
     tech: ["Rust"],
+    github: "https://github.com/nikhilsheoran/nullclaw",
     dateModified: "Yesterday at 7:51 AM",
-    status: "archived",
-  },
-  {
-    name: "citerank",
-    description: "Citation ranking engine",
-    tech: ["Python", "Graph"],
-    dateModified: "18 Feb 2026 at 5:53 PM",
     status: "archived",
   },
 ];
@@ -219,7 +250,7 @@ const projects: ProjectEntry[] = [
 function buildProjectsDir(): FSDirectory {
   const projectsPath = homePath("Documents", "Projects");
   const children: FSNode[] = projects.map((p) =>
-    dir(p.name, projectsPath, [], p.dateModified),
+    dir(p.name, projectsPath, [], p.dateModified, p.github),
   );
   return dir("Projects", homePath("Documents"), children);
 }

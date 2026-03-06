@@ -847,7 +847,9 @@ export function MusicWindow({ isOpen, onClose, onActivate, zIndex }: MusicWindow
         </aside>
 
         {/* ═══════════════════ CONTENT ═══════════════════ */}
-        <main className={styles.content} onPointerDown={handleDragStart}>
+        <main className={styles.content}>
+          {/* Invisible drag strip across top of content area */}
+          <div className={styles.contentDragHandle} onPointerDown={handleDragStart} />
           {view.id === "home" && (
             <HomeView player={player} onNavigate={navigate} />
           )}

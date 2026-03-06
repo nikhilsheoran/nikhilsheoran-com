@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import {
@@ -8,7 +8,6 @@ import {
   getPathForSidebarItem,
   listDirectory,
   breadcrumbs,
-  parentPath,
   type FSNode,
 } from "@/lib/virtual-fs";
 import styles from "./finder-window.module.css";
@@ -326,9 +325,19 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
   const [historyIndex, setHistoryIndex] = useState(0);
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
 
+  // --- Search state ---
+  const [searchActive, setSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   // --- Derived data ---
   const fs = useMemo(() => getFileSystem(), []);
   const directoryContents = useMemo(() => listDirectory(fs, currentPath), [fs, currentPath]);
+  const filteredContents = useMemo(() => {
+    if (!searchActive || !searchQuery.trim()) return directoryContents;
+    const q = searchQuery.trim().toLowerCase();
+    return directoryContents.filter((n) => n.name.toLowerCase().includes(q));
+  }, [directoryContents, searchActive, searchQuery]);
   const crumbs = useMemo(() => breadcrumbs(currentPath), [currentPath]);
   const activeSidebarItem = useMemo(() => sidebarItemForPath(currentPath), [currentPath]);
 
@@ -384,7 +393,11 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
   const handleRowDoubleClick = useCallback(
     (node: FSNode) => {
       if (node.kind === "directory") {
-        navigateTo(node.path);
+        if (node.url) {
+          window.open(node.url, "_blank", "noopener");
+        } else {
+          navigateTo(node.path);
+        }
       } else if (node.kind === "file") {
         if (node.url) {
           window.open(node.url, "_blank", "noopener");
@@ -393,6 +406,33 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
     },
     [navigateTo],
   );
+
+  const toggleSearch = useCallback(() => {
+    setSearchActive((prev) => {
+      if (!prev) {
+        // Opening — focus input after render
+        setTimeout(() => searchInputRef.current?.focus(), 0);
+      } else {
+        setSearchQuery("");
+      }
+      return !prev;
+    });
+  }, []);
+
+  const dismissSearch = useCallback(() => {
+    setSearchActive(false);
+    setSearchQuery("");
+  }, []);
+
+  // Dismiss search on Escape
+  useEffect(() => {
+    if (!searchActive) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") dismissSearch();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [searchActive, dismissSearch]);
 
   if (!isOpen) return null;
 
@@ -474,7 +514,39 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
                   <ChevronRight />
                 </button>
               </div>
-              <p className={styles.pathTitle}>{pathTitle}</p>
+              {searchActive ? (
+                <div className={styles.searchBar} data-window-drag-ignore>
+                  <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden className={styles.searchBarIcon}>
+                    <circle cx="7.8" cy="7.8" r="5" stroke="currentColor" strokeWidth="1.7" />
+                    <path d="M11.5 11.5L15.5 15.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                  </svg>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    className={styles.searchInput}
+                    placeholder={`Search "${pathTitle}"`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    data-window-drag-ignore
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      className={styles.searchClearBtn}
+                      onClick={() => setSearchQuery("")}
+                      aria-label="Clear search"
+                      data-window-drag-ignore
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                        <circle cx="7" cy="7" r="6" fill="rgba(0,0,0,0.15)" />
+                        <path d="M4.5 4.5l5 5M9.5 4.5l-5 5" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <p className={styles.pathTitle}>{pathTitle}</p>
+              )}
             </div>
 
             <div className={styles.toolbarActions}>
@@ -496,9 +568,10 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
               </button>
               <button
                 type="button"
-                className={styles.toolbarButton}
+                className={`${styles.toolbarButton} ${searchActive ? styles.toolbarButtonActive : ""}`}
                 data-window-drag-ignore
-                aria-label="Search"
+                aria-label={searchActive ? "Close search" : "Search"}
+                onClick={toggleSearch}
               >
                 <IconSearch />
               </button>
@@ -515,12 +588,12 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
             </div>
 
             <div className={styles.tableBody}>
-              {directoryContents.length === 0 && (
+              {filteredContents.length === 0 && (
                 <div className={styles.emptyState}>
-                  <p>This folder is empty</p>
+                  <p>{searchActive && searchQuery ? `No results for "${searchQuery}"` : "This folder is empty"}</p>
                 </div>
               )}
-              {directoryContents.map((node) => (
+              {filteredContents.map((node) => (
                 <button
                   key={node.name}
                   type="button"
@@ -561,7 +634,9 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
               ))}
             </div>
             <div className={styles.footerInfo}>
-              {directoryContents.length} item{directoryContents.length !== 1 ? "s" : ""}, 313.3 GB available
+              {searchActive && searchQuery
+                ? `${filteredContents.length} of ${directoryContents.length} item${directoryContents.length !== 1 ? "s" : ""}`
+                : `${directoryContents.length} item${directoryContents.length !== 1 ? "s" : ""}, 313.3 GB available`}
             </div>
           </footer>
         </main>
