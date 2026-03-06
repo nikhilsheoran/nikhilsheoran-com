@@ -340,7 +340,7 @@
 
 /* Soft warm yellow — lighter than before */
 .noteCardActive {
-  background: #fde98a;
+  background: #f8e37f;
 }
 
 /* Title row — flex so shared icon sits on the right */
@@ -436,30 +436,40 @@
 
 .editorBody {
   color: #3d3d3d;
-  font-size: 16px;
-  line-height: 1.28;
+  font-family: -apple-system, "SF Pro", "SF Pro Display", "SF Pro Text", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-size: 14px;
+  line-height: 1.6;
   font-weight: 450;
 }
 
 .editorBody ol,
 .editorBody ul {
-  margin: 0 0 18px;
-  padding-left: 0;
-  list-style: none;
+  margin: 0 0 24px;
+  padding-left: 20px;
+  list-style: disc;
 }
 
 .editorBody p {
-  margin: 0 0 18px;
+  margin: 0 0 16px;
 }
 
 .editorBody li {
-  margin: 0 0 6px;
+  padding-left: 4px;
+}
+
+.editorBody img {
+  max-width: 50%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: 0 0 18px;
 }
 
 .inlineLink {
-  color: #d07800;
+  color: #e2a727;
   text-decoration: underline;
-  text-decoration-color: #da8f3a;
+  text-decoration-color: #e2a727;
+  font-weight: 400;
 }
 
 .mdxH1 {
@@ -472,16 +482,16 @@
 }
 
 .mdxH2 {
-  margin: 20px 0 10px;
+  margin: 16px 0 12px;
   color: #3a3a3a;
   font-size: 17px;
-  line-height: 1.15;
+  line-height: 1.2;
   font-weight: 660;
   letter-spacing: -0.015em;
 }
 
 .mdxH3 {
-  margin: 16px 0 8px;
+  margin: 16px 0 10px;
   color: #404040;
   font-size: 15.5px;
   line-height: 1.2;
@@ -602,12 +612,6 @@
   letter-spacing: -0.005em;
 }
 
-.commentText {
-  font-size: 16px;
-  font-weight: 450;
-  color: #3d3d3d;
-  line-height: 1.28;
-}
 
 /* Visitor comment row — avatar only, no name */
 .commentRowVisitor {

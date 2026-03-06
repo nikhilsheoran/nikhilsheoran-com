@@ -179,8 +179,8 @@ export function NotesWindow({
   const selectedNote = selectedNoteSlug ? notesData.notesBySlug[selectedNoteSlug] ?? null : null;
   const isSharedNote = selectedNote?.isShared ?? false;
 
-  // Folders shown in the iCloud section — exclude the virtual "shared" folder
-  const iCloudFolders = notesData.folders.filter((f) => f.id !== "shared");
+  // Folders shown in the iCloud section — exclude the virtual "shared" folder and empty folders
+  const iCloudFolders = notesData.folders.filter((f) => f.id !== "shared" && f.noteSlugs.length > 0);
 
   const handleCommentSubmit = () => {
     window.open("https://accounts.google.com/signin", "_blank", "noopener");
@@ -229,7 +229,7 @@ export function NotesWindow({
               })}
             </div>
 
-            <p className={styles.sectionLabel}>iCloud</p>
+            <p className={styles.sectionLabel}>Category</p>
             <div className={styles.folderList}>
               {iCloudFolders.map((folder) => {
                 const isActive = folder.id === selectedFolder.id;
@@ -299,6 +299,9 @@ export function NotesWindow({
               </h3>
               {group.items.map((note) => {
                 const isActive = selectedNote?.slug === note.slug;
+                const folderLabel = notesData.folders.find(
+                  (f) => f.id !== "all-icloud" && f.id !== "shared" && note.folderIds.includes(f.id)
+                )?.label;
                 return (
                   <button
                     key={note.slug}
@@ -318,7 +321,7 @@ export function NotesWindow({
                     </div>
                     <div className={styles.noteSource}>
                       <NotesIcon />
-                      <span>Notes</span>
+                      <span>{folderLabel ?? "Notes"}</span>
                     </div>
                   </button>
                 );
@@ -353,8 +356,8 @@ export function NotesWindow({
                   <div className={styles.commentRow}>
                     <img src="/nikhil.jpg" alt="Nikhil" className={styles.commentAvatar} />
                     <div className={styles.commentBubble}>
-                      <span className={styles.commentText}>
-                      if you're here, drop a piece of wisdom. this note is shared with everyone :)
+                      <span className={styles.editorBody}>
+                      drop a piece of wisdom. this note is shared with everyone :)
                       </span>
                     </div>
                   </div>
