@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import { useMusicPlayer } from "@/lib/use-music-player";
@@ -239,11 +240,14 @@ function SongRow({
         )}
       </div>
       {showArtwork && (
-        <img
+        <Image
           src={song.artworkUrl}
           alt={song.albumTitle}
+          width={36}
+          height={36}
           className={styles.songRowArt}
           loading="lazy"
+          unoptimized
         />
       )}
       <div className={styles.songRowInfo}>
@@ -287,11 +291,14 @@ function HomeView({
               data-window-drag-ignore
             >
               {album && (
-                <img
+                <Image
                   src={album.artworkUrl}
                   alt={album.title}
+                  width={160}
+                  height={160}
                   className={styles.pickArt}
                   loading="lazy"
+                  unoptimized
                 />
               )}
               <div className={styles.pickMeta}>
@@ -447,7 +454,7 @@ function AlbumDetailView({
 
       {/* Hero */}
       <div className={styles.albumHero}>
-        <img src={album.artworkUrl} alt={album.title} className={styles.albumHeroArt} />
+        <Image src={album.artworkUrl} alt={album.title} width={180} height={180} className={styles.albumHeroArt} unoptimized />
         <div className={styles.albumHeroInfo}>
           <p className={styles.albumHeroLabel}>Album</p>
           <h1 className={styles.albumHeroTitle}>{album.title}</h1>
@@ -525,7 +532,7 @@ function ArtistDetailView({
 
       {/* Artist hero */}
       <div className={styles.artistHero}>
-        <img src={artist.artworkUrl} alt={artist.name} className={styles.artistHeroArt} />
+      <Image src={artist.artworkUrl} alt={artist.name} width={180} height={180} className={styles.artistHeroArt} unoptimized />
         <div className={styles.artistHeroInfo}>
           <p className={styles.albumHeroLabel}>Artist</p>
           <h1 className={styles.albumHeroTitle}>{artist.name}</h1>
@@ -579,7 +586,7 @@ function ArtistDetailView({
 function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   return (
     <button type="button" className={styles.albumCard} onClick={onClick} data-window-drag-ignore>
-      <img src={album.artworkUrl} alt={album.title} className={styles.albumCardArt} loading="lazy" />
+      <Image src={album.artworkUrl} alt={album.title} width={120} height={120} className={styles.albumCardArt} loading="lazy" unoptimized />
       <p className={styles.albumCardTitle}>{album.title}</p>
       <p className={styles.albumCardArtist}>{album.artist}</p>
     </button>
@@ -589,7 +596,7 @@ function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
 function ArtistCard({ artist, onClick }: { artist: Artist; onClick: () => void }) {
   return (
     <button type="button" className={styles.artistCard} onClick={onClick} data-window-drag-ignore>
-      <img src={artist.artworkUrl} alt={artist.name} className={styles.artistCardArt} loading="lazy" />
+      <Image src={artist.artworkUrl} alt={artist.name} width={120} height={120} className={styles.artistCardArt} loading="lazy" unoptimized />
       <p className={styles.artistCardName}>{artist.name}</p>
     </button>
   );
@@ -649,10 +656,13 @@ function PlayerBar({ player }: { player: ReturnType<typeof useMusicPlayer> }) {
       <div className={styles.playerCenter}>
         {currentSong ? (
           <>
-            <img
+            <Image
               src={currentSong.artworkUrl}
               alt={currentSong.albumTitle}
+              width={36}
+              height={36}
               className={styles.trackThumb}
+              unoptimized
             />
             <div className={styles.trackMeta}>
               <p className={styles.trackTitle}>{currentSong.title}</p>

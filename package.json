@@ -6,13 +6,17 @@
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@convex-dev/better-auth": "^0.10.13",
     "@iconify-icons/bi": "^1.2.19",
     "@iconify-icons/material-symbols": "^1.2.58",
     "@iconify-icons/ri": "^1.2.10",
     "@iconify/react": "^6.0.2",
+    "better-auth": "1.4.9",
+    "convex": "^1.32.0",
     "framer-motion": "^12.34.3",
     "gray-matter": "^4.0.3",
     "next": "^16.1.6",

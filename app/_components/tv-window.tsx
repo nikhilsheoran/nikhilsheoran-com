@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Image from "next/image";
 import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import {
@@ -96,11 +97,14 @@ function PosterCard({ item }: { item: TVItem }) {
   return (
     <article className={styles.posterCard} data-window-drag-ignore>
       <div className={styles.posterImageWrap}>
-        <img
+        <Image
           src={item.posterUrl}
           alt={item.title}
+          width={150}
+          height={225}
           className={styles.posterImg}
           loading="lazy"
+          unoptimized
           onError={(e) => {
             const el = e.currentTarget as HTMLImageElement;
             el.style.display = "none";
@@ -164,11 +168,14 @@ function WideCard({ item }: { item: TVItem }) {
   }
   return (
     <article className={styles.wideCard} data-window-drag-ignore>
-      <img
+      <Image
         src={item.posterUrl}
         alt={item.title}
+        width={180}
+        height={270}
         className={styles.wideCardImg}
         loading="lazy"
+        unoptimized
         onError={(e) => {
           const el = e.currentTarget as HTMLImageElement;
           el.style.display = "none";
@@ -205,10 +212,12 @@ function HomeView() {
     <div className={styles.contentScroll} data-window-drag-ignore>
       {/* Hero — Succession */}
       <section className={styles.hero}>
-        <img
+        <Image
           src="https://image.tmdb.org/t/p/w1280/bcdUYUFk8GdpZJPiSAas9UeocLH.jpg"
           alt="Succession"
+          fill
           className={styles.heroImg}
+          unoptimized
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
         />
         <div className={styles.heroGradient} />
@@ -238,11 +247,14 @@ function HomeView() {
               className={`${styles.pickCard} ${styles[`accent${pick.accent}`]}`}
               data-window-drag-ignore
             >
-              <img
+              <Image
                 src={item.posterUrl}
                 alt={item.title}
+                width={120}
+                height={180}
                 className={styles.pickArt}
                 loading="lazy"
+                unoptimized
                 onError={(e) => {
                   const el = e.currentTarget as HTMLImageElement;
                   el.style.display = "none";
@@ -370,11 +382,14 @@ function WatchlistView() {
           >
             <span className={styles.watchlistIndex}>{i + 1}</span>
             <div className={styles.watchlistPoster}>
-              <img
+              <Image
                 src={s.posterUrl}
                 alt={s.title}
+                width={50}
+                height={75}
                 className={styles.watchlistPosterImg}
                 loading="lazy"
+                unoptimized
                 onError={(e) => {
                   const el = e.currentTarget as HTMLImageElement;
                   el.style.display = "none";
