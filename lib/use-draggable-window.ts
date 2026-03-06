@@ -24,7 +24,7 @@ interface UseDraggableWindowOptions {
 }
 
 interface UseDraggableWindowResult {
-  windowRef: RefObject<HTMLDivElement>;
+  windowRef: RefObject<HTMLDivElement | null>;
   position: WindowPoint;
   isDragging: boolean;
   handleDragStart: (event: ReactPointerEvent<HTMLElement>) => void;
@@ -120,6 +120,8 @@ export function useDraggableWindow({
     [schedulePointerFlush],
   );
 
+  const endDragRef = useRef<() => void>(null);
+
   const endDrag = useCallback(() => {
     if (!dragOffsetRef.current) return;
 
@@ -132,14 +134,19 @@ export function useDraggableWindow({
       rafIdRef.current = null;
     }
 
+    const stableEndDrag = endDragRef.current;
     window.removeEventListener("pointermove", handlePointerMove);
-    window.removeEventListener("pointerup", endDrag);
-    window.removeEventListener("pointercancel", endDrag);
-    window.removeEventListener("blur", endDrag);
+    if (stableEndDrag) {
+      window.removeEventListener("pointerup", stableEndDrag);
+      window.removeEventListener("pointercancel", stableEndDrag);
+      window.removeEventListener("blur", stableEndDrag);
+    }
 
     document.body.style.userSelect = previousUserSelectRef.current;
     setPosition(positionRef.current);
   }, [handlePointerMove]);
+
+  endDragRef.current = endDrag; // eslint-disable-line react-hooks/refs -- stable ref for self-referencing event cleanup
 
   const handleDragStart = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
@@ -168,12 +175,13 @@ export function useDraggableWindow({
       document.body.style.userSelect = "none";
       setIsDragging(true);
 
+      const stableEndDrag = endDragRef.current!;
       window.addEventListener("pointermove", handlePointerMove);
-      window.addEventListener("pointerup", endDrag);
-      window.addEventListener("pointercancel", endDrag);
-      window.addEventListener("blur", endDrag);
+      window.addEventListener("pointerup", stableEndDrag);
+      window.addEventListener("pointercancel", stableEndDrag);
+      window.addEventListener("blur", stableEndDrag);
     },
-    [disabled, endDrag, getWindowSize, handlePointerMove],
+    [disabled, getWindowSize, handlePointerMove],
   );
 
   useEffect(() => {
@@ -229,13 +237,16 @@ export function useDraggableWindow({
       if (rafIdRef.current !== null) {
         window.cancelAnimationFrame(rafIdRef.current);
       }
+      const stableEndDrag = endDragRef.current;
       window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", endDrag);
-      window.removeEventListener("pointercancel", endDrag);
-      window.removeEventListener("blur", endDrag);
+      if (stableEndDrag) {
+        window.removeEventListener("pointerup", stableEndDrag);
+        window.removeEventListener("pointercancel", stableEndDrag);
+        window.removeEventListener("blur", stableEndDrag);
+      }
       document.body.style.userSelect = previousUserSelectRef.current;
     },
-    [endDrag, handlePointerMove],
+    [handlePointerMove],
   );
 
   return {

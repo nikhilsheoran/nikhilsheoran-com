@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 interface WindowControlsProps {
   onClose?: () => void;
+  windowName?: string;
 }
 
 function iconClassNames(isVisible: boolean): string {
@@ -71,7 +72,7 @@ function ExpandIcon() {
   );
 }
 
-export function WindowControls({ onClose }: WindowControlsProps) {
+export function WindowControls({ onClose, windowName = "window" }: WindowControlsProps) {
   const hasCloseAction = typeof onClose === "function";
 
   return (
@@ -81,7 +82,7 @@ export function WindowControls({ onClose }: WindowControlsProps) {
         icon={<CloseIcon />}
         iconVisible={hasCloseAction}
         onClick={onClose}
-        ariaLabel="Close notes window"
+        ariaLabel={`Close ${windowName}`}
       />
       <DotButton
         colorClassName="bg-[#febc2e]"

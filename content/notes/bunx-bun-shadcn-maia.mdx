@@ -1,0 +1,42 @@
+---
+title: "bunx --bun shadcn@latest..."
+preview: "?base=radix&style=maia"
+date: "2025-12-30T23:42:00+05:30"
+folders: ["archive"]
+shared: false
+tags: ["dev", "shadcn", "setup"]
+---
+
+# shadcn setup notes
+
+Command notes for bootstrapping shadcn with bun and the maia style preset.
+
+## Steps
+
+1. Run `bunx --bun shadcn@latest init`
+2. Select base radix setup and maia style.
+3. Verify generated config and import paths.
+
+## Config
+
+```json
+{
+  "style": "maia",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "app/globals.css",
+    "baseColor": "zinc"
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils"
+  }
+}
+```
+
+## Notes
+
+- The maia style has slightly different spacing than the default. Check the button padding if things look off.
+- `bunx --bun` is important — using just `bunx` sometimes resolves to a different node version.

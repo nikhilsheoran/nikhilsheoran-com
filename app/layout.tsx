@@ -21,13 +21,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head />
       <body className={inter.className}>
-        <Script
-          src="https://cloud.umami.is/script.js"
-          data-website-id="07e351bf-9dbc-48c7-8b2c-b8d2434fae1b"
-          strategy="afterInteractive"
-        />
+        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+          <Script
+            src="https://cloud.umami.is/script.js"
+            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+            strategy="afterInteractive"
+          />
+        )}
         {children}
       </body>
     </html>

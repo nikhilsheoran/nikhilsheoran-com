@@ -160,7 +160,6 @@
 .heroMeta {
   margin: 14px 0 0;
   color: rgba(255, 255, 255, 0.86);
-  font-size: 23px;
   font-size: 16px;
   font-weight: 600;
 }
@@ -168,7 +167,6 @@
 .heroCopy {
   margin: 10px 0 0;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 20px;
   font-size: 14px;
   line-height: 1.35;
 }
@@ -187,7 +185,6 @@
   padding: 0 32px;
   background: #fff;
   color: #161616;
-  font-size: 19px;
   font-size: 16px;
   font-weight: 650;
 }
@@ -199,8 +196,6 @@
   border: 0;
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
-  font-size: 26px;
-  font-size: 22px;
   font-size: 20px;
 }
 
@@ -222,8 +217,6 @@
 
 .sectionHeading {
   margin: 0 0 10px;
-  font-size: 23px;
-  font-size: 20px;
   font-size: 17px;
   font-weight: 660;
 }

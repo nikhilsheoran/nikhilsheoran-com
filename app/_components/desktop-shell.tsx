@@ -11,12 +11,12 @@ import { TVWindow } from "@/app/_components/tv-window";
 import { TopBar } from "@/app/_components/top-bar";
 import { useMediaQuery } from "@/lib/use-media-query";
 import {
-  getDesktopMockData,
   getFirstNoteSlugForFolder,
   getFolderById,
   getNoteRoutePath,
   getPreferredFolderIdForNote,
   folderContainsNote,
+  type NotesData,
 } from "@/lib/mock-desktop-data";
 
 type WindowAppId = "finder" | "notes" | "system-settings" | "music" | "tv";
@@ -90,12 +90,11 @@ function useDesktopPathname(initialPathname: string) {
 
 interface DesktopShellProps {
   initialPathname: string;
+  notesData: NotesData;
 }
 
-export function DesktopShell({ initialPathname }: DesktopShellProps) {
+export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) {
   const isMobile = useMediaQuery("(max-width: 639px)");
-  const [desktopData] = useState(() => getDesktopMockData());
-  const notesData = desktopData.notes;
   const initialRoute = useMemo(() => parseDesktopPath(initialPathname), [initialPathname]);
   const didAutoOpenRootRef = useRef(false);
   const [selectedFolderId, setSelectedFolderId] = useState(notesData.defaultFolderId);
@@ -141,6 +140,8 @@ export function DesktopShell({ initialPathname }: DesktopShellProps) {
     [notesData.defaultNoteSlug, notesData.notesBySlug, resolvedNoteSlug],
   );
 
+  // Syncs route state → React state on initial load and URL changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (didAutoOpenRootRef.current) return;
     if (initialPathname !== "/") return;
@@ -153,6 +154,7 @@ export function DesktopShell({ initialPathname }: DesktopShellProps) {
     navigate(getNoteRoutePath(defaultRootNoteSlug), { replace: true });
   }, [initialPathname, navigate, notesData.defaultNoteSlug, pathname]);
 
+  // Syncs URL pathname → window stack state
   useEffect(() => {
     if (pathname === "/") {
       setWindowStack([]);
@@ -176,6 +178,7 @@ export function DesktopShell({ initialPathname }: DesktopShellProps) {
     setWindowStack([]);
   }, [notesData.notesBySlug, pathname, route.appId, route.noteSlug, selectedNoteSlug]);
 
+  // Syncs selected folder to match the currently viewed note
   useEffect(() => {
     if (!isNotesWindowOpen || !resolvedNoteSlug) return;
     if (folderContainsNote(notesData, selectedFolder.id, resolvedNoteSlug)) return;
@@ -186,6 +189,7 @@ export function DesktopShell({ initialPathname }: DesktopShellProps) {
       setSelectedFolderId(preferredFolderId);
     }
   }, [isNotesWindowOpen, notesData, resolvedNoteSlug, selectedFolder.id]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const setActiveWindow = useCallback(
     (appId: WindowAppId, options?: { replace?: boolean }) => {
@@ -285,6 +289,7 @@ export function DesktopShell({ initialPathname }: DesktopShellProps) {
         src="/wallpapers/Sonoma.jpeg"
         alt="Background"
         fill
+        priority
         className="-z-10 inset-0 object-cover"
       />
       <FinderWindow

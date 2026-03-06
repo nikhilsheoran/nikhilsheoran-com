@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback } from "react";
+import { MDXRemote } from "next-mdx-remote";
 import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
 import {
   getFolderById,
   getGroupedNotesForFolder,
-  type NoteBodyBlock,
   type NotesData,
 } from "@/lib/mock-desktop-data";
 import { WindowControls } from "@/app/_components/window-controls";
@@ -85,29 +85,27 @@ function ShareIcon() {
   );
 }
 
-function renderBodyBlock(block: NoteBodyBlock, index: number) {
-  if (block.type === "paragraph") {
-    return <p key={`paragraph-${index}`}>{block.text}</p>;
-  }
-
-  if (block.type === "ordered-list") {
-    return (
-      <ol key={`ordered-${index}`}>
-        {block.items.map((item, itemIndex) => (
-          <li key={`${item}-${itemIndex}`}>{item}</li>
-        ))}
-      </ol>
-    );
-  }
-
-  return (
-    <ul key={`unordered-${index}`}>
-      {block.items.map((item, itemIndex) => (
-        <li key={`${item}-${itemIndex}`}>{item}</li>
-      ))}
-    </ul>
-  );
-}
+// Custom MDX components styled for the Notes editor aesthetic
+const mdxComponents = {
+  h1: (props: React.ComponentProps<"h1">) => (
+    <h1 className={styles.mdxH1} {...props} />
+  ),
+  h2: (props: React.ComponentProps<"h2">) => (
+    <h2 className={styles.mdxH2} {...props} />
+  ),
+  h3: (props: React.ComponentProps<"h3">) => (
+    <h3 className={styles.mdxH3} {...props} />
+  ),
+  a: (props: React.ComponentProps<"a">) => (
+    <a className={styles.inlineLink} target="_blank" rel="noopener noreferrer" {...props} />
+  ),
+  code: (props: React.ComponentProps<"code">) => (
+    <code className={styles.inlineCode} {...props} />
+  ),
+  pre: (props: React.ComponentProps<"pre">) => (
+    <pre className={styles.codeBlock} {...props} />
+  ),
+};
 
 export function NotesWindow({
   isOpen,
@@ -159,7 +157,7 @@ export function NotesWindow({
       <div className={styles.layout}>
         <aside className={styles.leftPane}>
           <div className={styles.leftPaneHeader} onPointerDown={handleDragStart}>
-            <WindowControls onClose={onClose} />
+            <WindowControls onClose={onClose} windowName="Notes" />
           </div>
           <div className={styles.leftPaneContent}>
             <div className={styles.quickGroup}>
@@ -267,10 +265,15 @@ export function NotesWindow({
               <p className={styles.editorMeta}>
                 {selectedNote.updatedAtLabel}
                 {selectedNote.isShared ? " - Shared" : ""}
+                {selectedNote.readingTime > 0 ? ` · ${selectedNote.readingTime} min read` : ""}
               </p>
               <h1 className={styles.editorTitle}>{selectedNote.title}</h1>
               <div className={styles.editorBody}>
-                {selectedNote.body.map((block, index) => renderBodyBlock(block, index))}
+                {selectedNote.mdxSource ? (
+                  <MDXRemote {...selectedNote.mdxSource} components={mdxComponents} />
+                ) : (
+                  <p>No content available.</p>
+                )}
               </div>
             </>
           ) : (

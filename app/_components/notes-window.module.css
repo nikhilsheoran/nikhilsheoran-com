@@ -2,7 +2,6 @@
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 40;
   overflow: hidden;
   resize: both;
   min-width: min(920px, calc(100vw - 24px));
@@ -335,7 +334,7 @@
   font-size: 20px;
   line-height: 1.1;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.022em;
 }
 
 .editorBody {
@@ -364,6 +363,66 @@
   color: #d07800;
   text-decoration: underline;
   text-decoration-color: #da8f3a;
+}
+
+/* MDX heading styles within the editor body */
+.mdxH1 {
+  margin: 0 0 14px;
+  color: #363636;
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.mdxH2 {
+  margin: 20px 0 10px;
+  color: #3a3a3a;
+  font-size: 17px;
+  line-height: 1.15;
+  font-weight: 660;
+  letter-spacing: -0.015em;
+}
+
+.mdxH3 {
+  margin: 16px 0 8px;
+  color: #404040;
+  font-size: 15.5px;
+  line-height: 1.2;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+}
+
+.inlineCode {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 13.5px;
+  font-weight: 480;
+  color: #3d3d3d;
+}
+
+.codeBlock {
+  margin: 6px 0 18px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #3d3d3d;
+  font-weight: 440;
+}
+
+.codeBlock code {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
 
 .leftPaneContent::-webkit-scrollbar,

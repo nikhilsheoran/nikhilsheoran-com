@@ -26,7 +26,7 @@ export type DockAppId = DockApp["id"];
 
 function useDockHoverAnimation(
   mouseX: MotionValue<number | null>,
-  imgRef: RefObject<HTMLImageElement>,
+  imgRef: RefObject<HTMLImageElement | null>,
   dockSize: number,
   dockMagnification: number,
 ) {

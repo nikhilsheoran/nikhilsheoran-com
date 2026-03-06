@@ -126,6 +126,7 @@ function IconBadge({ icon }: { icon: string }) {
     cloud: "C",
     store: "M",
     apple: "A",
+    family: "F",
     about: "i",
     storage: "HD",
     date: "T",
@@ -237,7 +238,7 @@ export function SettingsWindow({ isOpen, onClose, onActivate, zIndex }: Settings
       <div className={styles.shell}>
         <aside className={styles.sidebar}>
           <div className={styles.sidebarTop} onPointerDown={handleDragStart}>
-            <WindowControls onClose={onClose} />
+            <WindowControls onClose={onClose} windowName="System Settings" />
           </div>
 
           <div className={styles.searchWrap}>

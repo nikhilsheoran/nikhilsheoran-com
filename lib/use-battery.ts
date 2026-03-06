@@ -41,6 +41,8 @@ export function useBattery(): UseBatteryState {
     ...defaultState,
   });
 
+  // Subscribes to Browser Battery API — setState in callbacks is the intended pattern
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const nav = navigator as NavigatorWithBattery;
 
@@ -107,6 +109,7 @@ export function useBattery(): UseBatteryState {
       battery.removeEventListener("levelchange", handleChange);
     };
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return state;
 }

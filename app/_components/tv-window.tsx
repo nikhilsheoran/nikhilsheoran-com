@@ -59,7 +59,7 @@ export function TVWindow({ isOpen, onClose, onActivate, zIndex }: TVWindowProps)
       <div className={styles.canvas}>
         <aside className={styles.sidebar}>
           <div className={styles.sidebarHeader} onPointerDown={handleDragStart}>
-            <WindowControls onClose={onClose} />
+            <WindowControls onClose={onClose} windowName="TV" />
           </div>
 
           <div className={styles.sidebarScroll}>
