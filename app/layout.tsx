@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ConvexClientProvider } from "@/app/_components/convex-provider";
 import { getToken } from "@/lib/auth-server";
+import Script from "next/script";
 
 const SITE_URL = "https://nikhilsheoran.com";
 
@@ -69,6 +70,12 @@ export default async function RootLayout({
   const token = await getToken();
   return (
     <html lang="en">
+      <head>
+        <Script 
+          src="https://cdn.visitors.now/v.js" 
+          data-token="d502ca42-8a2f-41a4-8a35-56450cb6af1a"
+        />
+      </head>
       <body className={inter.className}>
         <ConvexClientProvider initialToken={token}>
           {children}
