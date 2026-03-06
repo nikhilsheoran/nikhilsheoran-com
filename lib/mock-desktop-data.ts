@@ -2,7 +2,6 @@ export type DesktopAppId =
   | "finder"
   | "notes"
   | "system-settings"
-  | "messages"
   | "music"
   | "tv";
 
