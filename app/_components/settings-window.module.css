@@ -4,8 +4,8 @@
   left: 0;
   overflow: hidden;
   resize: both;
-  min-width: min(980px, calc(100vw - 24px));
-  min-height: min(560px, calc(100vh - 72px));
+  min-width: min(720px, calc(100vw - 24px));
+  min-height: min(480px, calc(100vh - 72px));
   max-width: calc(100vw - 12px);
   max-height: calc(100vh - 44px);
   border-radius: 28px;
@@ -34,13 +34,18 @@
   cursor: default;
 }
 
+/* ========== Shell layout ========== */
+
 .shell {
   display: grid;
-  grid-template-columns: 286px minmax(0, 1fr);
+  grid-template-columns: 220px minmax(0, 1fr);
   height: 100%;
   width: 100%;
+  min-height: 0;
   background: #efefef;
 }
+
+/* ========== Sidebar ========== */
 
 .sidebar {
   display: flex;
@@ -54,50 +59,42 @@
   background: linear-gradient(180deg, #e6e6e7 0%, #dfdfe0 100%);
   overflow: hidden;
   z-index: 100;
+  min-height: 0;
 }
 
 .sidebarTop {
-  min-height: 60px;
+  min-height: 58px;
   display: flex;
   align-items: center;
   padding-left: 18px;
-}
-
-.searchWrap {
-  padding: 0 8px 8px;
-}
-
-.searchField {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  height: 30px;
-  border-radius: 9999px;
-  padding: 0 12px;
-  background: #cdcdcf;
-  color: #6f6f70;
-  font-size: 14px;
-  font-weight: 520;
+  flex-shrink: 0;
 }
 
 .sidebarScroll {
   flex: 1;
   overflow-y: auto;
   padding: 0 8px 10px;
+  min-height: 0;
 }
+
+/* ========== Account row ========== */
 
 .accountRow {
   width: 100%;
   border: 0;
-  border-radius: 11px;
+  border-radius: 10px;
   background: transparent;
-  padding: 8px 8px;
+  padding: 7px 8px;
   text-align: left;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   color: #2b2b2b;
+  transition: background 0.1s;
+}
+
+.accountRow:hover:not(.accountRowActive) {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .accountRowActive {
@@ -112,10 +109,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   background: radial-gradient(circle at 30% 20%, #727272 0%, #222 70%);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.accountAvatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  object-fit: cover;
+  display: block;
 }
 
 .accountMeta {
@@ -125,40 +129,18 @@
 }
 
 .accountName {
-  font-size: 14px;
-  font-weight: 640;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1.2;
 }
 
 .accountSub {
-  font-size: 12px;
-  opacity: 0.85;
+  font-size: 11px;
+  opacity: 0.75;
+  line-height: 1.3;
 }
 
-.updateNotice {
-  margin: 8px 0;
-  padding: 7px 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 15px;
-  color: #303030;
-  line-height: 1.2;
-}
-
-.updateBadge {
-  width: 19px;
-  height: 19px;
-  border-radius: 9999px;
-  background: #ff3b30;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 650;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-}
+/* ========== Sidebar group + items ========== */
 
 .sidebarGroup {
   margin-top: 8px;
@@ -166,20 +148,22 @@
   border-top: 1px solid #cecece;
 }
 
-.sidebarItem,
-.sidebarItemStatic {
-  min-height: 33px;
-  border-radius: 9px;
+.sidebarItem {
+  min-height: 30px;
+  border-radius: 7px;
   padding: 0 8px;
   display: flex;
   align-items: center;
-}
-
-.sidebarItem {
+  gap: 8px;
   width: 100%;
   border: 0;
   background: transparent;
   text-align: left;
+  transition: background 0.1s;
+}
+
+.sidebarItem:hover:not(.sidebarItemActive) {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .sidebarItemActive {
@@ -191,106 +175,216 @@
 }
 
 .sidebarItemLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 15px;
+  font-size: 13px;
   color: #2f2f2f;
+  letter-spacing: -0.005em;
 }
 
+/* ========== Icon badges — liquid glass style ========== */
+
 .iconBadge {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  color: #fff;
-  background: linear-gradient(180deg, #9d9d9d 0%, #7d7d7d 100%);
+  flex-shrink: 0;
+  background: linear-gradient(160deg, #9d9d9d 0%, #7d7d7d 100%);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  position: relative;
 }
 
-.iconBadgewifi,
-.iconBadgebluetooth,
-.iconBadgenetwork,
-.iconBadgevpn,
-.iconBadgeaccessibility,
-.iconBadgefamily,
-.iconBadgestore,
-.iconBadgedate,
-.iconBadgelanguage {
-  background: linear-gradient(180deg, #2f9dff 0%, #0d72dc 100%);
+/* liquid glass shimmer overlay on all badges */
+.iconBadge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, transparent 55%);
+  pointer-events: none;
 }
 
-.iconBadgegeneral,
-.iconBadgeperson,
-.iconBadgeshield,
-.iconBadgecard,
-.iconBadgeabout,
-.iconBadgestorage,
-.iconBadgedesktop,
-.iconBadgemenu,
-.iconBadgesiri {
-  background: linear-gradient(180deg, #9ea2a9 0%, #81858f 100%);
+/* Large badge variant */
+.iconBadgeLg {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.22),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.36);
 }
 
-.iconBadgebattery,
-.iconBadgecloud {
-  background: linear-gradient(180deg, #65c160 0%, #36a246 100%);
+.iconBadgeLg svg {
+  transform: scale(2.2);
 }
 
-.iconBadgeapple {
-  background: linear-gradient(180deg, #252525 0%, #0d0d0d 100%);
+/* ── Blue — networking / system ── */
+.iconBadge_wifi,
+.iconBadge_bluetooth,
+.iconBadge_network,
+.iconBadge_accessibility,
+.iconBadge_date,
+.iconBadge_language,
+.iconBadge_softwareupdate,
+.iconBadge_safari,
+.iconBadge_findmy {
+  background: linear-gradient(160deg, #4cb8ff 0%, #0d72dc 100%);
 }
+
+/* ── Gray — general system ── */
+.iconBadge_general,
+.iconBadge_person,
+.iconBadge_shield,
+.iconBadge_card,
+.iconBadge_about,
+.iconBadge_storage,
+.iconBadge_lock,
+.iconBadge_key,
+.iconBadge_contacts {
+  background: linear-gradient(160deg, #a8adb6 0%, #81858f 100%);
+}
+
+/* ── Green — iCloud / cloud ── */
+.iconBadge_cloud,
+.iconBadge_reminders,
+.iconBadge_home,
+.iconBadge_phone {
+  background: linear-gradient(160deg, #72cf6a 0%, #30a243 100%);
+}
+
+/* ── Teal — store / freeform ── */
+.iconBadge_store,
+.iconBadge_freeform {
+  background: linear-gradient(160deg, #36cccc 0%, #0ea5a5 100%);
+}
+
+/* ── Black — Apple brand ── */
+.iconBadge_apple,
+.iconBadge_appletv,
+.iconBadge_siri {
+  background: linear-gradient(160deg, #4a4a4a 0%, #1a1a1a 100%);
+}
+
+/* ── Red — music ── */
+.iconBadge_applemusic,
+.iconBadge_messages {
+  background: linear-gradient(160deg, #ff5b6a 0%, #e0142a 100%);
+}
+
+/* ── Orange — photos / mail ── */
+.iconBadge_photos {
+  background: linear-gradient(160deg, #ff9f50 0%, #e8600e 100%);
+}
+.iconBadge_mail {
+  background: linear-gradient(160deg, #4ab8ff 0%, #1870e0 100%);
+}
+
+/* ── Yellow-green — notes ── */
+.iconBadge_notes {
+  background: linear-gradient(160deg, #f5e04a 0%, #d4a80e 100%);
+}
+
+/* ── Purple — calendars ── */
+.iconBadge_calendar {
+  background: linear-gradient(160deg, #e05fff 0%, #a02dce 100%);
+}
+
+/* ── Blue — arcade ── */
+.iconBadge_arcade {
+  background: linear-gradient(160deg, #4a8fff 0%, #2040d0 100%);
+}
+
+/* .generalHeroIcon wraps the large IconBadge — sizing handled by .iconBadgeLg */
+.generalHeroIcon {
+  display: inline-flex;
+}
+
+/* ========== Content area ========== */
 
 .content {
   display: flex;
   flex-direction: column;
   background: #ececed;
+  min-height: 0;
+  min-width: 0;
 }
 
+/* ========== Content header with frosted-glass nav ========== */
+
 .contentHeader {
-  min-height: 56px;
-  padding: 0 18px 0 10px;
+  min-height: 54px;
+  padding: 0 18px 0 12px;
   border-bottom: 1px solid #d5d5d6;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-.navButtons {
+.navGroup {
   display: inline-flex;
-  gap: 4px;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid #d2d2d2;
+  background: rgba(252, 252, 252, 0.5);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+}
+
+.navSeparator {
+  width: 1px;
+  align-self: stretch;
+  background: #d2d2d2;
+  flex-shrink: 0;
 }
 
 .navButton {
-  width: 36px;
-  height: 30px;
-  border-radius: 9999px;
+  width: 32px;
+  height: 32px;
+  border-radius: 0;
   border: 0;
-  background: #e2e2e3;
+  background: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: #5a5a5a;
+  padding: 0;
+  transition: background 0.1s;
+}
+
+.navButton:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .navButtonDisabled {
-  opacity: 0.5;
+  color: #c4c4c4;
 }
 
 .headerTitle {
   margin: 0;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 640;
   color: #444;
+  letter-spacing: -0.01em;
 }
+
+/* ========== Content scroll area ========== */
 
 .contentScroll {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 20px 26px;
+  padding: 14px 20px 28px;
+  min-height: 0;
 }
+
+/* ========== Cards ========== */
 
 .card {
   border-radius: 12px;
@@ -302,8 +396,8 @@
 
 .cardRow {
   width: 100%;
-  min-height: 54px;
-  padding: 0 10px;
+  min-height: 50px;
+  padding: 0 12px;
   border: 0;
   border-bottom: 1px solid #e0e0e0;
   background: transparent;
@@ -311,10 +405,15 @@
   align-items: center;
   justify-content: space-between;
   text-align: left;
+  transition: background 0.1s;
 }
 
 .cardRow:last-child {
   border-bottom: 0;
+}
+
+.cardRow:hover {
+  background: rgba(0, 0, 0, 0.025);
 }
 
 .cardRowLeft {
@@ -322,45 +421,32 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
-  font-size: 15px;
+  font-size: 14px;
   color: #303030;
 }
 
-.devicesSection {
-  margin-top: 4px;
-}
-
-.sectionHeading {
-  margin: 0 0 8px;
-  font-size: 15px;
-  font-weight: 640;
-  color: #343434;
-}
-
-.deviceTile {
-  width: 30px;
-  height: 20px;
-  border-radius: 5px;
-  background: linear-gradient(135deg, #58beff 0%, #265ec9 100%);
-}
+/* ========== Account profile ========== */
 
 .accountProfile {
   text-align: center;
-  padding: 4px 0 14px;
+  padding: 6px 0 16px;
+}
+
+.accountProfileAvatarWrap {
+  width: 94px;
+  height: 94px;
+  border-radius: 9999px;
+  margin: 0 auto 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .accountProfileAvatar {
   width: 94px;
   height: 94px;
   border-radius: 9999px;
-  margin: 0 auto 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at 30% 20%, #787878 0%, #222 72%);
-  color: #fff;
-  font-size: 28px;
-  font-weight: 700;
+  object-fit: cover;
+  display: block;
 }
 
 .accountProfileName {
@@ -371,17 +457,38 @@
 }
 
 .accountProfileEmail {
-  margin: 1px 0 0;
-  font-size: 16px;
-  color: #444;
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: #5a5a5a;
 }
+
+.devicesSection {
+  margin-top: 4px;
+}
+
+.sectionHeading {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #595959;
+  letter-spacing: 0.005em;
+}
+
+.deviceTile {
+  width: 30px;
+  height: 20px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #58beff 0%, #265ec9 100%);
+}
+
+/* ========== Wi-Fi screen ========== */
 
 .settingsHeaderRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 10px 10px;
+  padding: 10px 12px 10px;
   border-bottom: 1px solid #e0e0e0;
 }
 
@@ -394,7 +501,7 @@
 
 .settingsHeaderTitle {
   display: block;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 620;
   color: #2f2f2f;
   line-height: 1.1;
@@ -403,9 +510,9 @@
 .settingsHeaderText {
   display: block;
   margin-top: 3px;
-  font-size: 13px;
-  line-height: 1.3;
-  color: #787878;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #848484;
 }
 
 .learnMore {
@@ -417,81 +524,79 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px;
+  padding: 10px 12px;
 }
 
 .wifiConnectedTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 530;
   color: #323232;
 }
 
 .wifiConnectedMeta {
   margin: 3px 0 0;
-  font-size: 13px;
+  font-size: 12px;
   color: #7b7b7b;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
 .dotGreen,
 .dotYellow,
 .dotRed {
   display: inline-block;
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 9999px;
-  margin-right: 6px;
+  margin-right: 5px;
 }
 
-.dotGreen {
-  background: #33b84b;
-}
-
-.dotYellow {
-  background: #f0b72b;
-}
-
-.dotRed {
-  background: #ff4646;
-}
+.dotGreen { background: #33b84b; }
+.dotYellow { background: #f0b72b; }
+.dotRed { background: #ff4646; }
 
 .offLineText {
   margin: 0;
   color: #808080;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .inlineButton {
   border: 0;
   border-radius: 8px;
-  height: 30px;
-  padding: 0 12px;
+  height: 28px;
+  padding: 0 11px;
   background: #dedede;
   color: #3b3b3b;
-  font-size: 14px;
-  font-weight: 520;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+
+.inlineButton:hover {
+  background: #d0d0d0;
 }
 
 .emptyNetworks {
-  height: 58px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #8b8b8b;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .cardFooterRight {
   display: flex;
   justify-content: flex-end;
-  padding: 10px;
+  padding: 8px 12px;
   border-top: 1px solid #e0e0e0;
 }
 
 .preferenceRow {
-  min-height: 58px;
-  padding: 9px 10px;
+  min-height: 54px;
+  padding: 10px 12px;
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   align-items: flex-start;
@@ -505,7 +610,7 @@
 
 .preferenceTitle {
   display: block;
-  font-size: 15px;
+  font-size: 14px;
   color: #2f2f2f;
   font-weight: 520;
 }
@@ -513,206 +618,136 @@
 .preferenceText {
   display: block;
   margin-top: 2px;
-  max-width: 470px;
-  font-size: 13px;
-  color: #828282;
-  line-height: 1.25;
+  max-width: 380px;
+  font-size: 12px;
+  color: #848484;
+  line-height: 1.3;
 }
 
 .preferenceValue {
-  font-size: 14px;
+  font-size: 13px;
   color: #2f2f2f;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.offFooterActions {
-  margin-top: 8px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+.rowMeta {
+  color: #7e7e7e;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
-.helpButton {
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 9999px;
-  background: #dedede;
-  color: #4d4d4d;
-  font-size: 14px;
+.checkMark {
+  font-size: 13px;
   font-weight: 700;
+  color: #1669d4;
 }
+
+/* ========== Bluetooth ========== */
 
 .bluetoothNote {
-  padding: 10px;
-  font-size: 14px;
+  padding: 8px 12px 10px;
+  font-size: 12px;
   color: #7a7a7a;
+  line-height: 1.3;
 }
 
-.bluetoothDeviceIcon {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  background: linear-gradient(180deg, #5b5b5b 0%, #282828 100%);
+.btDeviceIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #5e5e5e 0%, #2a2a2a 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .deviceName {
   display: block;
-  font-size: 15px;
+  font-size: 14px;
   color: #2f2f2f;
+  font-weight: 500;
 }
 
 .deviceStatus {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   color: #7a7a7a;
-  line-height: 1.2;
+  line-height: 1.3;
+}
+
+.deviceStatusConnected {
+  color: #28a745;
+  font-weight: 500;
 }
 
 .infoButton {
   width: 22px;
   height: 22px;
-  border: 1px solid #a6a6a6;
+  border: 1.5px solid #b0b0b0;
   border-radius: 9999px;
   background: transparent;
-  color: #7e7e7e;
-  font-size: 12px;
+  color: #6e6e6e;
+  font-size: 11px;
   font-weight: 700;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.1s;
 }
 
-.rowMeta {
-  color: #7e7e7e;
-  font-size: 13px;
+.infoButton:hover {
+  border-color: #888;
 }
 
-.checkMark {
-  font-size: 14px;
-  font-weight: 700;
-}
+/* ========== General / Accessibility hero ========== */
 
 .generalHero {
-  margin-bottom: 12px;
-  padding: 18px 14px 14px;
+  margin-bottom: 14px;
+  padding: 20px 16px 16px;
   border-radius: 12px;
   background: #f0f0f1;
   border: 1px solid #e4e4e4;
   text-align: center;
 }
 
-.generalHeroIcon {
-  display: inline-flex;
-}
-
-.generalHeroIcon .iconBadge {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  font-size: 21px;
-}
-
 .generalHeroTitle {
-  margin: 8px 0 0;
-  font-size: 17px;
-  font-weight: 690;
+  margin: 10px 0 0;
+  font-size: 16px;
+  font-weight: 680;
   color: #303030;
 }
 
 .generalHeroText {
   margin: 4px auto 0;
-  max-width: 460px;
-  font-size: 14px;
-  line-height: 1.3;
-  color: #767676;
-}
-
-.appearanceHeaderRow {
-  padding: 8px 10px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.modeOptions {
-  display: inline-flex;
-  gap: 8px;
-}
-
-.modeOption {
-  width: 72px;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  text-align: center;
-}
-
-.modePreview {
-  display: block;
-  height: 42px;
-  border-radius: 8px;
-  background: linear-gradient(160deg, #7ab6ff 0%, #0f4fa8 70%);
-  border: 2px solid transparent;
-}
-
-.modeOptionActive .modePreview {
-  border-color: #2b83e5;
-}
-
-.modeLabel {
-  display: block;
-  margin-top: 2px;
+  max-width: 380px;
   font-size: 13px;
-  color: #666;
+  line-height: 1.35;
+  color: #787878;
 }
 
-.modeOptionActive .modeLabel {
-  color: #1f5faf;
-  font-weight: 620;
-}
-
-.colorRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.multicolorDot,
-.colorDot {
-  width: 24px;
-  height: 24px;
-  border-radius: 9999px;
-}
-
-.multicolorDot {
-  background:
-    conic-gradient(
-      #ff5151 0deg 60deg,
-      #f3c521 60deg 120deg,
-      #55ba4a 120deg 180deg,
-      #248bff 180deg 240deg,
-      #7d3eb2 240deg 300deg,
-      #e24a9d 300deg 360deg
-    );
-  border: 2px solid #2b83e5;
-}
+/* ========== Toggle ========== */
 
 .toggle {
   width: 43px;
   height: 24px;
   border: 0;
   border-radius: 9999px;
-  background: #b9b9ba;
+  background: #c2c2c3;
   display: inline-flex;
   align-items: center;
   padding: 2px;
+  flex-shrink: 0;
+  transition: background 0.2s;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
 }
 
 .toggleOn {
   background: #2479ec;
-}
-
-.toggleGray:not(.toggleOn) {
-  background: #c9c9ca;
 }
 
 .toggleThumb {
@@ -720,21 +755,432 @@
   height: 20px;
   border-radius: 9999px;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toggleThumbOn {
   transform: translateX(19px);
 }
 
+/* ========== About This Mac ========== */
+
+.aboutHero {
+  text-align: center;
+  padding: 22px 16px 18px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  background: #f0f0f1;
+  border: 1px solid #e4e4e4;
+}
+
+.aboutAppleLogo {
+  display: inline-flex;
+  color: #1d1d1f;
+  margin-bottom: 6px;
+}
+
+.aboutModelName {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1d1d1f;
+  letter-spacing: -0.02em;
+}
+
+.aboutOS {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #444;
+  font-weight: 500;
+}
+
+.aboutBuild {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.aboutSpecRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid #e0e0e0;
+  gap: 16px;
+}
+
+.aboutSpecRowLast {
+  border-bottom: 0;
+}
+
+.aboutSpecLabel {
+  font-size: 13px;
+  color: #6a6a6a;
+  font-weight: 400;
+  flex-shrink: 0;
+  min-width: 130px;
+}
+
+.aboutSpecValue {
+  font-size: 13px;
+  color: #1d1d1f;
+  font-weight: 500;
+  text-align: right;
+}
+
+.aboutActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+  justify-content: flex-end;
+}
+
+.aboutActionButton {
+  border: 0;
+  border-radius: 9px;
+  height: 32px;
+  padding: 0 14px;
+  background: #e0e0e1;
+  color: #2e2e2e;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition: background 0.1s;
+}
+
+.aboutActionButton:hover {
+  background: #d2d2d3;
+}
+
+/* ========== Inline expand panel (BT detail / Wi-Fi details) ========== */
+
+/* (removed — inline panels no longer used) */
+
+/* ========== Device icons (Apple ID devices) ========== */
+
+.deviceIconWrap {
+  width: 50px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #5a5a5a;
+}
+
+/* ========== iCloud screen ========== */
+
+/* Storage bar (used inside iCloud hero) */
+.icloudBar {
+  width: 100%;
+  height: 8px;
+  border-radius: 9999px;
+  background: #dcdcdc;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.icloudBarFill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #3fa5ff 0%, #0d72dc 100%);
+  transition: width 0.3s ease;
+}
+
+/* Hero-embedded storage widget */
+.icloudHeroStorage {
+  margin-top: 14px;
+  width: 100%;
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.icloudHeroStorageTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.icloudHeroStorageLabel {
+  font-size: 12px;
+  color: #6a6a6a;
+}
+
+.icloudHeroStoragePlan {
+  font-size: 12px;
+  color: #6a6a6a;
+  font-weight: 500;
+}
+
+/* ========== Sign-In & Security + Media & Purchases ========== */
+
+/* Value labels in card rows */
+.valueGreen {
+  font-size: 13px;
+  color: #28a745;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.valueGray {
+  font-size: 13px;
+  color: #6a6a6a;
+  flex-shrink: 0;
+}
+
+/* ========== Account screen personal info row ========== */
+
+.accountPersonalRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.accountBirthday {
+  font-size: 13px;
+  color: #7a7a7a;
+}
+
+.xLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #1d1d1f;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.xLink:hover {
+  color: #444;
+}
+
+/* ========== Display sub-screen — brightness slider ========== */
+
+.brightnessSliderWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.brightnessIcon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.brightnessIconLg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.brightnessRange {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 160px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #d0d0d0;
+  outline: none;
+  cursor: default;
+}
+
+.brightnessRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.1);
+  cursor: default;
+}
+
+/* ========== AirDrop segmented picker ========== */
+
+.airdropPicker {
+  display: inline-flex;
+  border-radius: 8px;
+  border: 1px solid #d0d0d0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.airdropPickerBtn {
+  border: 0;
+  background: transparent;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #3a3a3a;
+  border-right: 1px solid #d0d0d0;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+
+.airdropPickerBtn:last-child {
+  border-right: 0;
+}
+
+.airdropPickerBtn:hover:not(.airdropPickerBtnActive) {
+  background: rgba(0,0,0,0.04);
+}
+
+.airdropPickerBtnActive {
+  background: #1669d4;
+  color: #fff;
+}
+
+/* ========== Storage sub-screen ========== */
+
+.storageHero {
+  border-radius: 12px;
+  background: #f0f0f1;
+  border: 1px solid #e4e4e4;
+  padding: 16px 18px 14px;
+  margin-bottom: 12px;
+}
+
+.storageHeroHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.storageHeroTitle {
+  font-size: 15px;
+  font-weight: 640;
+  color: #1d1d1f;
+}
+
+.storageHeroMeta {
+  font-size: 12px;
+  color: #6a6a6a;
+}
+
+.storageMacBar {
+  width: 100%;
+  height: 12px;
+  border-radius: 9999px;
+  background: #dcdcdc;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.storageMacBarSegment {
+  height: 100%;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+
+.storageLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.storageLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #6a6a6a;
+}
+
+.storageLegendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.storageRecommendRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  min-height: 56px;
+}
+
+.storageRecommendRow:last-child {
+  border-bottom: 0;
+}
+
+.storageRecommendIcon {
+  flex-shrink: 0;
+}
+
+.storageRecommendText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.storageRecommendTitle {
+  font-size: 14px;
+  font-weight: 520;
+  color: #2f2f2f;
+}
+
+.storageRecommendDesc {
+  font-size: 12px;
+  color: #7a7a7a;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.storageCatRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.storageCatRowLast {
+  border-bottom: 0;
+}
+
+.storageCatDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.storageCatLabel {
+  flex: 1;
+  font-size: 13px;
+  color: #2f2f2f;
+}
+
+.storageCatValue {
+  font-size: 13px;
+  color: #6a6a6a;
+  flex-shrink: 0;
+}
+
+/* ========== Scrollbars ========== */
+
 .sidebarScroll::-webkit-scrollbar,
 .contentScroll::-webkit-scrollbar {
-  width: 7px;
+  width: 6px;
 }
 
 .sidebarScroll::-webkit-scrollbar-thumb,
 .contentScroll::-webkit-scrollbar-thumb {
-  background: rgba(90, 90, 90, 0.34);
+  background: rgba(90, 90, 90, 0.3);
   border-radius: 9999px;
 }
 
@@ -743,17 +1189,18 @@
   background: transparent;
 }
 
-@media (max-width: 1080px) {
-  .shell {
-    grid-template-columns: 256px minmax(0, 1fr);
-  }
-}
+/* ========== Responsive ========== */
 
 @media (max-width: 860px) {
   .shell {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .shell {
     grid-template-columns: minmax(0, 1fr);
   }
-
   .sidebar {
     display: none;
   }
