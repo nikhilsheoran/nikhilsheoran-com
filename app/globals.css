@@ -5,6 +5,7 @@
 @layer base {
   * {
     box-sizing: border-box;
+    cursor: default !important;
   }
 
   body {
