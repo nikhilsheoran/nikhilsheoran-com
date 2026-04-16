@@ -60,6 +60,7 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  variable: "--font-inter",
 });
 
 export default async function RootLayout({
@@ -76,7 +77,7 @@ export default async function RootLayout({
           data-token="d502ca42-8a2f-41a4-8a35-56450cb6af1a"
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.variable}>
         <ConvexClientProvider initialToken={token}>
           {children}
         </ConvexClientProvider>

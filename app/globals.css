@@ -12,6 +12,17 @@
     margin: 0;
     background: #fafafa;
     color: #0f172a;
+    font-family:
+      -apple-system,
+      BlinkMacSystemFont,
+      "SF Pro Display",
+      "SF Pro Text",
+      var(--font-inter),
+      "Segoe UI",
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif;
   }
 }
 
