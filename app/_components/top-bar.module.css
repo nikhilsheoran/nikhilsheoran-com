@@ -1,0 +1,540 @@
+/* ═══════════════════════════════════════════════════════════════
+   Top Bar — Menu Bar Panels (macOS liquid glass style)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Shared panel shell ───────────────────────────────────────── */
+.panelBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+}
+
+.panel {
+  position: absolute;
+  top: 30px;
+  z-index: 200;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(40, 40, 40, 0.72);
+  backdrop-filter: blur(60px) saturate(180%);
+  -webkit-backdrop-filter: blur(60px) saturate(180%);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.45),
+    0 0 0 0.5px rgba(255, 255, 255, 0.08),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
+  color: #f5f5f7;
+  font-size: 13px;
+  padding: 6px;
+  min-width: 240px;
+  animation: panelIn 0.16s ease-out;
+  transform-origin: top center;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: scaleY(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1) translateY(0);
+  }
+}
+
+/* ── Apple menu ──────────────────────────────────────────────── */
+.appleMenu {
+  left: 6px;
+  min-width: 230px;
+  padding: 4px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: #f5f5f7;
+  width: 100%;
+  text-align: left;
+  line-height: 1.3;
+  transition: background 0.08s;
+}
+
+.menuItem:hover {
+  background: rgba(59, 130, 246, 0.85);
+}
+
+.menuItemDisabled {
+  color: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+.menuItemShortcut {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.menuItem:hover .menuItemShortcut {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.menuDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 10px;
+}
+
+/* ── App menus (File, Edit, View, etc.) ──────────────────────── */
+.appMenu {
+  min-width: 220px;
+  padding: 4px;
+}
+
+/* ── Wi-Fi panel ─────────────────────────────────────────────── */
+.wifiPanel {
+  right: 72px;
+  width: 300px;
+  padding: 0;
+}
+
+.wifiHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+}
+
+.wifiHeaderTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f5f5f7;
+}
+
+.wifiToggle {
+  position: relative;
+  width: 36px;
+  height: 22px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.wifiToggleOn {
+  background: #3478f6;
+}
+
+.wifiToggleThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.wifiToggleThumbOn {
+  transform: translateX(14px);
+}
+
+.wifiSection {
+  padding: 0 4px 4px;
+}
+
+.wifiSectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 8px 12px 4px;
+}
+
+.wifiRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  transition: background 0.08s;
+}
+
+.wifiRow:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wifiIconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #3478f6;
+  flex-shrink: 0;
+}
+
+.wifiIconCircleGray {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.wifiRowText {
+  flex: 1;
+  font-size: 13px;
+  color: #f5f5f7;
+}
+
+.wifiRowMeta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.wifiConnectedLabel {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0 16px 4px;
+}
+
+.wifiUnsecuredRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 16px 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.wifiDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 2px 12px;
+}
+
+.wifiSettingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #f5f5f7;
+  margin: 2px 4px 4px;
+  transition: background 0.08s;
+}
+
+.wifiSettingsRow:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Control Center ──────────────────────────────────────────── */
+.ccPanel {
+  right: 10px;
+  width: 320px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Grid section for tiles */
+.ccGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ccTile {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.12s;
+}
+
+.ccTile:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ccTileActive {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.ccTileActive:hover {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.ccTileHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ccTileIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ccTileIconBlue {
+  background: #3478f6;
+  color: #fff;
+}
+
+.ccTileIconGray {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ccTileIconWhite {
+  background: #fff;
+  color: #3478f6;
+}
+
+.ccTileLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f5f5f7;
+  line-height: 1.2;
+}
+
+.ccTileSub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.2;
+}
+
+/* Now Playing tile */
+.ccNowPlaying {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ccNpHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ccNpArt {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.ccNpMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.ccNpTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f5f5f7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ccNpArtist {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ccNpControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.ccNpBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.1s;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.ccNpBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Slider tiles */
+.ccSliderTile {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ccSliderLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f5f5f7;
+}
+
+.ccSliderRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ccSliderIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ccSlider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.ccSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: default !important;
+}
+
+.ccSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Bottom row of small circle tiles */
+.ccSmallRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.ccSmallTile {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.12s;
+}
+
+.ccSmallTile:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ccSmallTileIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ccSmallTileIconActive {
+  background: #fff;
+  color: #3478f6;
+}
+
+.ccSmallTileLabel {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── Active top bar item highlight ───────────────────────────── */
+.topbarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.5rem;
+  border-radius: 0.3rem;
+  transition: background 0.1s;
+}
+
+.topbarBtnActive {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.topbarBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menuLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.5rem;
+  border-radius: 0.3rem;
+  padding: 0 8px;
+  transition: background 0.1s;
+}
+
+.menuLabel:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menuLabelActive {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+
+.menuLabelActive:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
