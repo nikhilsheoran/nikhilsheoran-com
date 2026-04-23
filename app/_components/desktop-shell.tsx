@@ -11,6 +11,7 @@ import { TVWindow } from "@/app/_components/tv-window";
 import { TopBar } from "@/app/_components/top-bar";
 import { MobileNotes } from "@/app/_components/mobile-notes";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { useMusicPlayer } from "@/lib/use-music-player";
 import {
   getFirstNoteSlugForFolder,
   getFolderById,
@@ -129,6 +130,14 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
   const isSystemSettingsWindowOpen = windowStack.includes("system-settings");
   const isMusicWindowOpen = windowStack.includes("music");
   const isTVWindowOpen = windowStack.includes("tv");
+
+  // ── Shared music player (lifted here so TopBar can show Now Playing) ──
+  const musicPlayer = useMusicPlayer();
+
+  // Pause music when the Music window closes
+  useEffect(() => {
+    if (!isMusicWindowOpen) musicPlayer.pause();
+  }, [isMusicWindowOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const notePath = useCallback(
     (preferredSlug?: string | null) => {
@@ -342,6 +351,7 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
         onClose={() => handleWindowClose("music")}
         onActivate={() => handleWindowActivate("music")}
         zIndex={windowZIndex.music}
+        externalPlayer={musicPlayer}
       />
       <TVWindow
         isOpen={isTVWindowOpen}
@@ -349,7 +359,27 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
         onActivate={() => handleWindowActivate("tv")}
         zIndex={windowZIndex.tv}
       />
-      <TopBar activeAppName={activeAppName} />
+      <TopBar
+        activeAppName={activeAppName}
+        onOpenSettings={() => handleAppOpen("system-settings")}
+        onOpenAbout={() => handleAppOpen("system-settings")}
+        onCloseActiveWindow={() => {
+          if (activeWindowId) handleWindowClose(activeWindowId);
+        }}
+        nowPlaying={
+          musicPlayer.currentSong
+            ? {
+                title: musicPlayer.currentSong.title,
+                artist: musicPlayer.currentSong.artist,
+                artworkUrl: musicPlayer.currentSong.artworkUrl,
+                isPlaying: musicPlayer.isPlaying,
+              }
+            : null
+        }
+        onMusicPrev={musicPlayer.prev}
+        onMusicNext={musicPlayer.next}
+        onMusicToggle={() => musicPlayer.togglePlay()}
+      />
       <Dock
         disableMagnification={isMobile}
         runningApps={{

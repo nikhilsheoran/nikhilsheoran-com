@@ -747,9 +747,11 @@ interface MusicWindowProps {
   onClose: () => void;
   onActivate?: () => void;
   zIndex?: number;
+  /** When provided, uses an externally-managed player instead of creating one internally. */
+  externalPlayer?: ReturnType<typeof useMusicPlayer>;
 }
 
-export function MusicWindow({ isOpen, onClose, onActivate, zIndex }: MusicWindowProps) {
+export function MusicWindow({ isOpen, onClose, onActivate, zIndex, externalPlayer }: MusicWindowProps) {
   const getBounds = useCallback((windowSize: WindowSize) => {
     return {
       minX: -(windowSize.width - WINDOW_VISIBLE_EDGE),
@@ -765,10 +767,12 @@ export function MusicWindow({ isOpen, onClose, onActivate, zIndex }: MusicWindow
     disabled: !isOpen,
   });
 
-  const player = useMusicPlayer();
+  const internalPlayer = useMusicPlayer();
+  const player = externalPlayer ?? internalPlayer;
 
+  // Only pause on close if using internal player (external player is managed by parent)
   useEffect(() => {
-    if (!isOpen) player.pause();
+    if (!isOpen && !externalPlayer) player.pause();
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [view, setView] = useState<View>({ id: "home" });
