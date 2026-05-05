@@ -5,7 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@iconify/react";
 import appleIcon from "@iconify-icons/bi/apple";
 import twitterXIcon from "@iconify-icons/bi/twitter-x";
-import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
+import { useDraggableWindow } from "@/lib/use-draggable-window";
+import { getDesktopWindowBounds } from "@/lib/desktop-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import {
   macInfo,
@@ -23,11 +24,6 @@ import {
   type IconKey,
 } from "@/lib/settings-data";
 import styles from "./settings-window.module.css";
-
-const MENU_BAR_HEIGHT = 32;
-const DOCK_RESERVED_HEIGHT = 92;
-const WINDOW_VISIBLE_EDGE = 140;
-const WINDOW_VISIBLE_TOP = 64;
 
 type SettingsScreen =
   | "account"
@@ -57,7 +53,7 @@ const primarySidebarItems: { id: SettingsScreen; label: string; icon: IconKey }[
 ];
 
 // ---------------------------------------------------------------------------
-// SVG icons — existing
+// SVG icons
 // ---------------------------------------------------------------------------
 function IconWifi() {
   return (
@@ -197,7 +193,7 @@ function IconSoftwareUpdate() {
 }
 
 // ---------------------------------------------------------------------------
-// SVG icons — new for iCloud services
+// iCloud service icons
 // ---------------------------------------------------------------------------
 function IconPhotos() {
   return (
@@ -611,18 +607,9 @@ function XIcon() {
 // Main component
 // ---------------------------------------------------------------------------
 export function SettingsWindow({ isOpen, onClose, onActivate, zIndex }: SettingsWindowProps) {
-  const getBounds = useCallback((windowSize: WindowSize) => {
-    return {
-      minX: -(windowSize.width - WINDOW_VISIBLE_EDGE),
-      maxX: window.innerWidth - WINDOW_VISIBLE_EDGE,
-      minY: MENU_BAR_HEIGHT + 8,
-      maxY: window.innerHeight - DOCK_RESERVED_HEIGHT - WINDOW_VISIBLE_TOP,
-    };
-  }, []);
-
   const { windowRef, position, isDragging, handleDragStart } = useDraggableWindow({
     initialPosition: { x: 100, y: 60 },
-    getBounds,
+    getBounds: getDesktopWindowBounds,
     disabled: !isOpen,
   });
 
@@ -1056,7 +1043,7 @@ export function SettingsWindow({ isOpen, onClose, onActivate, zIndex }: Settings
                   </span>
                   <p className={styles.generalHeroTitle}>General</p>
                   <p className={styles.generalHeroText}>
-                    Manage your Mac's software updates, display, storage, and connectivity.
+                    Manage your Mac&apos;s software updates, display, storage, and connectivity.
                   </p>
                 </section>
                 <section className={styles.card}>
@@ -1219,7 +1206,7 @@ export function SettingsWindow({ isOpen, onClose, onActivate, zIndex }: Settings
                     </span>
                     <span className={styles.storageRecommendText}>
                       <span className={styles.storageRecommendTitle}>Optimize Storage</span>
-                      <span className={styles.storageRecommendDesc}>Save space by automatically removing movies and TV shows you've already watched.</span>
+                      <span className={styles.storageRecommendDesc}>Save space by automatically removing movies and TV shows you&apos;ve already watched.</span>
                     </span>
                     <button type="button" data-window-drag-ignore className={styles.inlineButton}>Optimize…</button>
                   </div>

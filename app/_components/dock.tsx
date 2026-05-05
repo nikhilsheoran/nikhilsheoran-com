@@ -9,20 +9,15 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
+import { desktopApps, type DesktopAppId } from "@/lib/desktop-apps";
 
-const dockApps = [
-  { id: "finder", name: "Finder", icon: "/icons/finder.png", running: true },
-  { id: "notes", name: "Notes", icon: "/icons/notes.png", running: true },
-  { id: "system-settings", name: "System Settings", icon: "/icons/settings.png", running: false },
-  { id: "music", name: "Music", icon: "/icons/music.png", running: true },
-  { id: "tv", name: "TV", icon: "/icons/tv.png", running: false },
-] as const;
+const dockApps = desktopApps.filter((app) => app.dock);
 
 const DOCK_BASE_SIZE = 60;
 const DOCK_MAGNIFICATION = 2;
 
 type DockApp = (typeof dockApps)[number];
-export type DockAppId = DockApp["id"];
+export type DockAppId = DesktopAppId;
 
 function useDockHoverAnimation(
   mouseX: MotionValue<number | null>,
@@ -158,7 +153,7 @@ export function Dock({
             app={app}
             mouseX={mouseX}
             disableMagnification={disableMagnification}
-            isRunning={runningApps?.[app.id] ?? app.running}
+            isRunning={runningApps?.[app.id] ?? app.defaultRunning}
             onAppOpen={onAppOpen}
           />
         ))}

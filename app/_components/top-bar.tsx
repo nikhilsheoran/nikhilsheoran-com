@@ -717,6 +717,13 @@ export function TopBar({
     setOpenPanel((current) => (current === id ? null : id));
   }, []);
 
+  const [appMenuLeftOffset, setAppMenuLeftOffset] = useState(120);
+
+  const updateAppMenuLeftOffset = useCallback((menuLabel: string) => {
+    const el = menuRefs.current[menuLabel];
+    setAppMenuLeftOffset(el ? el.getBoundingClientRect().left : 120);
+  }, []);
+
   const closePanel = useCallback(() => {
     setOpenPanel(null);
     setIsHoveringMenus(false);
@@ -749,22 +756,17 @@ export function TopBar({
     (menuLabel: string) => {
       if (!isAppMenuOpen && openPanel !== "apple") return;
       const panelId = menuIdMap[menuLabel];
-      if (panelId) setOpenPanel(panelId);
+      if (panelId) {
+        updateAppMenuLeftOffset(menuLabel);
+        setOpenPanel(panelId);
+      }
     },
-    [isAppMenuOpen, openPanel],
+    [isAppMenuOpen, openPanel, updateAppMenuLeftOffset],
   );
 
   const handleAppleHover = useCallback(() => {
     if (isAppMenuOpen) setOpenPanel("apple");
   }, [isAppMenuOpen]);
-
-  // Compute app menu left offset from ref
-  const getMenuLeftOffset = useCallback((menuLabel: string): number => {
-    const el = menuRefs.current[menuLabel];
-    if (!el) return 120;
-    const rect = el.getBoundingClientRect();
-    return rect.left;
-  }, []);
 
   const activeAppMenuLabel = openPanel?.startsWith("app-")
     ? openPanel.replace("app-", "").charAt(0).toUpperCase() + openPanel.replace("app-", "").slice(1)
@@ -797,7 +799,10 @@ export function TopBar({
                 className={`${styles.menuLabel} text-white/95 ${
                   activeAppMenuLabel === item ? styles.menuLabelActive : ""
                 }`}
-                onClick={() => togglePanel(menuIdMap[item]!)}
+                onClick={() => {
+                  updateAppMenuLeftOffset(item);
+                  togglePanel(menuIdMap[item]!);
+                }}
                 onMouseEnter={() => handleMenuHover(item)}
               >
                 {item}
@@ -838,7 +843,7 @@ export function TopBar({
             {openPanel.startsWith("app-") && activeAppMenuLabel && (
               <AppMenuPanel
                 menuId={activeAppMenuLabel}
-                leftOffset={getMenuLeftOffset(activeAppMenuLabel)}
+                leftOffset={appMenuLeftOffset}
                 onClose={() => {
                   closePanel();
                   onCloseActiveWindow?.();

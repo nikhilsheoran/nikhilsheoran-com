@@ -9,6 +9,8 @@
  * and is read-only at runtime.
  */
 
+import { desktopApps } from "@/lib/desktop-apps";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -155,7 +157,7 @@ function file(
 }
 
 // ---------------------------------------------------------------------------
-// Project data (will be replaced by content/projects/ in Phase 1.3)
+// Project data
 // ---------------------------------------------------------------------------
 
 export interface ProjectEntry {
@@ -308,11 +310,13 @@ export function buildFileSystem(): FSDirectory {
 
   // /Applications — top-level macOS apps directory
   const applicationsDir = dir("Applications", "/", [
-    file("Finder.app", "/Applications", { size: "28 MB", fileKind: "Application", dateModified: "Today" }),
-    file("Notes.app", "/Applications", { size: "14 MB", fileKind: "Application", dateModified: "Today" }),
-    file("Music.app", "/Applications", { size: "52 MB", fileKind: "Application", dateModified: "Today" }),
-    file("TV.app", "/Applications", { size: "38 MB", fileKind: "Application", dateModified: "Today" }),
-    file("Settings.app", "/Applications", { size: "6 MB", fileKind: "Application", dateModified: "Today" }),
+    ...desktopApps.map((app) =>
+      file(app.finderAppName, "/Applications", {
+        size: app.finderAppSize,
+        fileKind: "Application",
+        dateModified: "Today",
+      }),
+    ),
     file("Photos.app", "/Applications", { size: "44 MB", fileKind: "Application", dateModified: "Today" }),
   ]);
 

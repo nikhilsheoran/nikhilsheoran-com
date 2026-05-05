@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 // global-error.tsx must include its own <html> and <body> tags
 // because it replaces the root layout when that layout itself errors.
@@ -118,7 +119,7 @@ export default function GlobalError({
                 Try Again
               </button>
 
-              <a
+              <Link
                 href="/"
                 style={{
                   background: "linear-gradient(180deg, #3B82F6 0%, #2563EB 100%)",
@@ -133,7 +134,7 @@ export default function GlobalError({
                 }}
               >
                 Restart
-              </a>
+              </Link>
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@ import { TopBar } from "@/app/_components/top-bar";
 import { MobileNotes } from "@/app/_components/mobile-notes";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useMusicPlayer } from "@/lib/use-music-player";
+import { getDesktopAppName, isDesktopAppId, type DesktopAppId } from "@/lib/desktop-apps";
 import {
   getFirstNoteSlugForFolder,
   getFolderById,
@@ -21,15 +22,7 @@ import {
   type NotesData,
 } from "@/lib/mock-desktop-data";
 
-type WindowAppId = "finder" | "notes" | "system-settings" | "music" | "tv";
-
-const APP_NAME_BY_ID: Record<string, string> = {
-  finder: "Finder",
-  notes: "Notes",
-  music: "Music",
-  "system-settings": "System Settings",
-  tv: "TV",
-};
+type WindowAppId = DesktopAppId;
 
 function normalizePathname(pathname: string): string {
   if (!pathname) return "/";
@@ -49,7 +42,7 @@ function parseDesktopPath(pathname: string): { appId: string; noteSlug: string |
 }
 
 function isWindowAppId(appId: string): appId is WindowAppId {
-  return appId === "finder" || appId === "notes" || appId === "system-settings" || appId === "music" || appId === "tv";
+  return isDesktopAppId(appId);
 }
 
 function activateWindowInStack(stack: WindowAppId[], appId: WindowAppId): WindowAppId[] {
@@ -57,9 +50,7 @@ function activateWindowInStack(stack: WindowAppId[], appId: WindowAppId): Window
 }
 
 function formatAppName(appId: string): string {
-  if (APP_NAME_BY_ID[appId]) return APP_NAME_BY_ID[appId];
-  if (!appId) return "Finder";
-  return appId.charAt(0).toUpperCase() + appId.slice(1);
+  return getDesktopAppName(appId);
 }
 
 function useDesktopPathname(initialPathname: string) {
@@ -351,7 +342,7 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
         onClose={() => handleWindowClose("music")}
         onActivate={() => handleWindowActivate("music")}
         zIndex={windowZIndex.music}
-        externalPlayer={musicPlayer}
+        player={musicPlayer}
       />
       <TVWindow
         isOpen={isTVWindowOpen}

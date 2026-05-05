@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
+import { useDraggableWindow } from "@/lib/use-draggable-window";
+import { getDesktopWindowBounds } from "@/lib/desktop-window";
 import { WindowControls } from "@/app/_components/window-controls";
-import { useMusicPlayer } from "@/lib/use-music-player";
+import type { MusicPlayer } from "@/lib/use-music-player";
 import {
   songs,
   albums,
@@ -37,11 +38,6 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return out;
 }
 const SHUFFLED_SONGS = seededShuffle(songs, 0xdeadbeef);
-
-const MENU_BAR_HEIGHT = 32;
-const DOCK_RESERVED_HEIGHT = 92;
-const WINDOW_VISIBLE_EDGE = 140;
-const WINDOW_VISIBLE_TOP = 64;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // View types
@@ -267,7 +263,7 @@ function HomeView({
   player,
   onNavigate,
 }: {
-  player: ReturnType<typeof useMusicPlayer>;
+  player: MusicPlayer;
   onNavigate: (v: View) => void;
 }) {
   const frequentSongs = frequentlyPlayedIds
@@ -331,7 +327,7 @@ function HomeView({
 }
 
 // ── Frequently Played view ────────────────────────────────────────────────────
-function FrequentlyPlayedView({ player }: { player: ReturnType<typeof useMusicPlayer> }) {
+function FrequentlyPlayedView({ player }: { player: MusicPlayer }) {
   const frequentSongs = frequentlyPlayedIds
     .map((id) => songById[id])
     .filter(Boolean) as Song[];
@@ -397,7 +393,7 @@ function AlbumsView({ onNavigate }: { onNavigate: (v: View) => void }) {
 }
 
 // ── Songs view ────────────────────────────────────────────────────────────────
-function SongsView({ player }: { player: ReturnType<typeof useMusicPlayer> }) {
+function SongsView({ player }: { player: MusicPlayer }) {
   const allIds = SHUFFLED_SONGS.map((s) => s.id);
   return (
     <div className={styles.contentScroll} data-window-drag-ignore>
@@ -434,7 +430,7 @@ function AlbumDetailView({
   onBack,
 }: {
   albumId: string;
-  player: ReturnType<typeof useMusicPlayer>;
+  player: MusicPlayer;
   onBack: () => void;
 }) {
   const album = albumById[albumId];
@@ -505,7 +501,7 @@ function ArtistDetailView({
   onNavigate,
 }: {
   artistId: string;
-  player: ReturnType<typeof useMusicPlayer>;
+  player: MusicPlayer;
   onBack: () => void;
   onNavigate: (v: View) => void;
 }) {
@@ -605,7 +601,7 @@ function ArtistCard({ artist, onClick }: { artist: Artist; onClick: () => void }
 // ─────────────────────────────────────────────────────────────────────────────
 // Player bar
 // ─────────────────────────────────────────────────────────────────────────────
-function PlayerBar({ player }: { player: ReturnType<typeof useMusicPlayer> }) {
+function PlayerBar({ player }: { player: MusicPlayer }) {
   const [volumeHovered, setVolumeHovered] = useState(false);
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -747,33 +743,15 @@ interface MusicWindowProps {
   onClose: () => void;
   onActivate?: () => void;
   zIndex?: number;
-  /** When provided, uses an externally-managed player instead of creating one internally. */
-  externalPlayer?: ReturnType<typeof useMusicPlayer>;
+  player: MusicPlayer;
 }
 
-export function MusicWindow({ isOpen, onClose, onActivate, zIndex, externalPlayer }: MusicWindowProps) {
-  const getBounds = useCallback((windowSize: WindowSize) => {
-    return {
-      minX: -(windowSize.width - WINDOW_VISIBLE_EDGE),
-      maxX: window.innerWidth - WINDOW_VISIBLE_EDGE,
-      minY: MENU_BAR_HEIGHT + 8,
-      maxY: window.innerHeight - DOCK_RESERVED_HEIGHT - WINDOW_VISIBLE_TOP,
-    };
-  }, []);
-
+export function MusicWindow({ isOpen, onClose, onActivate, zIndex, player }: MusicWindowProps) {
   const { windowRef, position, isDragging, handleDragStart } = useDraggableWindow({
     initialPosition: { x: 130, y: 90 },
-    getBounds,
+    getBounds: getDesktopWindowBounds,
     disabled: !isOpen,
   });
-
-  const internalPlayer = useMusicPlayer();
-  const player = externalPlayer ?? internalPlayer;
-
-  // Only pause on close if using internal player (external player is managed by parent)
-  useEffect(() => {
-    if (!isOpen && !externalPlayer) player.pause();
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [view, setView] = useState<View>({ id: "home" });
   const [viewHistory, setViewHistory] = useState<View[]>([{ id: "home" }]);

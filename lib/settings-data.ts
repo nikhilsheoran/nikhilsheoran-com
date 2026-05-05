@@ -33,9 +33,6 @@ export const accountInfo = {
   twitterUrl: "https://twitter.com/_nikhilsheoran",
 };
 
-// Account rows — iCloud and Media only (Sign-In & Security removed)
-export const accountRowsPrimary: never[] = [];
-
 export const accountRowsSecondary = [
   { label: "iCloud", icon: "cloud" as const },
   { label: "Media & Purchases", icon: "store" as const },
@@ -80,9 +77,6 @@ export const generalRows = [
   { label: "Storage", icon: "storage" as const },
   { label: "AirDrop & Handoff", icon: "network" as const },
 ];
-
-// Accessibility rows — removed entirely
-export const accessibilityRows: never[] = [];
 
 // iCloud services with icon keys (all real/active)
 export const icloudServices = [

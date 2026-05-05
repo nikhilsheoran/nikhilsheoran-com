@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
+import { useDraggableWindow } from "@/lib/use-draggable-window";
+import { getDesktopWindowBounds } from "@/lib/desktop-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import {
   shows,
@@ -16,11 +17,6 @@ import {
   type WatchStatus,
 } from "@/lib/tv-data";
 import styles from "./tv-window.module.css";
-
-const MENU_BAR_HEIGHT = 32;
-const DOCK_RESERVED_HEIGHT = 92;
-const WINDOW_VISIBLE_EDGE = 140;
-const WINDOW_VISIBLE_TOP = 64;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // View types
@@ -451,18 +447,9 @@ interface TVWindowProps {
 }
 
 export function TVWindow({ isOpen, onClose, onActivate, zIndex }: TVWindowProps) {
-  const getBounds = useCallback((windowSize: WindowSize) => {
-    return {
-      minX: -(windowSize.width - WINDOW_VISIBLE_EDGE),
-      maxX: window.innerWidth - WINDOW_VISIBLE_EDGE,
-      minY: MENU_BAR_HEIGHT + 8,
-      maxY: window.innerHeight - DOCK_RESERVED_HEIGHT - WINDOW_VISIBLE_TOP,
-    };
-  }, []);
-
   const { windowRef, position, isDragging, handleDragStart } = useDraggableWindow({
     initialPosition: { x: 168, y: 114 },
-    getBounds,
+    getBounds: getDesktopWindowBounds,
     disabled: !isOpen,
   });
 

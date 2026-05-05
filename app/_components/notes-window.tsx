@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote";
-import { useDraggableWindow, type WindowSize } from "@/lib/use-draggable-window";
+import { useDraggableWindow } from "@/lib/use-draggable-window";
+import { getDesktopWindowBounds } from "@/lib/desktop-window";
 import {
   getFolderById,
   getGroupedNotesForFolder,
@@ -14,11 +15,6 @@ import styles from "./notes-window.module.css";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { authClient } from "@/lib/auth-client";
-
-const MENU_BAR_HEIGHT = 32;
-const DOCK_RESERVED_HEIGHT = 92;
-const WINDOW_VISIBLE_EDGE = 140;
-const WINDOW_VISIBLE_TOP = 64;
 
 interface NotesWindowProps {
   isOpen: boolean;
@@ -158,18 +154,9 @@ export function NotesWindow({
   onFolderSelect,
   onNoteSelect,
 }: NotesWindowProps) {
-  const getBounds = useCallback((windowSize: WindowSize) => {
-    return {
-      minX: -(windowSize.width - WINDOW_VISIBLE_EDGE),
-      maxX: window.innerWidth - WINDOW_VISIBLE_EDGE,
-      minY: MENU_BAR_HEIGHT + 8,
-      maxY: window.innerHeight - DOCK_RESERVED_HEIGHT - WINDOW_VISIBLE_TOP,
-    };
-  }, []);
-
   const { windowRef, position, isDragging, handleDragStart } = useDraggableWindow({
     initialPosition: { x: 36, y: 46 },
-    getBounds,
+    getBounds: getDesktopWindowBounds,
     disabled: !isOpen,
   });
 
