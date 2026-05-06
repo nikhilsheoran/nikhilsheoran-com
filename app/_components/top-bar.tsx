@@ -38,30 +38,117 @@ function CCMIcon({ size }: { size: number }) {
   );
 }
 
-function WifiIconSm() {
+function WifiIconSm({ size = 16 }: { size?: number }) {
   return (
-    <svg width="14" height="12" viewBox="0 0 14 12" fill="none" aria-hidden>
-      <path d="M7 9.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z" fill="white" />
-      <path d="M4.3 7.6a3.8 3.8 0 0 1 5.4 0" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-      <path d="M1.6 5a7.2 7.2 0 0 1 10.8 0" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
+    <svg width={size} height={(size * 12) / 16} viewBox="0 0 16 12" fill="none" aria-hidden>
+      <path d="M8 9.2a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Z" fill="currentColor" />
+      <path d="M4.7 7.1a4.6 4.6 0 0 1 6.6 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M1.6 4.2a8.8 8.8 0 0 1 12.8 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
 
-function BluetoothIconSm() {
+function BluetoothIconSm({ size = 14 }: { size?: number }) {
   return (
-    <svg width="10" height="14" viewBox="0 0 10 14" fill="none" aria-hidden>
-      <path d="M2 3.5L8 8 5 11V1l3 3.5L2 9.5" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width={size * 0.7} height={size} viewBox="0 0 10 14" fill="none" aria-hidden>
+      <path
+        d="M2.5 3.5L7.5 8 5 10.5V1L7.5 6 2.5 10.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
     </svg>
   );
 }
 
-function AirDropIconSm() {
+function AirDropIconSm({ size = 18 }: { size?: number }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M4 12c.5-2 2-3.5 4-3.5s3.5 1.5 4 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      <path d="M1.5 9a9 9 0 0 1 13 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path
+        d="M9 2.2c2.5 0 4.6 1.7 5.3 4M9 2.2c-2.5 0-4.6 1.7-5.3 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9 5.6c1.4 0 2.6 1 3 2.3M9 5.6c-1.4 0-2.6 1-3 2.3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9 9.8v6.2M6.5 12.4 9 9.9l2.5 2.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="2.5" y="5.5" width="15" height="10" rx="2" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="10" cy="10.5" r="2.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M7 5.5l1-1.5h4l1 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function DarkModeIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="6.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M10 3.5v13a6.5 6.5 0 0 0 0-13Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function MoonIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M13 9.5A5.5 5.5 0 0 1 6.5 3a.5.5 0 0 0-.7-.5 6 6 0 1 0 7.7 7.7.5.5 0 0 0-.5-.7Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function StageManagerTahoe() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="6" y="4.5" width="11" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="6" y="6.5" width="3" height="2" rx="0.5" fill="currentColor" />
+      <path d="M3 8v4M1.5 9v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" opacity="0.7" />
+    </svg>
+  );
+}
+
+function MirrorTahoe() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="3" y="4.5" width="14" height="9.5" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="6" y="7.5" width="11" height="6.5" rx="1.2" stroke="currentColor" strokeWidth="1.3" fill="rgba(255,255,255,0.08)" />
+    </svg>
+  );
+}
+
+function AirPlayIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+      <path
+        d="M2 9.5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v6.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path d="M7 8l3 4H4l3-4Z" fill="currentColor" />
     </svg>
   );
 }
@@ -244,7 +331,7 @@ function Toggle({ checked, onClick }: { checked: boolean; onClick: () => void })
 // ─────────────────────────────────────────────────────────────────────────────
 function AppleMenuPanel({ onAction }: { onAction: (action: string) => void }) {
   return (
-    <div className={`${styles.panel} ${styles.appleMenu}`}>
+    <div className={`${styles.panel} ${styles.glassDark} ${styles.appleMenu}`}>
       <button type="button" className={styles.menuItem} onClick={() => onAction("about")}>
         <span>About This Mac</span>
       </button>
@@ -344,7 +431,7 @@ function AppMenuPanel({
 }) {
   const items = APP_MENUS[menuId] ?? [];
   return (
-    <div className={`${styles.panel} ${styles.appMenu}`} style={{ left: leftOffset }}>
+    <div className={`${styles.panel} ${styles.glassDark} ${styles.appMenu}`} style={{ left: leftOffset }}>
       {items.map((item, i) => {
         if (item.label === "" && item.dividerAfter) {
           return <div key={`divider-${i}`} className={styles.menuDivider} />;
@@ -375,13 +462,13 @@ function AppMenuPanel({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Wi-Fi panel
+// Wi-Fi panel — Tahoe light glass
 // ─────────────────────────────────────────────────────────────────────────────
 function WiFiPanel() {
   const [wifiEnabled, setWifiEnabled] = useState(true);
 
   return (
-    <div className={`${styles.panel} ${styles.wifiPanel}`}>
+    <div className={`${styles.wifiPanel} ${styles.glassLight}`}>
       <div className={styles.wifiHeader}>
         <span className={styles.wifiHeaderTitle}>Wi-Fi</span>
         <Toggle checked={wifiEnabled} onClick={() => setWifiEnabled((v) => !v)} />
@@ -389,9 +476,9 @@ function WiFiPanel() {
 
       {wifiEnabled ? (
         <>
-          <div className={styles.wifiConnectedLabel}>
-            Unsecured Network...
-            <span style={{ float: "right" }}><WarningIcon /></span>
+          <div className={styles.wifiConnectedRow}>
+            <span>Unsecured Network...</span>
+            <WarningIcon />
           </div>
 
           <div className={styles.wifiDivider} />
@@ -404,12 +491,17 @@ function WiFiPanel() {
               </span>
               <span className={styles.wifiRowText}>{wifiInfo.hotspotName}</span>
               <span className={styles.wifiRowMeta}>
-                <span>4G</span>
-                <svg width="12" height="10" viewBox="0 0 12 10" fill="none" aria-hidden>
-                  <rect x="0" y="7" width="2" height="3" rx="0.5" fill="rgba(255,255,255,0.5)" />
-                  <rect x="3.5" y="5" width="2" height="5" rx="0.5" fill="rgba(255,255,255,0.5)" />
-                  <rect x="7" y="2.5" width="2" height="7.5" rx="0.5" fill="rgba(255,255,255,0.5)" />
-                  <rect x="10.5" y="0" width="2" height="10" rx="0.5" fill="rgba(255,255,255,0.3)" />
+                <svg width="14" height="11" viewBox="0 0 14 11" fill="none" aria-hidden>
+                  <rect x="0" y="8" width="2.4" height="3" rx="0.5" fill="currentColor" />
+                  <rect x="3.6" y="6" width="2.4" height="5" rx="0.5" fill="currentColor" />
+                  <rect x="7.2" y="3.5" width="2.4" height="7.5" rx="0.5" fill="currentColor" opacity="0.3" />
+                  <rect x="10.8" y="0.5" width="2.4" height="10.5" rx="0.5" fill="currentColor" opacity="0.3" />
+                </svg>
+                <span style={{ fontWeight: 600 }}>4G</span>
+                <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden>
+                  <rect x="0.5" y="0.5" width="18" height="10" rx="2.5" stroke="currentColor" opacity="0.4" />
+                  <rect x="2" y="2" width="5" height="7" rx="1" fill="currentColor" />
+                  <rect x="19.5" y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor" opacity="0.4" />
                 </svg>
               </span>
             </button>
@@ -421,7 +513,7 @@ function WiFiPanel() {
             <p className={styles.wifiSectionLabel}>Known Network</p>
             <button type="button" className={styles.wifiRow}>
               <span className={styles.wifiIconCircle}>
-                <WifiIconSm />
+                <WifiIconSm size={14} />
               </span>
               <span className={styles.wifiRowText}>{wifiInfo.networkName}</span>
             </button>
@@ -431,7 +523,7 @@ function WiFiPanel() {
 
           <button type="button" className={styles.wifiSettingsRow}>
             <span>Other Networks</span>
-            <span style={{ color: "rgba(255,255,255,0.35)" }}><ChevronRight /></span>
+            <span className={styles.wifiChevron}><ChevronRight /></span>
           </button>
 
           <div className={styles.wifiDivider} />
@@ -441,7 +533,7 @@ function WiFiPanel() {
           </button>
         </>
       ) : (
-        <div style={{ padding: "8px 16px 12px", color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
+        <div style={{ padding: "8px 16px 12px", color: "rgba(0,0,0,0.45)", fontSize: 13 }}>
           Wi-Fi is turned off
         </div>
       )}
@@ -450,8 +542,50 @@ function WiFiPanel() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Control Center panel
+// Control Center panel — Tahoe dark glass
 // ─────────────────────────────────────────────────────────────────────────────
+function CCSlider({
+  value,
+  min,
+  max,
+  onChange,
+  iconLeft,
+  iconRight,
+  endButton,
+  ariaLabel,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  onChange: (v: number) => void;
+  iconLeft?: React.ReactNode;
+  iconRight?: React.ReactNode;
+  endButton?: React.ReactNode;
+  ariaLabel: string;
+}) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <div className={styles.ccSliderRow}>
+      <div className={styles.ccSliderTrack}>
+        <div className={styles.ccSliderBg} />
+        <div className={styles.ccSliderFill} style={{ width: `${pct}%` }} />
+        {iconLeft && <div className={styles.ccSliderIconLeft}>{iconLeft}</div>}
+        {iconRight && <div className={styles.ccSliderIconRight}>{iconRight}</div>}
+        <input
+          type="range"
+          className={styles.ccSlider}
+          min={min}
+          max={max}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          aria-label={ariaLabel}
+        />
+      </div>
+      {endButton}
+    </div>
+  );
+}
+
 function ControlCenterPanel({
   nowPlaying,
   onMusicPrev,
@@ -473,39 +607,53 @@ function ControlCenterPanel({
   // Apply brightness
   useEffect(() => {
     document.documentElement.style.filter = `brightness(${brightness}%)`;
-    return () => { document.documentElement.style.filter = ""; };
+    return () => {
+      document.documentElement.style.filter = "";
+    };
   }, [brightness]);
 
   return (
-    <div className={`${styles.panel} ${styles.ccPanel}`}>
-      {/* ── Top grid: Wi-Fi + Now Playing / Bluetooth ──────────── */}
-      <div className={styles.ccGrid}>
-        {/* Wi-Fi tile */}
+    <div className={styles.ccWrap}>
+      {/* Top: Wi-Fi + Bluetooth pills (left col) | Now Playing (right col, spans 2 rows) */}
+      <div className={styles.ccTopLeft}>
         <button
           type="button"
-          className={`${styles.ccTile} ${wifiOn ? styles.ccTileActive : ""}`}
+          className={`${styles.ccPill} ${styles.glassDark}`}
           onClick={() => setWifiOn((v) => !v)}
         >
-          <div className={styles.ccTileHeader}>
-            <span className={`${styles.ccTileIcon} ${wifiOn ? styles.ccTileIconBlue : styles.ccTileIconGray}`}>
-              <WifiIconSm />
-            </span>
-            <div>
-              <p className={styles.ccTileLabel}>Wi-Fi</p>
-              <p className={styles.ccTileSub}>{wifiOn ? wifiInfo.networkName : "Off"}</p>
-            </div>
-          </div>
+          <span className={`${styles.ccPillIcon} ${!wifiOn ? styles.ccPillIconOff : ""}`}>
+            <WifiIconSm size={22} />
+          </span>
+          <span className={styles.ccPillText}>
+            <span className={styles.ccPillLabel}>Wi-Fi</span>
+            <span className={styles.ccPillSub}>{wifiOn ? wifiInfo.networkName : "Off"}</span>
+          </span>
         </button>
 
-        {/* Now Playing tile (or Bluetooth if no music) */}
+        <button
+          type="button"
+          className={`${styles.ccPill} ${styles.glassDark}`}
+          onClick={() => setBluetoothOn((v) => !v)}
+        >
+          <span className={`${styles.ccPillIcon} ${!bluetoothOn ? styles.ccPillIconOff : ""}`}>
+            <BluetoothIconSm size={20} />
+          </span>
+          <span className={styles.ccPillText}>
+            <span className={styles.ccPillLabel}>Bluetooth</span>
+            <span className={styles.ccPillSub}>{bluetoothOn ? "On" : "Off"}</span>
+          </span>
+        </button>
+      </div>
+
+      <div className={styles.ccTopRight}>
         {nowPlaying ? (
-          <div className={styles.ccNowPlaying}>
+          <div className={`${styles.ccNowPlaying} ${styles.glassDark}`}>
             <div className={styles.ccNpHeader}>
               <Image
                 src={nowPlaying.artworkUrl}
                 alt={nowPlaying.title}
-                width={40}
-                height={40}
+                width={36}
+                height={36}
                 className={styles.ccNpArt}
                 unoptimized
               />
@@ -518,7 +666,12 @@ function ControlCenterPanel({
               <button type="button" className={styles.ccNpBtn} onClick={onMusicPrev} aria-label="Previous">
                 <IconPrev />
               </button>
-              <button type="button" className={styles.ccNpBtn} onClick={onMusicToggle} aria-label={nowPlaying.isPlaying ? "Pause" : "Play"}>
+              <button
+                type="button"
+                className={styles.ccNpBtn}
+                onClick={onMusicToggle}
+                aria-label={nowPlaying.isPlaying ? "Pause" : "Play"}
+              >
                 {nowPlaying.isPlaying ? <IconPause /> : <IconPlay />}
               </button>
               <button type="button" className={styles.ccNpBtn} onClick={onMusicNext} aria-label="Next">
@@ -529,146 +682,123 @@ function ControlCenterPanel({
         ) : (
           <button
             type="button"
-            className={`${styles.ccTile} ${bluetoothOn ? styles.ccTileActive : ""}`}
-            onClick={() => setBluetoothOn((v) => !v)}
+            className={`${styles.ccPill} ${styles.glassDark}`}
+            onClick={() => setAirdropOn((v) => !v)}
+            style={{ flex: 1, height: 154 }}
           >
-            <div className={styles.ccTileHeader}>
-              <span className={`${styles.ccTileIcon} ${bluetoothOn ? styles.ccTileIconBlue : styles.ccTileIconGray}`}>
-                <BluetoothIconSm />
-              </span>
-              <div>
-                <p className={styles.ccTileLabel}>Bluetooth</p>
-                <p className={styles.ccTileSub}>{bluetoothOn ? "On" : "Off"}</p>
-              </div>
-            </div>
+            <span className={`${styles.ccPillIcon} ${!airdropOn ? styles.ccPillIconOff : ""}`}>
+              <AirDropIconSm size={22} />
+            </span>
+            <span className={styles.ccPillText}>
+              <span className={styles.ccPillLabel}>AirDrop</span>
+              <span className={styles.ccPillSub}>{airdropOn ? "Everyone" : "Off"}</span>
+            </span>
           </button>
         )}
       </div>
 
-      {/* ── Second row: Bluetooth (if now playing shown) + AirDrop ── */}
+      {/* AirDrop pill + Stage Manager + Mirror (only when nowPlaying shown above) */}
       {nowPlaying && (
-        <div className={styles.ccGrid}>
+        <>
           <button
             type="button"
-            className={`${styles.ccTile} ${bluetoothOn ? styles.ccTileActive : ""}`}
-            onClick={() => setBluetoothOn((v) => !v)}
-          >
-            <div className={styles.ccTileHeader}>
-              <span className={`${styles.ccTileIcon} ${bluetoothOn ? styles.ccTileIconBlue : styles.ccTileIconGray}`}>
-                <BluetoothIconSm />
-              </span>
-              <div>
-                <p className={styles.ccTileLabel}>Bluetooth</p>
-                <p className={styles.ccTileSub}>{bluetoothOn ? "On" : "Off"}</p>
-              </div>
-            </div>
-          </button>
-          <button
-            type="button"
-            className={`${styles.ccTile} ${airdropOn ? styles.ccTileActive : ""}`}
+            className={`${styles.ccPill} ${styles.glassDark}`}
             onClick={() => setAirdropOn((v) => !v)}
           >
-            <div className={styles.ccTileHeader}>
-              <span className={`${styles.ccTileIcon} ${airdropOn ? styles.ccTileIconBlue : styles.ccTileIconGray}`}>
-                <AirDropIconSm />
-              </span>
-              <div>
-                <p className={styles.ccTileLabel}>AirDrop</p>
-                <p className={styles.ccTileSub}>{airdropOn ? "Everyone" : "Off"}</p>
-              </div>
-            </div>
+            <span className={`${styles.ccPillIcon} ${!airdropOn ? styles.ccPillIconOff : ""}`}>
+              <AirDropIconSm size={22} />
+            </span>
+            <span className={styles.ccPillText}>
+              <span className={styles.ccPillLabel}>AirDrop</span>
+              <span className={styles.ccPillSub}>{airdropOn ? "Everyone" : "Off"}</span>
+            </span>
           </button>
-        </div>
-      )}
-
-      {/* ── AirDrop row (if no now playing) ──────────────────────── */}
-      {!nowPlaying && (
-        <div className={styles.ccGrid}>
-          <button
-            type="button"
-            className={`${styles.ccTile} ${airdropOn ? styles.ccTileActive : ""}`}
-            onClick={() => setAirdropOn((v) => !v)}
-          >
-            <div className={styles.ccTileHeader}>
-              <span className={`${styles.ccTileIcon} ${airdropOn ? styles.ccTileIconBlue : styles.ccTileIconGray}`}>
-                <AirDropIconSm />
-              </span>
-              <div>
-                <p className={styles.ccTileLabel}>AirDrop</p>
-                <p className={styles.ccTileSub}>{airdropOn ? "Everyone" : "Off"}</p>
-              </div>
-            </div>
-          </button>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button type="button" className={styles.ccSmallTile} style={{ flex: 1 }}>
-              <span className={styles.ccSmallTileIcon}><StageManagerIcon /></span>
+          <div className={styles.ccRoundRow} style={{ justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className={`${styles.ccRoundTile} ${styles.glassDark}`}
+              aria-label="Stage Manager"
+            >
+              <StageManagerTahoe />
             </button>
-            <button type="button" className={styles.ccSmallTile} style={{ flex: 1 }}>
-              <span className={styles.ccSmallTileIcon}><MirrorIcon /></span>
+            <button
+              type="button"
+              className={`${styles.ccRoundTile} ${styles.glassDark}`}
+              aria-label="Screen Mirroring"
+            >
+              <MirrorTahoe />
             </button>
           </div>
-        </div>
+        </>
       )}
 
-      {/* ── Small tiles row ──────────────────────────────────────── */}
-      <div className={styles.ccSmallRow}>
-        <button type="button" className={styles.ccSmallTile} onClick={() => setFocusOn((v) => !v)}>
-          <span className={`${styles.ccSmallTileIcon} ${focusOn ? styles.ccSmallTileIconActive : ""}`}>
-            <FocusIcon />
+      {/* Dark Mode + Camera + Focus pill */}
+      <div className={`${styles.ccRoundRow} ${styles.ccFullRow}`}>
+        <button
+          type="button"
+          className={`${styles.ccRoundTile} ${styles.glassDark}`}
+          aria-label="Dark Mode"
+        >
+          <DarkModeIcon />
+        </button>
+        <button
+          type="button"
+          className={`${styles.ccRoundTile} ${styles.glassDark}`}
+          aria-label="Screenshot"
+        >
+          <CameraIcon />
+        </button>
+        <button
+          type="button"
+          className={`${styles.ccFocusPill} ${styles.glassDark} ${focusOn ? styles.ccFocusPillActive : ""}`}
+          onClick={() => setFocusOn((v) => !v)}
+        >
+          <span className={styles.ccFocusIcon}>
+            <MoonIcon size={22} />
           </span>
-          <span className={styles.ccSmallTileLabel}>Focus</span>
-        </button>
-        <button type="button" className={styles.ccSmallTile}>
-          <span className={styles.ccSmallTileIcon}><StageManagerIcon /></span>
-          <span className={styles.ccSmallTileLabel}>Stage Manager</span>
-        </button>
-        <button type="button" className={styles.ccSmallTile}>
-          <span className={styles.ccSmallTileIcon}><MirrorIcon /></span>
-          <span className={styles.ccSmallTileLabel}>Screen Mirroring</span>
+          <span>Focus</span>
         </button>
       </div>
 
-      {/* ── Display slider ───────────────────────────────────────── */}
-      <div className={styles.ccSliderTile}>
+      {/* Display slider */}
+      <div className={`${styles.ccSliderTile} ${styles.glassDark} ${styles.ccFullRow}`}>
         <span className={styles.ccSliderLabel}>Display</span>
-        <div className={styles.ccSliderRow}>
-          <span className={styles.ccSliderIcon}><SunIconSm /></span>
-          <input
-            type="range"
-            className={styles.ccSlider}
-            min={20}
-            max={100}
-            value={brightness}
-            onChange={(e) => setBrightness(Number(e.target.value))}
-            style={{
-              background: `linear-gradient(90deg, #fff ${((brightness - 20) / 80) * 100}%, rgba(255,255,255,0.15) ${((brightness - 20) / 80) * 100}%)`,
-            }}
-            aria-label="Display brightness"
-          />
-          <span className={styles.ccSliderIcon}><SunIconLg /></span>
-        </div>
+        <CCSlider
+          value={brightness}
+          min={20}
+          max={100}
+          onChange={setBrightness}
+          iconLeft={<SunIconSm />}
+          iconRight={<SunIconLg />}
+          ariaLabel="Display brightness"
+        />
       </div>
 
-      {/* ── Sound slider ─────────────────────────────────────────── */}
-      <div className={styles.ccSliderTile}>
+      {/* Sound slider */}
+      <div className={`${styles.ccSliderTile} ${styles.glassDark} ${styles.ccFullRow}`}>
         <span className={styles.ccSliderLabel}>Sound</span>
-        <div className={styles.ccSliderRow}>
-          <span className={styles.ccSliderIcon}><SpeakerLow /></span>
-          <input
-            type="range"
-            className={styles.ccSlider}
-            min={0}
-            max={100}
-            value={volume}
-            onChange={(e) => setVolume(Number(e.target.value))}
-            style={{
-              background: `linear-gradient(90deg, #fff ${volume}%, rgba(255,255,255,0.15) ${volume}%)`,
-            }}
-            aria-label="Sound volume"
-          />
-          <span className={styles.ccSliderIcon}><SpeakerHigh /></span>
-        </div>
+        <CCSlider
+          value={volume}
+          min={0}
+          max={100}
+          onChange={setVolume}
+          iconLeft={<SpeakerLow />}
+          iconRight={<SpeakerHigh />}
+          endButton={
+            <button type="button" className={styles.ccSoundEnd} aria-label="AirPlay">
+              <AirPlayIcon />
+            </button>
+          }
+          ariaLabel="Sound volume"
+        />
       </div>
+
+      <button
+        type="button"
+        className={`${styles.ccEditBtn} ${styles.glassDark} ${styles.ccFullRow}`}
+      >
+        Edit Controls
+      </button>
     </div>
   );
 }

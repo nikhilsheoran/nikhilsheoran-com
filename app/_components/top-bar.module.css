@@ -1,27 +1,85 @@
 /* ═══════════════════════════════════════════════════════════════
-   Top Bar — Menu Bar Panels (macOS liquid glass style)
+   Top Bar — Menu Bar Panels (macOS Tahoe liquid glass)
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Shared panel shell ───────────────────────────────────────── */
 .panelBackdrop {
   position: fixed;
   inset: 0;
   z-index: 199;
 }
 
+/* ── Liquid glass primitives ──────────────────────────────────── */
+/* Translucent glass that picks up wallpaper colors via heavy saturation
+   and a subtle white-tinted overlay. Reads as "frosted lift", not dark mode. */
+.glassDark {
+  position: relative;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.14) 100%
+    );
+  background-color: rgba(50, 50, 55, 0.35);
+  backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
+  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
+  box-shadow:
+    /* outer soft drop */
+    0 12px 36px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    /* outer rim — extremely subtle */
+    0 0 0 0.5px rgba(0, 0, 0, 0.15),
+    /* inner top highlight (the "lensed" edge) */
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+    inset 0 0.5px 0 0 rgba(255, 255, 255, 0.5),
+    /* inner side rims */
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.08),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.08),
+    /* inner bottom subtle dark */
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Light glass — Wi-Fi panel: properly translucent + fluidy */
+.glassLight {
+  position: relative;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.18) 45%,
+      rgba(255, 255, 255, 0.28) 100%
+    );
+  background-color: rgba(220, 220, 230, 0.32);
+  backdrop-filter: blur(60px) saturate(220%) brightness(1.08);
+  -webkit-backdrop-filter: blur(60px) saturate(220%) brightness(1.08);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    0 0 0 0.5px rgba(0, 0, 0, 0.08),
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 0.5px 0 0 rgba(255, 255, 255, 0.6),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.5),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Apple / app menus (kept dark) ───────────────────────────── */
 .panel {
   position: absolute;
   top: 30px;
   z-index: 200;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(40, 40, 40, 0.72);
-  backdrop-filter: blur(60px) saturate(180%);
-  -webkit-backdrop-filter: blur(60px) saturate(180%);
-  box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.45),
-    0 0 0 0.5px rgba(255, 255, 255, 0.08),
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
   color: #f5f5f7;
   font-size: 13px;
   padding: 6px;
@@ -30,18 +88,6 @@
   transform-origin: top center;
 }
 
-@keyframes panelIn {
-  from {
-    opacity: 0;
-    transform: scaleY(0.96) translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: scaleY(1) translateY(0);
-  }
-}
-
-/* ── Apple menu ──────────────────────────────────────────────── */
 .appleMenu {
   left: 6px;
   min-width: 230px;
@@ -61,6 +107,8 @@
   text-align: left;
   line-height: 1.3;
   transition: background 0.08s;
+  position: relative;
+  z-index: 1;
 }
 
 .menuItem:hover {
@@ -89,45 +137,60 @@
   margin: 4px 10px;
 }
 
-/* ── App menus (File, Edit, View, etc.) ──────────────────────── */
 .appMenu {
   min-width: 220px;
   padding: 4px;
 }
 
-/* ── Wi-Fi panel ─────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   Wi-Fi panel — bounded light glass
+   ═══════════════════════════════════════════════════════════════ */
 .wifiPanel {
+  position: absolute;
+  top: 30px;
   right: 72px;
-  width: 300px;
-  padding: 0;
+  z-index: 200;
+  width: 290px;
+  padding: 4px;
+  border-radius: 18px;
+  color: #1a1a1a;
+  font-size: 13px;
+  animation: panelIn 0.16s ease-out;
+  transform-origin: top right;
+  overflow: hidden;
 }
 
 .wifiHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px 8px;
+  padding: 8px 12px 6px;
+  position: relative;
+  z-index: 1;
 }
 
 .wifiHeaderTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: #f5f5f7;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
 }
 
 .wifiToggle {
   position: relative;
   width: 36px;
   height: 22px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(120, 120, 128, 0.32);
   border: none;
   transition: background 0.2s;
   flex-shrink: 0;
+  padding: 0;
+  cursor: pointer;
 }
 
 .wifiToggleOn {
-  background: #3478f6;
+  background: #2D7DF6;
 }
 
 .wifiToggleThumb {
@@ -139,211 +202,253 @@
   border-radius: 50%;
   background: #fff;
   transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 .wifiToggleThumbOn {
   transform: translateX(14px);
 }
 
+.wifiConnectedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 12px 6px;
+  font-size: 13px;
+  color: #1a1a1a;
+  position: relative;
+  z-index: 1;
+}
+
 .wifiSection {
-  padding: 0 4px 4px;
+  padding: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .wifiSectionLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-  padding: 8px 12px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  padding: 4px 12px 2px;
+  letter-spacing: -0.005em;
 }
 
 .wifiRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 12px;
-  border-radius: 6px;
-  transition: background 0.08s;
+  gap: 9px;
+  padding: 4px 12px 6px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
 }
 
 .wifiRow:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
 }
 
 .wifiIconCircle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: #3478f6;
+  background: #2D7DF6;
+  color: #fff;
   flex-shrink: 0;
 }
 
 .wifiIconCircleGray {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(80, 80, 85, 0.5);
+  color: #fff;
 }
 
 .wifiRowText {
   flex: 1;
   font-size: 13px;
-  color: #f5f5f7;
+  color: #1a1a1a;
+  font-weight: 500;
 }
 
 .wifiRowMeta {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.wifiConnectedLabel {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  padding: 0 16px 4px;
-}
-
-.wifiUnsecuredRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 16px 8px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.55);
+  color: #1a1a1a;
 }
 
 .wifiDivider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 2px 12px;
+  height: 0.5px;
+  background: rgba(0, 0, 0, 0.18);
+  margin: 0 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .wifiSettingsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 6px 12px;
   font-size: 13px;
-  color: #f5f5f7;
-  margin: 2px 4px 4px;
-  transition: background 0.08s;
+  color: #1a1a1a;
+  width: 100%;
+  text-align: left;
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
 }
 
 .wifiSettingsRow:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
 }
 
-/* ── Control Center ──────────────────────────────────────────── */
-.ccPanel {
-  right: 10px;
-  width: 320px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.wifiChevron {
+  color: rgba(0, 0, 0, 0.4);
 }
 
-/* Grid section for tiles */
-.ccGrid {
+/* ═══════════════════════════════════════════════════════════════
+   Control Center — UNBOUNDED bento grid of floating glass tiles
+   ═══════════════════════════════════════════════════════════════ */
+.ccWrap {
+  position: absolute;
+  top: 34px;
+  right: 8px;
+  z-index: 200;
+  width: 360px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  animation: panelIn 0.16s ease-out;
+  transform-origin: top right;
 }
 
-.ccTile {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 12px;
+.ccFullRow {
+  grid-column: 1 / -1;
+}
+
+.ccTopLeft {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  transition: background 0.12s;
-}
-
-.ccTile:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.ccTileActive {
-  background: rgba(59, 130, 246, 0.18);
-  border-color: rgba(59, 130, 246, 0.2);
-}
-
-.ccTileActive:hover {
-  background: rgba(59, 130, 246, 0.25);
-}
-
-.ccTileHeader {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
 
-.ccTileIcon {
+.ccTopRight {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Pill tile ────────────────────────────────────────────────── */
+.ccPill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  height: 72px;
+  transition: filter 0.12s;
+  color: #fff;
+  overflow: hidden;
+}
+
+.ccPill:hover {
+  filter: brightness(1.1);
+}
+
+.ccPillIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.ccTileIconBlue {
-  background: #3478f6;
-  color: #fff;
-}
-
-.ccTileIconGray {
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.ccTileIconWhite {
   background: #fff;
-  color: #3478f6;
+  color: #2D7DF6;
+  flex-shrink: 0;
+  box-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
-.ccTileLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: #f5f5f7;
-  line-height: 1.2;
+.ccPillIconOff {
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
 }
 
-.ccTileSub {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-  line-height: 1.2;
-}
-
-/* Now Playing tile */
-.ccNowPlaying {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 12px;
+.ccPillText {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+  flex: 1;
+  gap: 1px;
+}
+
+.ccPillLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.ccPillSub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.15;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Now Playing card ─────────────────────────────────────────── */
+.ccNowPlaying {
+  border-radius: 22px;
+  padding: 10px 14px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  height: 154px;
+  cursor: default;
 }
 
 .ccNpHeader {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .ccNpArt {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border-radius: 6px;
   object-fit: cover;
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .ccNpMeta {
@@ -352,51 +457,83 @@
 }
 
 .ccNpTitle {
-  font-size: 12px;
-  font-weight: 600;
-  color: #f5f5f7;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .ccNpArtist {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .ccNpControls {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  color: rgba(255, 255, 255, 0.8);
+  justify-content: space-around;
+  gap: 6px;
+  color: #fff;
+  margin-top: auto;
 }
 
 .ccNpBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  width: 36px;
+  height: 28px;
   border-radius: 6px;
   transition: background 0.1s;
-  color: rgba(255, 255, 255, 0.8);
+  color: #fff;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
 }
 
 .ccNpBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
 }
 
-/* Slider tiles */
+/* ── Round icon-only tile ─────────────────────────────────────── */
+.ccRoundTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.9);
+  transition: filter 0.12s;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+
+.ccRoundTile:hover {
+  filter: brightness(1.15);
+}
+
+.ccRoundTileActive {
+  background: #fff !important;
+  color: #2D7DF6;
+}
+
+/* ── Slider tile ──────────────────────────────────────────────── */
 .ccSliderTile {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 12px 14px;
+  border-radius: 18px;
+  padding: 10px 14px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -404,100 +541,203 @@
 
 .ccSliderLabel {
   font-size: 12px;
-  font-weight: 600;
-  color: #f5f5f7;
+  font-weight: 700;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .ccSliderRow {
   display: flex;
   align-items: center;
   gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
-.ccSliderIcon {
-  flex-shrink: 0;
+.ccSliderTrack {
+  position: relative;
+  flex: 1;
+  height: 24px;
   display: flex;
   align-items: center;
-  color: rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ccSliderBg {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.ccSliderFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: #fff;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ccSliderIconLeft {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+}
+
+.ccSliderIconRight {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
 }
 
 .ccSlider {
-  flex: 1;
+  width: 100%;
   -webkit-appearance: none;
   appearance: none;
-  height: 6px;
-  border-radius: 3px;
+  height: 24px;
+  border-radius: 999px;
   outline: none;
-  background: rgba(255, 255, 255, 0.15);
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  z-index: 3;
+}
+
+.ccSlider::-webkit-slider-runnable-track {
+  height: 24px;
+  background: transparent;
 }
 
 .ccSlider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  cursor: default !important;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ccSlider::-moz-range-track {
+  height: 24px;
+  background: transparent;
 }
 
 .ccSlider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: #fff;
+  background: transparent;
   border: none;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
 }
 
-/* Bottom row of small circle tiles */
-.ccSmallRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-}
-
-.ccSmallTile {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 14px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  transition: background 0.12s;
-}
-
-.ccSmallTile:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.ccSmallTileIcon {
+.ccSoundEnd {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+  border: 0;
+  cursor: pointer;
 }
 
-.ccSmallTileIconActive {
+.ccSoundEnd:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Round row + Focus pill ───────────────────────────────────── */
+.ccRoundRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ccFocusPill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px 6px 6px;
+  border-radius: 999px;
+  height: 72px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  transition: filter 0.12s;
+  border: 0;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.ccFocusPill:hover {
+  filter: brightness(1.1);
+}
+
+.ccFocusIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.25);
+}
+
+.ccFocusPillActive .ccFocusIcon {
   background: #fff;
-  color: #3478f6;
+  color: #2D7DF6;
 }
 
-.ccSmallTileLabel {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.55);
-  text-align: center;
-  line-height: 1.2;
+.ccEditBtn {
+  justify-self: center;
+  padding: 6px 18px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 12px;
+  font-weight: 500;
+  transition: filter 0.12s;
+  border: 0;
+  cursor: pointer;
+  margin-top: 4px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-/* ── Active top bar item highlight ───────────────────────────── */
+.ccEditBtn:hover {
+  filter: brightness(1.15);
+}
+
+/* ── Top bar buttons ──────────────────────────────────────────── */
 .topbarBtn {
   display: inline-flex;
   align-items: center;
@@ -505,6 +745,7 @@
   height: 1.5rem;
   border-radius: 0.3rem;
   transition: background 0.1s;
+  cursor: pointer;
 }
 
 .topbarBtnActive {
@@ -524,6 +765,7 @@
   border-radius: 0.3rem;
   padding: 0 8px;
   transition: background 0.1s;
+  cursor: pointer;
 }
 
 .menuLabel:hover {
