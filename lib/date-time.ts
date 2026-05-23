@@ -53,3 +53,26 @@ export function formatUpdatedAtLabel(date: Date): string {
 
   return `${day} ${month} ${year} at ${displayHours}:${minutes} ${ampm}`;
 }
+
+// ---------------------------------------------------------------------------
+// Note group heading (used by content.ts and mock-desktop-data.ts)
+// ---------------------------------------------------------------------------
+
+/** Compute the group heading for a note based on its date, e.g. "Last 7 Days", "March", "2024" */
+export function computeGroupHeading(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 7) return "Last 7 Days";
+  if (diffDays <= 30) return "Previous 30 Days";
+
+  const currentYear = now.getFullYear();
+  const noteYear = date.getFullYear();
+
+  if (noteYear === currentYear) {
+    return MONTH_NAMES[date.getMonth()];
+  }
+
+  return noteYear.toString();
+}

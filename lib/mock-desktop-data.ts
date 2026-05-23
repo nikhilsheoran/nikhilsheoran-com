@@ -1,33 +1,6 @@
 import type { MDXRemoteSerializeResult } from "next-mdx-remote";
 import type { NoteEntry } from "@/lib/types";
-
-// ---------------------------------------------------------------------------
-// Group heading computation (duplicated from content.ts to avoid pulling
-// Node.js fs/path modules into the client bundle)
-// ---------------------------------------------------------------------------
-
-function computeGroupHeading(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays <= 7) return "Last 7 Days";
-  if (diffDays <= 30) return "Previous 30 Days";
-
-  const currentYear = now.getFullYear();
-  const noteYear = date.getFullYear();
-
-  if (noteYear === currentYear) {
-    const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
-    ];
-    return months[date.getMonth()];
-  }
-
-  return noteYear.toString();
-}
+import { computeGroupHeading } from "@/lib/date-time";
 
 export interface NotesQuickGroup {
   id: "shared";
@@ -118,7 +91,7 @@ export function buildNotesData(
       preview: entry.preview,
       dateLabel: entry.dateLabel,
       updatedAtLabel: entry.updatedAtLabel,
-      groupHeading: (entry.frontmatter.pinned ?? false) ? "Pinned" : computeGroupHeading(entry.frontmatter.date),
+      groupHeading: (entry.frontmatter.pinned ?? false) ? "Pinned" : computeGroupHeading(new Date(entry.frontmatter.date)),
       folderIds: uniqueFolderIds,
       isShared: entry.frontmatter.shared ?? false,
       isPinned: entry.frontmatter.pinned ?? false,

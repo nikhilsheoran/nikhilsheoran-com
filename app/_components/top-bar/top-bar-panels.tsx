@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Icon } from "@iconify/react";
-import batteryIcon from "@iconify-icons/bi/battery";
-import lightningIcon from "@iconify-icons/bi/lightning-charge-fill";
 import { useBattery } from "@/lib/use-battery";
 import { useClock } from "@/lib/use-clock";
 import { wifiInfo } from "@/lib/settings-data";
@@ -50,10 +47,14 @@ export function BatteryIndicator() {
     <span className="topbar-item gap-2 px-2">
       <span className="text-xs">{(batteryState.level * 100).toFixed()}%</span>
       <span className="relative flex items-center">
-        <Icon icon={batteryIcon} className="text-2xl" />
+        <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor" className="text-2xl" aria-hidden>
+          <path d="M0 6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6zm2-1a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H2zm14 3a1.5 1.5 0 0 1-1.5 1.5v-3A1.5 1.5 0 0 1 16 8z"/>
+        </svg>
         <span className={`battery-level ${colorClass}`} style={{ width: `${width}rem` }} />
         {batteryState.charging ? (
-          <Icon icon={lightningIcon} className="absolute inset-0 m-auto -translate-x-0.5 text-xs" />
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" className="absolute inset-0 m-auto -translate-x-0.5 text-xs" aria-hidden>
+            <path d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z"/>
+          </svg>
         ) : null}
       </span>
     </span>

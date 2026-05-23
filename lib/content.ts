@@ -43,33 +43,6 @@ function generatePreview(content: string, maxLength = 80): string {
 }
 
 // ---------------------------------------------------------------------------
-// Group heading computation
-// ---------------------------------------------------------------------------
-
-export function computeGroupHeading(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays <= 7) return "Last 7 Days";
-  if (diffDays <= 30) return "Previous 30 Days";
-
-  const currentYear = now.getFullYear();
-  const noteYear = date.getFullYear();
-
-  if (noteYear === currentYear) {
-    const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
-    ];
-    return months[date.getMonth()];
-  }
-
-  return noteYear.toString();
-}
-
-// ---------------------------------------------------------------------------
 // File system reading
 // ---------------------------------------------------------------------------
 
