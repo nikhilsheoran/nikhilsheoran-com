@@ -1,34 +1,25 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Image from "next/image";
+import { useMemo } from "react";
 import { MDXRemote } from "next-mdx-remote";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
 import { getDesktopWindowBounds } from "@/lib/desktop-window";
+import { formatDateLabel, formatUpdatedAtLabel } from "@/lib/date-time";
 import {
   getFolderById,
   getGroupedNotesForFolder,
   type NotesData,
 } from "@/lib/mock-desktop-data";
 import { WindowControls } from "@/app/_components/window-controls";
+import { Guestbook } from "@/app/_components/shared/guestbook";
+import { PinIcon } from "@/app/_components/shared/icons";
+import { createMdxComponents } from "@/app/_components/shared/mdx-components";
 import styles from "./notes-window.module.css";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { authClient } from "@/lib/auth-client";
 
-interface NotesWindowProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onActivate?: () => void;
-  zIndex?: number;
-  notesData: NotesData;
-  selectedFolderId: string;
-  selectedNoteSlug: string | null;
-  onFolderSelect: (folderId: string) => void;
-  onNoteSelect: (noteSlug: string) => void;
-}
+// ── Notes-specific icons (unique to this window) ────────────────────────────
 
-/** Finder-style plain folder icon — thin stroke, no fill badge */
 function FolderIcon({ active }: { active: boolean }) {
   const color = active ? "#f09a00" : "#7a7a7a";
   return (
@@ -44,55 +35,21 @@ function FolderIcon({ active }: { active: boolean }) {
   );
 }
 
-/** Finder-style plain person/shared icon */
 function SharedSidebarIcon({ active }: { active: boolean }) {
   const color = active ? "#3d82e0" : "#7a7a7a";
   return (
     <svg className={styles.sidebarIcon} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
       <circle cx="8" cy="5.2" r="2.3" stroke={color} strokeWidth="1.3" />
-      <path
-        d="M3.5 13C4.2 10.9 5.9 9.6 8 9.6C10.1 9.6 11.8 10.9 12.5 13"
-        stroke={color}
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
+      <path d="M3.5 13C4.2 10.9 5.9 9.6 8 9.6C10.1 9.6 11.8 10.9 12.5 13" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
 
-/** Small person icon inline in the note title row — right side */
 function SharedNoteIndicator() {
   return (
-    <svg
-      className={styles.sharedNoteIndicator}
-      width="13"
-      height="13"
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-label="Shared note"
-    >
+    <svg className={styles.sharedNoteIndicator} width="13" height="13" viewBox="0 0 16 16" fill="none" aria-label="Shared note">
       <circle cx="8" cy="5.2" r="2.3" stroke="#3d82e0" strokeWidth="1.4" />
-      <path
-        d="M3.5 13C4.2 10.9 5.9 9.6 8 9.6C10.1 9.6 11.8 10.9 12.5 13"
-        stroke="#3d82e0"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function PinIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M10.5 2.5L13.5 5.5L10.5 8.5L9 7L7 9L8.5 10.5L7.5 11.5L4.5 8.5L5.5 7.5L7 9L9 7L7.5 5.5L10.5 2.5Z"
-        stroke="#aaa"
-        strokeWidth="1.1"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path d="M4.5 8.5L2 11" stroke="#aaa" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M3.5 13C4.2 10.9 5.9 9.6 8 9.6C10.1 9.6 11.8 10.9 12.5 13" stroke="#3d82e0" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -100,12 +57,7 @@ function PinIcon() {
 function NotesIcon() {
   return (
     <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden>
-      <path
-        d="M1.25 3.1C1.25 2.27 1.92 1.6 2.75 1.6H6.45L7.75 2.9H15.25C16.08 2.9 16.75 3.57 16.75 4.4V11.25C16.75 12.08 16.08 12.75 15.25 12.75H2.75C1.92 12.75 1.25 12.08 1.25 11.25V3.1Z"
-        stroke="#8D8D8D"
-        strokeWidth="1.25"
-        strokeLinejoin="round"
-      />
+      <path d="M1.25 3.1C1.25 2.27 1.92 1.6 2.75 1.6H6.45L7.75 2.9H15.25C16.08 2.9 16.75 3.57 16.75 4.4V11.25C16.75 12.08 16.08 12.75 15.25 12.75H2.75C1.92 12.75 1.25 12.08 1.25 11.25V3.1Z" stroke="#8D8D8D" strokeWidth="1.25" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -120,28 +72,21 @@ function ShareIcon() {
   );
 }
 
-function GoogleG() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 48 48" aria-hidden>
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-      <path fill="none" d="M0 0h48v48H0z"/>
-    </svg>
-  );
+// ── Component ───────────────────────────────────────────────────────────────
+
+interface NotesWindowProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onActivate?: () => void;
+  zIndex?: number;
+  notesData: NotesData;
+  selectedFolderId: string;
+  selectedNoteSlug: string | null;
+  onFolderSelect: (folderId: string) => void;
+  onNoteSelect: (noteSlug: string) => void;
 }
 
-const mdxComponents = {
-  h1: (props: React.ComponentProps<"h1">) => <h1 className={styles.mdxH1} {...props} />,
-  h2: (props: React.ComponentProps<"h2">) => <h2 className={styles.mdxH2} {...props} />,
-  h3: (props: React.ComponentProps<"h3">) => <h3 className={styles.mdxH3} {...props} />,
-  a: (props: React.ComponentProps<"a">) => (
-    <a className={styles.inlineLink} target="_blank" rel="noopener noreferrer" {...props} />
-  ),
-  code: (props: React.ComponentProps<"code">) => <code className={styles.inlineCode} {...props} />,
-  pre: (props: React.ComponentProps<"pre">) => <pre className={styles.codeBlock} {...props} />,
-};
+const mdxComponents = createMdxComponents(styles);
 
 export function NotesWindow({
   isOpen,
@@ -160,13 +105,12 @@ export function NotesWindow({
     disabled: !isOpen,
   });
 
-  const [commentText, setCommentText] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const { data: session } = authClient.useSession();
-  const messages = useQuery(api.guestbook.list);
-  const addMessage = useMutation(api.guestbook.add);
+  // Query guestbook to get the latest comment date for shared notes
+  const guestbookMessages = useQuery(api.guestbook.list);
+  const latestCommentDate = useMemo(() => {
+    if (!guestbookMessages?.length) return null;
+    return new Date(guestbookMessages[0]._creationTime);
+  }, [guestbookMessages]);
 
   if (!isOpen) return null;
 
@@ -174,33 +118,7 @@ export function NotesWindow({
   const groupedNotes = getGroupedNotesForFolder(notesData, selectedFolder.id);
   const selectedNote = selectedNoteSlug ? notesData.notesBySlug[selectedNoteSlug] ?? null : null;
   const isSharedNote = selectedNote?.isShared ?? false;
-
-  // Folders shown in the iCloud section — exclude the virtual "shared" folder and empty folders
   const iCloudFolders = notesData.folders.filter((f) => f.id !== "shared" && f.noteSlugs.length > 0);
-
-  const handleSignIn = () => {
-    authClient.signIn.social({ provider: "google", callbackURL: window.location.href });
-  };
-
-  const handleSignOut = () => {
-    authClient.signOut();
-  };
-
-  const handleCommentSubmit = async () => {
-    if (!session) {
-      handleSignIn();
-      return;
-    }
-    const trimmed = commentText.trim();
-    if (!trimmed || isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      await addMessage({ message: trimmed });
-      setCommentText("");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <section
@@ -222,19 +140,11 @@ export function NotesWindow({
             <WindowControls onClose={onClose} windowName="Notes" />
           </div>
           <div className={styles.leftPaneContent}>
-
-            {/* Quick row — "Shared" — clicking navigates to the virtual shared folder */}
             <div className={styles.quickGroup}>
               {notesData.quickGroups.map((item) => {
                 const isActive = selectedFolder.id === item.folderId;
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    data-window-drag-ignore
-                    onClick={() => onFolderSelect(item.folderId)}
-                    className={`${styles.quickRow} ${isActive ? styles.quickRowActive : ""}`}
-                  >
+                  <button key={item.id} type="button" data-window-drag-ignore onClick={() => onFolderSelect(item.folderId)} className={`${styles.quickRow} ${isActive ? styles.quickRowActive : ""}`}>
                     <span className={styles.quickLabel}>
                       <SharedSidebarIcon active={isActive} />
                       <span>{item.label}</span>
@@ -250,13 +160,7 @@ export function NotesWindow({
               {iCloudFolders.map((folder) => {
                 const isActive = folder.id === selectedFolder.id;
                 return (
-                  <button
-                    key={folder.id}
-                    type="button"
-                    data-window-drag-ignore
-                    onClick={() => onFolderSelect(folder.id)}
-                    className={`${styles.folderRow} ${isActive ? styles.folderRowActive : ""}`}
-                  >
+                  <button key={folder.id} type="button" data-window-drag-ignore onClick={() => onFolderSelect(folder.id)} className={`${styles.folderRow} ${isActive ? styles.folderRowActive : ""}`}>
                     <span className={styles.folderLabel}>
                       <FolderIcon active={isActive} />
                       <span>{folder.label}</span>
@@ -273,9 +177,7 @@ export function NotesWindow({
         <div className={styles.headerList} onPointerDown={handleDragStart}>
           <div className={styles.listHeadingBlock}>
             <p className={styles.listHeadingTitle}>{selectedFolder.label}</p>
-            <p className={styles.listHeadingMeta}>
-              {selectedFolder.noteSlugs.length} note{selectedFolder.noteSlugs.length === 1 ? "" : "s"}
-            </p>
+            <p className={styles.listHeadingMeta}>{selectedFolder.noteSlugs.length} note{selectedFolder.noteSlugs.length === 1 ? "" : "s"}</p>
           </div>
           <div className={styles.headerListSpacer} />
         </div>
@@ -283,12 +185,7 @@ export function NotesWindow({
         {/* ── Editor toolbar ── */}
         <div className={styles.headerEditor} onPointerDown={handleDragStart}>
           <div className={styles.editorToolbar}>
-            <button
-              type="button"
-              data-window-drag-ignore
-              className={styles.toolbarButtonPrimary}
-              aria-label="Share note"
-            >
+            <button type="button" data-window-drag-ignore className={styles.toolbarButtonPrimary} aria-label="Share note">
               <ShareIcon />
             </button>
           </div>
@@ -305,34 +202,24 @@ export function NotesWindow({
         <section className={styles.noteList}>
           {groupedNotes.map((group) => (
             <div key={group.heading} className={styles.noteGroup}>
-              <h3
-                className={`${styles.noteGroupTitle} ${
-                  group.heading === "Pinned" ? styles.noteGroupTitlePinned : ""
-                }`}
-              >
+              <h3 className={`${styles.noteGroupTitle} ${group.heading === "Pinned" ? styles.noteGroupTitlePinned : ""}`}>
                 {group.heading === "Pinned" && <PinIcon />}
                 {group.heading}
               </h3>
               {group.items.map((note) => {
                 const isActive = selectedNote?.slug === note.slug;
-                const folderLabel = notesData.folders.find(
-                  (f) => f.id !== "all-icloud" && f.id !== "shared" && note.folderIds.includes(f.id)
-                )?.label;
+                const folderLabel = notesData.folders.find((f) => f.id !== "all-icloud" && f.id !== "shared" && note.folderIds.includes(f.id))?.label;
+                const displayDate = note.isShared && latestCommentDate
+                  ? formatDateLabel(latestCommentDate)
+                  : note.dateLabel;
                 return (
-                  <button
-                    key={note.slug}
-                    type="button"
-                    data-window-drag-ignore
-                    onClick={() => onNoteSelect(note.slug)}
-                    className={`${styles.noteCard} ${isActive ? styles.noteCardActive : ""}`}
-                  >
-                    {/* Title row: title + optional shared indicator on the right */}
+                  <button key={note.slug} type="button" data-window-drag-ignore onClick={() => onNoteSelect(note.slug)} className={`${styles.noteCard} ${isActive ? styles.noteCardActive : ""}`}>
                     <div className={styles.noteCardTitleRow}>
                       <p className={styles.noteCardTitle}>{note.title}</p>
                       {note.isShared && <SharedNoteIndicator />}
                     </div>
                     <div className={styles.noteCardMeta}>
-                      <span className={styles.noteDate}>{note.dateLabel}</span>
+                      <span className={styles.noteDate}>{displayDate}</span>
                       <span className={styles.notePreview}>{note.preview}</span>
                     </div>
                     <div className={styles.noteSource}>
@@ -351,7 +238,9 @@ export function NotesWindow({
           {selectedNote ? (
             <>
               <p className={styles.editorMeta}>
-                {selectedNote.updatedAtLabel}
+                {selectedNote.isShared && latestCommentDate
+                  ? formatUpdatedAtLabel(latestCommentDate)
+                  : selectedNote.updatedAtLabel}
                 {selectedNote.isShared ? " · Shared" : ""}
                 {selectedNote.readingTime > 0 ? ` · ${selectedNote.readingTime} min read` : ""}
               </p>
@@ -363,96 +252,7 @@ export function NotesWindow({
                   <p>No content available.</p>
                 )}
               </div>
-
-              {isSharedNote && (
-                <div className={styles.guestBook}>
-                  <div className={styles.guestBookDivider} />
-
-                  {/* Real guestbook messages */}
-                  {messages?.map((msg) => (
-                    <div key={msg._id} className={styles.commentRow}>
-                      {msg.avatarUrl ? (
-                        <Image
-                          src={msg.avatarUrl}
-                          alt={msg.name}
-                          width={30}
-                          height={30}
-                          className={styles.commentAvatar}
-                          unoptimized
-                        />
-                      ) : (
-                        <span className={styles.commentAvatarEmpty} aria-hidden />
-                      )}
-                      <div className={styles.commentBubble}>
-                        <span className={styles.editorBody}>{msg.message}</span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Input row */}
-                  <div className={styles.commentInputRow} data-window-drag-ignore>
-                    {session ? (
-                      <Image
-                        src={session.user.image ?? "/nikhil.jpg"}
-                        alt={session.user.name ?? "You"}
-                        width={30}
-                        height={30}
-                        className={styles.commentAvatar}
-                        unoptimized
-                      />
-                    ) : (
-                      <span className={styles.commentAvatarEmpty} aria-hidden />
-                    )}
-                    <div className={styles.commentInputWrapper}>
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        className={styles.commentInput}
-                        placeholder={session ? "Leave a message…" : "Sign in to leave a message…"}
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleCommentSubmit();
-                        }}
-                        maxLength={280}
-                        disabled={isSubmitting}
-                      />
-                      {session ? (
-                        <button
-                          type="button"
-                          className={styles.commentSubmitBtn}
-                          onClick={handleCommentSubmit}
-                          disabled={isSubmitting || !commentText.trim()}
-                          aria-label="Submit message"
-                        >
-                          <span>Send</span>
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className={styles.commentSubmitBtn}
-                          onClick={handleSignIn}
-                          aria-label="Sign in with Google to submit"
-                        >
-                          <GoogleG />
-                          <span>Sign in</span>
-                        </button>
-                      )}
-                    </div>
-                    {session && (
-                      <button
-                        type="button"
-                        className={styles.commentSignOutBtn}
-                        onClick={handleSignOut}
-                        aria-label="Sign out"
-                        data-window-drag-ignore
-                      >
-                        Sign out
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
+              {isSharedNote && <Guestbook styles={styles} />}
             </>
           ) : (
             <>

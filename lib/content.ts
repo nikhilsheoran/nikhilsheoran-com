@@ -12,6 +12,7 @@ import path from "path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
 import type { NoteFrontmatter, NoteEntry } from "@/lib/types";
+import { formatDateLabel, formatUpdatedAtLabel } from "@/lib/date-time";
 
 export type { NoteFrontmatter, NoteEntry } from "@/lib/types";
 
@@ -22,40 +23,8 @@ export type { NoteFrontmatter, NoteEntry } from "@/lib/types";
 const CONTENT_DIR = path.join(process.cwd(), "content", "notes");
 
 // ---------------------------------------------------------------------------
-// Date formatting
+// Helpers
 // ---------------------------------------------------------------------------
-
-function formatDateLabel(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear().toString().slice(2);
-  return `${day}/${month}/${year}`;
-}
-
-function formatUpdatedAtLabel(dateStr: string): string {
-  const date = new Date(dateStr);
-  const day = date.getDate();
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  const hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  const ampm = hours >= 12 ? "PM" : "AM";
-  const displayHours = hours % 12 || 12;
-
-  return `${day} ${month} ${year} at ${displayHours}:${minutes} ${ampm}`;
-}
 
 function generatePreview(content: string, maxLength = 80): string {
   // Strip MDX/JSX tags and markdown formatting
@@ -140,8 +109,8 @@ function parseNoteFile(filename: string): NoteEntry | null {
     readingTime: Math.ceil(stats.minutes),
     readingTimeText: stats.text,
     preview: frontmatter.preview ?? generatePreview(content),
-    dateLabel: formatDateLabel(frontmatter.date),
-    updatedAtLabel: formatUpdatedAtLabel(frontmatter.updatedAt ?? frontmatter.date),
+    dateLabel: formatDateLabel(new Date(frontmatter.date)),
+    updatedAtLabel: formatUpdatedAtLabel(new Date(frontmatter.updatedAt ?? frontmatter.date)),
   };
 }
 

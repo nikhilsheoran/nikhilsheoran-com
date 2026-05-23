@@ -95,10 +95,48 @@ export default function GlobalError({
                   marginBottom: 32,
                   fontSize: 11,
                   color: "rgba(255,255,255,0.3)",
+                  fontFamily: "'SF Mono', 'Menlo', monospace",
                 }}
               >
                 Error ID: {error.digest}
               </p>
+            )}
+
+            {error.message && (
+              <div
+                style={{
+                  maxWidth: 440,
+                  margin: "0 auto 32px",
+                  padding: "10px 14px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 6,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(255,255,255,0.25)",
+                    marginBottom: 4,
+                    fontFamily: "'SF Mono', 'Menlo', monospace",
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Details
+                </p>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.55)",
+                    lineHeight: 1.6,
+                    fontFamily: "'SF Mono', 'Menlo', monospace",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {error.message}
+                </p>
+              </div>
             )}
 
             <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>

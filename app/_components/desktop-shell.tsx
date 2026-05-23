@@ -1,85 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Dock, type DockAppId } from "@/app/_components/dock";
-import { FinderWindow } from "@/app/_components/finder-window";
-import { MusicWindow } from "@/app/_components/music-window";
-import { NotesWindow } from "@/app/_components/notes-window";
-import { SettingsWindow } from "@/app/_components/settings-window";
-import { TVWindow } from "@/app/_components/tv-window";
 import { TopBar } from "@/app/_components/top-bar";
 import { MobileNotes } from "@/app/_components/mobile-notes";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useMusicPlayer } from "@/lib/use-music-player";
-import { getDesktopAppName, isDesktopAppId, type DesktopAppId } from "@/lib/desktop-apps";
-import {
-  getFirstNoteSlugForFolder,
-  getFolderById,
-  getNoteRoutePath,
-  getPreferredFolderIdForNote,
-  folderContainsNote,
-  type NotesData,
-} from "@/lib/mock-desktop-data";
+import { isDesktopAppId, type DesktopAppId } from "@/lib/desktop-apps";
+import { useDesktopStore, useSyncFolderToNote } from "@/lib/stores/desktop-store";
+import type { NotesData } from "@/lib/mock-desktop-data";
 
-type WindowAppId = DesktopAppId;
-
-function normalizePathname(pathname: string): string {
-  if (!pathname) return "/";
-  const normalized = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
-  return normalized || "/";
-}
-
-function parseDesktopPath(pathname: string): { appId: string; noteSlug: string | null } {
-  const segments = normalizePathname(pathname)
-    .split("/")
-    .filter(Boolean)
-    .map((segment) => decodeURIComponent(segment));
-
-  const appId = segments[0] ?? "finder";
-  const noteSlug = appId === "notes" ? segments[1] ?? null : null;
-  return { appId, noteSlug };
-}
-
-function isWindowAppId(appId: string): appId is WindowAppId {
-  return isDesktopAppId(appId);
-}
-
-function activateWindowInStack(stack: WindowAppId[], appId: WindowAppId): WindowAppId[] {
-  return [...stack.filter((item) => item !== appId), appId];
-}
-
-function formatAppName(appId: string): string {
-  return getDesktopAppName(appId);
-}
-
-function useDesktopPathname(initialPathname: string) {
-  const [pathname, setPathname] = useState(() => normalizePathname(initialPathname));
-
-  useEffect(() => {
-    const handlePopState = () => setPathname(normalizePathname(window.location.pathname));
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
-
-  const navigate = useCallback(
-    (nextPathname: string, options?: { replace?: boolean }) => {
-      const normalized = normalizePathname(nextPathname);
-      if (normalized === pathname) return;
-
-      if (options?.replace) {
-        window.history.replaceState(null, "", normalized);
-      } else {
-        window.history.pushState(null, "", normalized);
-      }
-
-      setPathname(normalized);
-    },
-    [pathname],
-  );
-
-  return { pathname, navigate };
-}
+// Lazy-load window components — only loaded when first opened
+const FinderWindow = dynamic(() => import("@/app/_components/finder-window").then((m) => ({ default: m.FinderWindow })), { ssr: false });
+const NotesWindow = dynamic(() => import("@/app/_components/notes-window").then((m) => ({ default: m.NotesWindow })), { ssr: false });
+const SettingsWindow = dynamic(() => import("@/app/_components/settings-window").then((m) => ({ default: m.SettingsWindow })), { ssr: false });
+const MusicWindow = dynamic(() => import("@/app/_components/music-window").then((m) => ({ default: m.MusicWindow })), { ssr: false });
+const TVWindow = dynamic(() => import("@/app/_components/tv-window").then((m) => ({ default: m.TVWindow })), { ssr: false });
 
 interface DesktopShellProps {
   initialPathname: string;
@@ -88,203 +26,95 @@ interface DesktopShellProps {
 
 export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) {
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const initialRoute = useMemo(() => parseDesktopPath(initialPathname), [initialPathname]);
-  const didAutoOpenRootRef = useRef(false);
-  const [selectedFolderId, setSelectedFolderId] = useState(notesData.defaultFolderId);
-  const [selectedNoteSlug, setSelectedNoteSlug] = useState<string | null>(() => {
-    if (
-      initialRoute.appId === "notes" &&
-      initialRoute.noteSlug &&
-      notesData.notesBySlug[initialRoute.noteSlug]
-    ) {
-      return initialRoute.noteSlug;
-    }
-    return notesData.defaultNoteSlug;
-  });
-  const [windowStack, setWindowStack] = useState<WindowAppId[]>(() => {
-    if (initialPathname !== "/" && isWindowAppId(initialRoute.appId)) {
-      return [initialRoute.appId];
-    }
-    return [];
-  });
-  const { pathname, navigate } = useDesktopPathname(initialPathname);
-  const route = useMemo(() => parseDesktopPath(pathname), [pathname]);
-  const activeWindowId = windowStack[windowStack.length - 1] ?? null;
-  const selectedFolder = getFolderById(notesData, selectedFolderId) ?? notesData.folders[0];
-  const resolvedNoteSlug =
-    selectedNoteSlug && notesData.notesBySlug[selectedNoteSlug]
-      ? selectedNoteSlug
-      : getFirstNoteSlugForFolder(notesData, selectedFolder.id) ?? notesData.defaultNoteSlug;
-  const selectedNote = resolvedNoteSlug ? notesData.notesBySlug[resolvedNoteSlug] ?? null : null;
-  const isFinderWindowOpen = windowStack.includes("finder");
-  const isNotesWindowOpen = windowStack.includes("notes");
-  const isSystemSettingsWindowOpen = windowStack.includes("system-settings");
-  const isMusicWindowOpen = windowStack.includes("music");
-  const isTVWindowOpen = windowStack.includes("tv");
+  const didInitRef = useRef(false);
 
-  // ── Shared music player (lifted here so TopBar can show Now Playing) ──
-  const musicPlayer = useMusicPlayer();
-
-  // Pause music when the Music window closes
+  // ── Initialize store once ──
+  const init = useDesktopStore((s) => s.init);
   useEffect(() => {
-    if (!isMusicWindowOpen) musicPlayer.pause();
-  }, [isMusicWindowOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    init(notesData, initialPathname);
+  }, [init, notesData, initialPathname]);
 
-  const notePath = useCallback(
-    (preferredSlug?: string | null) => {
-      const slug =
-        preferredSlug && notesData.notesBySlug[preferredSlug]
-          ? preferredSlug
-          : resolvedNoteSlug ?? notesData.defaultNoteSlug;
-      return slug ? getNoteRoutePath(slug) : "/notes";
-    },
-    [notesData.defaultNoteSlug, notesData.notesBySlug, resolvedNoteSlug],
-  );
-
-  // Syncs route state → React state on initial load and URL changes
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // ── Popstate listener ──
+  const syncFromUrl = useDesktopStore((s) => s.syncFromUrl);
   useEffect(() => {
-    if (didAutoOpenRootRef.current) return;
-    if (initialPathname !== "/") return;
-    if (pathname !== "/") return;
+    const handler = () => syncFromUrl();
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, [syncFromUrl]);
 
-    didAutoOpenRootRef.current = true;
-    const defaultRootNoteSlug = notesData.defaultNoteSlug ?? "opendictate-readme";
-    setSelectedNoteSlug(defaultRootNoteSlug);
-    setWindowStack((current) => activateWindowInStack(current, "notes"));
-    navigate(getNoteRoutePath(defaultRootNoteSlug), { replace: true });
-  }, [initialPathname, navigate, notesData.defaultNoteSlug, pathname]);
+  // ── Keep folder in sync with active note ──
+  useSyncFolderToNote();
 
-  // Syncs URL pathname → window stack state
-  useEffect(() => {
-    if (pathname === "/") {
-      setWindowStack([]);
-      return;
-    }
+  // ── Store selectors ──
+  const windowStack = useDesktopStore((s) => s.windowStack);
+  const selectedFolderId = useDesktopStore((s) => s.selectedFolderId);
+  const selectedNoteSlug = useDesktopStore((s) => s.selectedNoteSlug);
+  const openApp = useDesktopStore((s) => s.openApp);
+  const closeWindow = useDesktopStore((s) => s.closeWindow);
+  const activateWindow = useDesktopStore((s) => s.activateWindow);
+  const selectFolder = useDesktopStore((s) => s.selectFolder);
+  const selectNote = useDesktopStore((s) => s.selectNote);
 
-    if (route.appId === "notes") {
-      setWindowStack((current) => activateWindowInStack(current, "notes"));
-      if (route.noteSlug && notesData.notesBySlug[route.noteSlug] && route.noteSlug !== selectedNoteSlug) {
-        setSelectedNoteSlug(route.noteSlug);
-      }
-      return;
-    }
-
-    if (isWindowAppId(route.appId)) {
-      const routeWindowId = route.appId;
-      setWindowStack((current) => activateWindowInStack(current, routeWindowId));
-      return;
-    }
-
-    setWindowStack([]);
-  }, [notesData.notesBySlug, pathname, route.appId, route.noteSlug, selectedNoteSlug]);
-
-  // Syncs selected folder to match the currently viewed note
-  useEffect(() => {
-    if (!isNotesWindowOpen || !resolvedNoteSlug) return;
-    if (folderContainsNote(notesData, selectedFolder.id, resolvedNoteSlug)) return;
-
-    const preferredFolderId =
-      getPreferredFolderIdForNote(notesData, resolvedNoteSlug) ?? notesData.defaultFolderId;
-    if (preferredFolderId !== selectedFolder.id) {
-      setSelectedFolderId(preferredFolderId);
-    }
-  }, [isNotesWindowOpen, notesData, resolvedNoteSlug, selectedFolder.id]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  const setActiveWindow = useCallback(
-    (appId: WindowAppId, options?: { replace?: boolean }) => {
-      setWindowStack((current) => activateWindowInStack(current, appId));
-      if (appId === "notes") {
-        navigate(notePath(), options);
-        return;
-      }
-      navigate(`/${appId}`, options);
-    },
-    [navigate, notePath],
+  // Derive primitives inline (stable references for useSyncExternalStore)
+  const activeWindowId = useDesktopStore(
+    (s) => s.windowStack[s.windowStack.length - 1] ?? null,
   );
+  const activeAppName = useDesktopStore((s) => s.getActiveAppName());
+  const resolvedNoteSlug = useDesktopStore((s) => s.getResolvedNoteSlug());
 
-  const handleWindowClose = useCallback(
-    (appId: WindowAppId) => {
-      const nextStack = windowStack.filter((item) => item !== appId);
-      setWindowStack(nextStack);
-
-      const nextActive = nextStack[nextStack.length - 1] ?? null;
-      if (!nextActive) {
-        navigate("/", { replace: true });
-        return;
-      }
-      if (nextActive === "notes") {
-        navigate(notePath(), { replace: true });
-        return;
-      }
-      navigate(`/${nextActive}`, { replace: true });
-    },
-    [navigate, notePath, windowStack],
-  );
-
-  const handleAppOpen = useCallback(
-    (appId: DockAppId) => {
-      if (isWindowAppId(appId)) {
-        const wasOpen = windowStack.includes(appId);
-        setActiveWindow(appId, { replace: wasOpen });
-        return;
-      }
-
-      setWindowStack([]);
-      navigate(`/${appId}`);
-    },
-    [navigate, setActiveWindow, windowStack],
-  );
-
-  const handleFolderSelect = useCallback(
-    (folderId: string) => {
-      const firstNoteSlug = getFirstNoteSlugForFolder(notesData, folderId);
-      setSelectedFolderId(folderId);
-      setSelectedNoteSlug(firstNoteSlug);
-      setWindowStack((current) => activateWindowInStack(current, "notes"));
-      navigate(firstNoteSlug ? getNoteRoutePath(firstNoteSlug) : "/notes", { replace: true });
-    },
-    [navigate, notesData],
-  );
-
-  const handleNoteSelect = useCallback(
-    (noteSlug: string) => {
-      setSelectedNoteSlug(noteSlug);
-      setWindowStack((current) => activateWindowInStack(current, "notes"));
-      navigate(getNoteRoutePath(noteSlug), { replace: true });
-    },
-    [navigate],
-  );
-
-  const handleWindowActivate = useCallback(
-    (appId: WindowAppId) => {
-      if (activeWindowId === appId) return;
-      setActiveWindow(appId, { replace: true });
-    },
-    [activeWindowId, setActiveWindow],
-  );
-
-  const windowZIndex = useMemo(() => {
-    const baseZIndex = 40;
-    const zIndexByWindow: Record<WindowAppId, number> = {
-      finder: baseZIndex,
-      notes: baseZIndex,
-      "system-settings": baseZIndex,
-      music: baseZIndex,
-      tv: baseZIndex,
+  // Compute zIndex with useMemo — getWindowZIndex() creates a new object
+  // on every call which breaks useSyncExternalStore's reference equality.
+  const zIndex = useMemo(() => {
+    const baseZ = 40;
+    const zMap: Record<DesktopAppId, number> = {
+      finder: baseZ,
+      notes: baseZ,
+      "system-settings": baseZ,
+      music: baseZ,
+      tv: baseZ,
     };
-    windowStack.forEach((appId, index) => {
-      zIndexByWindow[appId] = baseZIndex + index;
+    windowStack.forEach((appId, i) => {
+      zMap[appId] = baseZ + i;
     });
-    return zIndexByWindow;
+    return zMap;
   }, [windowStack]);
 
-  const activeAppName = activeWindowId
-    ? formatAppName(activeWindowId)
-    : formatAppName(pathname === "/" ? "finder" : route.appId);
+  // ── Music player (lifted for TopBar now-playing) ──
+  const musicPlayer = useMusicPlayer();
+  const isMusicOpen = windowStack.includes("music");
 
-  // ── Mobile view (< 768px) ─────────────────────────────────────
+  // Pause music when window closes
+  useEffect(() => {
+    if (!isMusicOpen) musicPlayer.pause();
+  }, [isMusicOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Window open flags ──
+  const isFinderOpen = windowStack.includes("finder");
+  const isNotesOpen = windowStack.includes("notes");
+  const isSettingsOpen = windowStack.includes("system-settings");
+  const isTVOpen = windowStack.includes("tv");
+
+  // ── Running apps for dock indicator ──
+  const runningApps = useMemo(
+    () => ({
+      finder: isFinderOpen,
+      notes: isNotesOpen,
+      "system-settings": isSettingsOpen,
+      music: isMusicOpen,
+      tv: isTVOpen,
+    }),
+    [isFinderOpen, isNotesOpen, isSettingsOpen, isMusicOpen, isTVOpen],
+  );
+
+  const handleAppOpen = (appId: DockAppId) => {
+    if (isDesktopAppId(appId)) {
+      openApp(appId);
+    }
+  };
+
+  // ── Mobile view ──
   if (isMobile) {
     return (
       <div className="fixed inset-0">
@@ -298,13 +128,13 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
         <MobileNotes
           notesData={notesData}
           selectedNoteSlug={resolvedNoteSlug}
-          onNoteSelect={handleNoteSelect}
+          onNoteSelect={selectNote}
         />
       </div>
     );
   }
 
-  // ── Desktop view (≥ 768px) ────────────────────────────────────
+  // ── Desktop view ──
   return (
     <div className="fixed inset-0 select-none">
       <Image
@@ -314,48 +144,64 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
         priority
         className="-z-10 inset-0 object-cover"
       />
-      <FinderWindow
-        isOpen={isFinderWindowOpen}
-        onClose={() => handleWindowClose("finder")}
-        onActivate={() => handleWindowActivate("finder")}
-        zIndex={windowZIndex.finder}
-      />
-      <NotesWindow
-        isOpen={isNotesWindowOpen}
-        notesData={notesData}
-        selectedFolderId={selectedFolder.id}
-        selectedNoteSlug={selectedNote?.slug ?? null}
-        onFolderSelect={handleFolderSelect}
-        onNoteSelect={handleNoteSelect}
-        onClose={() => handleWindowClose("notes")}
-        onActivate={() => handleWindowActivate("notes")}
-        zIndex={windowZIndex.notes}
-      />
-      <SettingsWindow
-        isOpen={isSystemSettingsWindowOpen}
-        onClose={() => handleWindowClose("system-settings")}
-        onActivate={() => handleWindowActivate("system-settings")}
-        zIndex={windowZIndex["system-settings"]}
-      />
-      <MusicWindow
-        isOpen={isMusicWindowOpen}
-        onClose={() => handleWindowClose("music")}
-        onActivate={() => handleWindowActivate("music")}
-        zIndex={windowZIndex.music}
-        player={musicPlayer}
-      />
-      <TVWindow
-        isOpen={isTVWindowOpen}
-        onClose={() => handleWindowClose("tv")}
-        onActivate={() => handleWindowActivate("tv")}
-        zIndex={windowZIndex.tv}
-      />
+
+      {isFinderOpen && (
+        <FinderWindow
+          isOpen
+          onClose={() => closeWindow("finder")}
+          onActivate={() => activateWindow("finder")}
+          zIndex={zIndex.finder}
+        />
+      )}
+
+      {isNotesOpen && (
+        <NotesWindow
+          isOpen
+          notesData={notesData}
+          selectedFolderId={selectedFolderId}
+          selectedNoteSlug={resolvedNoteSlug}
+          onFolderSelect={selectFolder}
+          onNoteSelect={selectNote}
+          onClose={() => closeWindow("notes")}
+          onActivate={() => activateWindow("notes")}
+          zIndex={zIndex.notes}
+        />
+      )}
+
+      {isSettingsOpen && (
+        <SettingsWindow
+          isOpen
+          onClose={() => closeWindow("system-settings")}
+          onActivate={() => activateWindow("system-settings")}
+          zIndex={zIndex["system-settings"]}
+        />
+      )}
+
+      {isMusicOpen && (
+        <MusicWindow
+          isOpen
+          onClose={() => closeWindow("music")}
+          onActivate={() => activateWindow("music")}
+          zIndex={zIndex.music}
+          player={musicPlayer}
+        />
+      )}
+
+      {isTVOpen && (
+        <TVWindow
+          isOpen
+          onClose={() => closeWindow("tv")}
+          onActivate={() => activateWindow("tv")}
+          zIndex={zIndex.tv}
+        />
+      )}
+
       <TopBar
         activeAppName={activeAppName}
-        onOpenSettings={() => handleAppOpen("system-settings")}
-        onOpenAbout={() => handleAppOpen("system-settings")}
+        onOpenSettings={() => openApp("system-settings")}
+        onOpenAbout={() => openApp("system-settings")}
         onCloseActiveWindow={() => {
-          if (activeWindowId) handleWindowClose(activeWindowId);
+          if (activeWindowId) closeWindow(activeWindowId);
         }}
         nowPlaying={
           musicPlayer.currentSong
@@ -371,15 +217,10 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
         onMusicNext={musicPlayer.next}
         onMusicToggle={() => musicPlayer.togglePlay()}
       />
+
       <Dock
         disableMagnification={isMobile}
-        runningApps={{
-          finder: isFinderWindowOpen,
-          notes: isNotesWindowOpen,
-          "system-settings": isSystemSettingsWindowOpen,
-          music: isMusicWindowOpen,
-          tv: isTVWindowOpen,
-        }}
+        runningApps={runningApps}
         onAppOpen={handleAppOpen}
       />
     </div>

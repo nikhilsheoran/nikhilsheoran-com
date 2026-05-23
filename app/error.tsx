@@ -96,6 +96,42 @@ export default function Error({
           </p>
         )}
 
+        {error.message && (
+          <div
+            className="mb-8 mx-auto rounded-md"
+            style={{
+              maxWidth: "440px",
+              padding: "10px 14px",
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "11px",
+                color: "rgba(255, 255, 255, 0.25)",
+                marginBottom: "4px",
+                fontFamily: "'SF Mono', 'Menlo', monospace",
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+              }}
+            >
+              Details
+            </p>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "rgba(255, 255, 255, 0.55)",
+                lineHeight: 1.6,
+                fontFamily: "'SF Mono', 'Menlo', monospace",
+                wordBreak: "break-word",
+              }}
+            >
+              {error.message}
+            </p>
+          </div>
+        )}
+
         <div className="flex justify-center gap-3">
           <button
             onClick={reset}
