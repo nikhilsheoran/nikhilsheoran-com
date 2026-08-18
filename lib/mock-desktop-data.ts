@@ -64,6 +64,7 @@ const folderDefinitions = [
 ] as const;
 
 const DEFAULT_FOLDER_ID = "all-icloud";
+const DEFAULT_NOTE_SLUG = "about-me";
 
 // ---------------------------------------------------------------------------
 // Builder: NoteEntry[] + serialized MDX → NotesData
@@ -144,7 +145,7 @@ export function buildNotesData(
   }
 
   const defaultNoteSlug =
-    notesBySlug["opendictate-readme"]?.slug ??
+    notesBySlug[DEFAULT_NOTE_SLUG]?.slug ??
     folders.find((f) => f.id === DEFAULT_FOLDER_ID)?.noteSlugs[0] ??
     null;
 
