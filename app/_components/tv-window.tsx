@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
-import { getDesktopWindowBounds } from "@/lib/desktop-window";
+import { getDesktopWindowBounds, getDesktopWindowFrameStyle } from "@/lib/desktop-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import {
   shows,
@@ -421,13 +421,14 @@ export function TVWindow({ isOpen, onClose, onActivate, zIndex }: TVWindowProps)
       ref={windowRef}
       className={styles.window}
       onPointerDownCapture={onActivate}
-      style={{
-        width: "min(1260px, calc(100vw - 92px))",
-        height: "min(640px, calc(100vh - 132px))",
+      style={getDesktopWindowFrameStyle({
+        maxWidth: 1260,
+        maxHeight: 640,
+        heightGutter: 132,
+        position,
         zIndex,
-        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-        willChange: isDragging ? "transform" : "auto",
-      }}
+        isDragging,
+      })}
     >
       <div className={styles.canvas}>
         {/* ═══════════════════ SIDEBAR ═══════════════════ */}

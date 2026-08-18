@@ -15,31 +15,11 @@ import {
   folderContainsNote,
   type NotesData,
 } from "@/lib/mock-desktop-data";
-
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
-function normalizePathname(pathname: string): string {
-  if (!pathname) return "/";
-  const normalized =
-    pathname.endsWith("/") && pathname !== "/"
-      ? pathname.slice(0, -1)
-      : pathname;
-  return normalized || "/";
-}
-
-function parseDesktopPath(pathname: string): {
-  appId: string;
-  noteSlug: string | null;
-} {
-  const segments = normalizePathname(pathname)
-    .split("/")
-    .filter(Boolean)
-    .map((segment) => decodeURIComponent(segment));
-
-  const appId = segments[0] ?? "finder";
-  const noteSlug = appId === "notes" ? segments[1] ?? null : null;
-  return { appId, noteSlug };
-}
+import {
+  DEFAULT_NOTE_SLUG,
+  normalizePathname,
+  parseDesktopPath,
+} from "@/lib/desktop-path";
 
 function activateInStack(
   stack: DesktopAppId[],
@@ -129,12 +109,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       windowStack,
     });
 
-    // Auto-open notes on root path
-    if (initialPathname === "/") {
-      const defaultSlug = notesData.defaultNoteSlug ?? "about-me";
+    const defaultSlug = notesData.defaultNoteSlug ?? DEFAULT_NOTE_SLUG;
+    const shouldOpenDefaultNote =
+      initialPathname === "/" || (route.appId === "notes" && !route.noteSlug);
+
+    if (shouldOpenDefaultNote) {
       set({
         selectedNoteSlug: defaultSlug,
-        windowStack: activateInStack([], "notes"),
+        windowStack: activateInStack(windowStack, "notes"),
         pathname: getNoteRoutePath(defaultSlug),
       });
       window.history.replaceState(null, "", getNoteRoutePath(defaultSlug));

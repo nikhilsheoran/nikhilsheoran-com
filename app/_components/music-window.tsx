@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
-import { getDesktopWindowBounds } from "@/lib/desktop-window";
+import { getDesktopWindowBounds, getDesktopWindowFrameStyle } from "@/lib/desktop-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import type { MusicPlayer } from "@/lib/use-music-player";
 import { IconHome, IconHeart, IconPerson, IconDisc, IconMusic } from "@/app/_components/music/music-icons";
@@ -77,13 +77,14 @@ export function MusicWindow({ isOpen, onClose, onActivate, zIndex, player }: Mus
       ref={windowRef}
       className={styles.window}
       onPointerDownCapture={onActivate}
-      style={{
-        width: "min(1280px, calc(100vw - 92px))",
-        height: "min(650px, calc(100vh - 132px))",
+      style={getDesktopWindowFrameStyle({
+        maxWidth: 1280,
+        maxHeight: 650,
+        heightGutter: 132,
+        position,
         zIndex,
-        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-        willChange: isDragging ? "transform" : "auto",
-      }}
+        isDragging,
+      })}
     >
       <div className={styles.layout}>
         {/* Sidebar */}

@@ -7,7 +7,7 @@
   left: 0;
   overflow: hidden;
   resize: both;
-  min-width: min(980px, calc(100vw - 24px));
+  min-width: 0;
   min-height: min(520px, calc(100vh - 72px));
   max-width: calc(100vw - 12px);
   max-height: calc(100vh - 44px);

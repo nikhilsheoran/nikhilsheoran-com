@@ -4,7 +4,9 @@
   left: 0;
   overflow: hidden;
   resize: both;
-  min-width: min(920px, calc(100vw - 24px));
+  container-type: inline-size;
+  container-name: notes;
+  min-width: 0;
   min-height: min(520px, calc(100vh - 72px));
   max-width: calc(100vw - 12px);
   max-height: calc(100vh - 44px);
@@ -43,6 +45,9 @@
   display: grid;
   grid-template-columns: 218px 334px minmax(0, 1fr);
   grid-template-rows: 60px minmax(0, 1fr);
+  grid-template-areas:
+    "sidebar list-header editor-header"
+    "sidebar list editor";
   height: 100%;
   width: 100%;
 }
@@ -61,8 +66,7 @@
    ================================================================ */
 
 .leftPane {
-  grid-column: 1;
-  grid-row: 1 / 3;
+  grid-area: sidebar;
   margin: 6px 0px 6px 6px;
   border-radius: 22px;
   border: 1px solid #d7d7d7;
@@ -199,6 +203,7 @@
    ================================================================ */
 
 .headerList {
+  grid-area: list-header;
   justify-content: space-between;
   padding: 0 10px 0 18px;
   border-right: 1px solid #d8d8d8;
@@ -234,10 +239,12 @@
    ================================================================ */
 
 .headerEditor {
+  grid-area: editor-header;
   justify-content: space-between;
+  gap: 10px;
   padding: 0 14px 0 16px;
   background-color: #f6f6f6;
-  overflow: visible;
+  overflow: hidden;
   z-index: 100;
 }
 
@@ -269,7 +276,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-width: 350px;
+  min-width: 0;
+  flex: 1 1 160px;
+  max-width: 350px;
   height: 40px;
   padding: 0 14px;
   border-radius: 9999px;
@@ -289,6 +298,7 @@
    ================================================================ */
 
 .noteList {
+  grid-area: list;
   overflow-y: auto;
   border-right: 1px solid #d8d8d8;
   background: #f0f0f0;
@@ -412,6 +422,8 @@
    ================================================================ */
 
 .editorContent {
+  grid-area: editor;
+  min-width: 0;
   overflow-y: auto;
   background: #f6f6f6;
   padding: 14px 28px 40px;
@@ -712,26 +724,14 @@
    Responsive
    ================================================================ */
 
-@media (max-width: 1320px) {
+@container notes (max-width: 1100px) {
   .layout {
-    grid-template-columns: 196px 290px minmax(0, 1fr);
-  }
-
-  .searchField {
-    min-width: 250px;
+    grid-template-columns: 180px 260px minmax(0, 1fr);
   }
 }
 
-@media (max-width: 980px) {
+@container notes (max-width: 860px) {
   .layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 62px auto;
-  }
-
-  .headerList,
-  .headerEditor,
-  .leftPane,
-  .noteList {
-    display: none;
+    grid-template-columns: 156px 210px minmax(0, 1fr);
   }
 }

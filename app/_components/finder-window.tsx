@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
-import { getDesktopWindowBounds } from "@/lib/desktop-window";
+import { getDesktopWindowBounds, getDesktopWindowFrameStyle } from "@/lib/desktop-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import {
   getFileSystem,
@@ -192,13 +192,14 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
       ref={windowRef}
       className={styles.window}
       onPointerDownCapture={onActivate}
-      style={{
-        width: "min(1280px, calc(100vw - 84px))",
-        height: "min(620px, calc(100vh - 126px))",
+      style={getDesktopWindowFrameStyle({
+        maxWidth: 1280,
+        maxHeight: 620,
+        heightGutter: 126,
+        position,
         zIndex,
-        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-        willChange: isDragging ? "transform" : "auto",
-      }}
+        isDragging,
+      })}
     >
       <div className={styles.layout}>
         {/* ======================== SIDEBAR ======================== */}

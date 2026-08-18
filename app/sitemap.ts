@@ -1,13 +1,14 @@
 import type { MetadataRoute } from "next";
 import { getAllNotes } from "@/lib/content";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL!;
+import { desktopApps } from "@/lib/desktop-apps";
+import { getSiteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const siteUrl = getSiteUrl();
   const notes = getAllNotes();
 
   const noteUrls: MetadataRoute.Sitemap = notes.map((note) => ({
-    url: `${SITE_URL}/notes/${note.slug}`,
+    url: `${siteUrl}/notes/${note.slug}`,
     lastModified: new Date(note.frontmatter.updatedAt ?? note.frontmatter.date),
     changeFrequency: "monthly",
     priority: 0.7,
@@ -15,29 +16,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     {
-      url: SITE_URL,
+      url: siteUrl,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
-    {
-      url: `${SITE_URL}/notes`,
+    ...desktopApps.map((app) => ({
+      url: `${siteUrl}${app.route}`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/music`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/tv`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
+      changeFrequency: "monthly" as const,
+      priority: app.id === "notes" ? 0.8 : 0.5,
+    })),
     ...noteUrls,
   ];
 }

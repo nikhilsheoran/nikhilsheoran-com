@@ -5,7 +5,7 @@ import { MDXRemote } from "next-mdx-remote";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
-import { getDesktopWindowBounds } from "@/lib/desktop-window";
+import { getDesktopWindowBounds, getDesktopWindowFrameStyle } from "@/lib/desktop-window";
 import { formatDateLabel, formatUpdatedAtLabel } from "@/lib/date-time";
 import {
   getFolderById,
@@ -116,7 +116,8 @@ export function NotesWindow({
 
   const selectedFolder = getFolderById(notesData, selectedFolderId) ?? notesData.folders[0];
   const groupedNotes = getGroupedNotesForFolder(notesData, selectedFolder.id);
-  const selectedNote = selectedNoteSlug ? notesData.notesBySlug[selectedNoteSlug] ?? null : null;
+  const resolvedSlug = selectedNoteSlug ?? notesData.defaultNoteSlug;
+  const selectedNote = resolvedSlug ? notesData.notesBySlug[resolvedSlug] ?? null : null;
   const isSharedNote = selectedNote?.isShared ?? false;
   const iCloudFolders = notesData.folders.filter((f) => f.id !== "shared" && f.noteSlugs.length > 0);
 
@@ -125,13 +126,13 @@ export function NotesWindow({
       ref={windowRef}
       className={styles.window}
       onPointerDownCapture={onActivate}
-      style={{
-        width: "min(1280px, calc(100vw - 72px))",
-        height: "min(640px, calc(100vh - 98px))",
+      style={getDesktopWindowFrameStyle({
+        maxWidth: 1280,
+        maxHeight: 640,
+        position,
         zIndex,
-        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-        willChange: isDragging ? "transform" : "auto",
-      }}
+        isDragging,
+      })}
     >
       <div className={styles.layout}>
         {/* ── Left sidebar ── */}

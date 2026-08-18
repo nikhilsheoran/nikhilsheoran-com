@@ -117,7 +117,7 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
   // ── Mobile view ──
   if (isMobile) {
     return (
-      <div className="fixed inset-0">
+      <div className="desktop-root fixed inset-0">
         <Image
           src="/wallpapers/Sonoma.jpeg"
           alt="Background"
@@ -136,7 +136,7 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
 
   // ── Desktop view ──
   return (
-    <div className="fixed inset-0 select-none">
+    <div className="desktop-root fixed inset-0 select-none">
       <Image
         src="/wallpapers/Sonoma.jpeg"
         alt="Background"

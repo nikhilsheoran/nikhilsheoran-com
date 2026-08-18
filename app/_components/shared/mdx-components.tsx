@@ -1,4 +1,19 @@
 import type { ComponentProps } from "react";
+import { socialProfiles } from "@/lib/settings-data";
+
+export function Socials() {
+  return (
+    <ul>
+      {socialProfiles.map((profile) => (
+        <li key={profile.url}>
+          <a href={profile.url} target="_blank" rel="noopener noreferrer">
+            {profile.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 /**
  * Shared MDX component overrides used by both desktop and mobile Notes views.
@@ -29,5 +44,6 @@ export function createMdxComponents(styles: Record<string, string>) {
     pre: (props: ComponentProps<"pre">) => (
       <pre className={styles.codeBlock} {...props} />
     ),
+    Socials,
   };
 }

@@ -1,6 +1,7 @@
 import type { MDXRemoteSerializeResult } from "next-mdx-remote";
 import type { NoteEntry } from "@/lib/types";
 import { computeGroupHeading } from "@/lib/date-time";
+import { DEFAULT_NOTE_SLUG } from "@/lib/desktop-path";
 
 export interface NotesQuickGroup {
   id: "shared";
@@ -64,7 +65,6 @@ const folderDefinitions = [
 ] as const;
 
 const DEFAULT_FOLDER_ID = "all-icloud";
-const DEFAULT_NOTE_SLUG = "about-me";
 
 // ---------------------------------------------------------------------------
 // Builder: NoteEntry[] + serialized MDX → NotesData

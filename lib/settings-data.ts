@@ -21,6 +21,17 @@ export const macInfo = {
   batteryCycles: 391,
 };
 
+const twitterHandle = "_nikhilsheoran";
+const xUrl = `https://x.com/${twitterHandle}`;
+
+export const socialProfiles = [
+  { label: "x", url: xUrl },
+  { label: "instagram", url: "https://www.instagram.com/thenikhilsheoran/" },
+  { label: "github", url: "https://github.com/nikhilsheoran" },
+  { label: "youtube", url: "https://www.youtube.com/@thenikhilsheoran" },
+  { label: "linkedin", url: "https://www.linkedin.com/in/nikhilsheoran/" },
+] as const;
+
 export const accountInfo = {
   name: "Nikhil Sheoran",
   initials: "NS",
@@ -29,8 +40,11 @@ export const accountInfo = {
   appleId: "thenikhilsheoran@gmail.com",
   device: "Nikhil's MacBook Pro",
   birthday: "February 22, 2006",
-  twitterHandle: "_nikhilsheoran",
-  twitterUrl: "https://twitter.com/_nikhilsheoran",
+  twitterHandle,
+  twitterUrl: xUrl,
+  jobTitle: "Builder",
+  alumniOf: "BITS Pilani",
+  sameAs: socialProfiles.map((profile) => profile.url),
 };
 
 export const accountRowsSecondary = [
