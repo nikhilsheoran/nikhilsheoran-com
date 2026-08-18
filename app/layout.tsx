@@ -63,6 +63,27 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const clipDocumentForDesktop = `
+(() => {
+  const style = document.createElement("style");
+  style.textContent = ${JSON.stringify(`
+    html { overflow: hidden; }
+    .route-document {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  `)};
+  document.head.appendChild(style);
+})();
+`;
+
 export default async function RootLayout({
   children,
 }: {
@@ -70,13 +91,11 @@ export default async function RootLayout({
 }) {
   const token = await getToken();
   return (
-    <html lang="en" className="no-js">
+    <html lang="en">
       <head>
-        <Script id="detect-js" strategy="beforeInteractive">
-          {`document.documentElement.classList.replace('no-js','js')`}
-        </Script>
-        <Script 
-          src="https://cdn.visitors.now/v.js" 
+        <script dangerouslySetInnerHTML={{ __html: clipDocumentForDesktop }} />
+        <Script
+          src="https://cdn.visitors.now/v.js"
           data-token="d502ca42-8a2f-41a4-8a35-56450cb6af1a"
         />
       </head>

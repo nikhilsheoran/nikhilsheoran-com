@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Dock, type DockAppId } from "@/app/_components/dock";
@@ -24,7 +24,16 @@ interface DesktopShellProps {
   notesData: NotesData;
 }
 
+const subscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) {
+  const isClient = useSyncExternalStore(
+    subscribe,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
   const isMobile = useMediaQuery("(max-width: 767px)");
   const didInitRef = useRef(false);
 
@@ -113,6 +122,10 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
       openApp(appId);
     }
   };
+
+  if (!isClient) {
+    return null;
+  }
 
   // ── Mobile view ──
   if (isMobile) {
