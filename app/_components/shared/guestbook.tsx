@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { Component, useState, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { authClient } from "@/lib/auth-client";
+import { ConvexClientProvider } from "@/app/_components/convex-provider";
 import { GoogleG } from "./icons";
 
 interface GuestbookProps {
@@ -18,7 +19,39 @@ interface GuestbookProps {
  * commentBubble, editorBody / commentText, commentInputRow, commentInputWrapper,
  * commentInput, commentSubmitBtn, commentSignOutBtn / signOutBtn
  */
+class GuestbookBoundary extends Component<
+  { children: ReactNode; styles: Record<string, string> },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <div className={this.props.styles.guestBook}>
+          <div className={this.props.styles.guestBookDivider} />
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export function Guestbook({ styles }: GuestbookProps) {
+  return (
+    <GuestbookBoundary styles={styles}>
+      <ConvexClientProvider>
+        <GuestbookInner styles={styles} />
+      </ConvexClientProvider>
+    </GuestbookBoundary>
+  );
+}
+
+function GuestbookInner({ styles }: GuestbookProps) {
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);

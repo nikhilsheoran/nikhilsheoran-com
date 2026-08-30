@@ -1,8 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ConvexClientProvider } from "@/app/_components/convex-provider";
-import { getToken } from "@/lib/auth-server";
 import { accountInfo } from "@/lib/settings-data";
 import { getSiteKeywords, getSiteTagline, getSiteUrl } from "@/lib/site";
 import Script from "next/script";
@@ -63,11 +61,13 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const clipDocumentForDesktop = `
+const enableDesktopScript = `
 (() => {
+  document.documentElement.classList.add("js");
   const style = document.createElement("style");
   style.textContent = ${JSON.stringify(`
     html { overflow: hidden; }
+    html .desktop-root.desktop-root { display: block !important; }
     .route-document {
       position: absolute;
       width: 1px;
@@ -84,26 +84,24 @@ const clipDocumentForDesktop = `
 })();
 `;
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const token = await getToken();
   return (
     <html lang="en">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: clipDocumentForDesktop }} />
+        <script dangerouslySetInnerHTML={{ __html: enableDesktopScript }} />
+        <noscript>
+          <style>{`.desktop-root { display: none !important; }`}</style>
+        </noscript>
         <Script
           src="https://cdn.visitors.now/v.js"
           data-token="d502ca42-8a2f-41a4-8a35-56450cb6af1a"
         />
       </head>
-      <body className={inter.variable}>
-        <ConvexClientProvider initialToken={token}>
-          {children}
-        </ConvexClientProvider>
-      </body>
+      <body className={inter.variable}>{children}</body>
     </html>
   );
 }

@@ -1,19 +1,24 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { MDXRemote } from "next-mdx-remote";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { formatDateLabel, formatUpdatedAtLabel } from "@/lib/date-time";
 import {
   getGroupedNotesForFolder,
   type NotesData,
   type NoteRecord,
 } from "@/lib/mock-desktop-data";
-import { Guestbook } from "@/app/_components/shared/guestbook";
 import { PinIcon } from "@/app/_components/shared/icons";
 import { createMdxComponents } from "@/app/_components/shared/mdx-components";
 import styles from "./mobile-notes.module.css";
+
+const Guestbook = dynamic(
+  () =>
+    import("@/app/_components/shared/guestbook").then((m) => ({
+      default: m.Guestbook,
+    })),
+  { ssr: false },
+);
 
 const mdxComponents = createMdxComponents(styles);
 
@@ -37,11 +42,7 @@ function BackChevron() {
 
 // ── Note reader ─────────────────────────────────────────────────────────────
 
-function NoteReader({ note, latestCommentDate, onBack }: { note: NoteRecord; latestCommentDate: Date | null; onBack: () => void }) {
-  const displayUpdatedAt = note.isShared && latestCommentDate
-    ? formatUpdatedAtLabel(latestCommentDate)
-    : note.updatedAtLabel;
-
+function NoteReader({ note, onBack }: { note: NoteRecord; onBack: () => void }) {
   return (
     <div className={styles.readerRoot}>
       <header className={styles.readerHeader}>
@@ -56,7 +57,7 @@ function NoteReader({ note, latestCommentDate, onBack }: { note: NoteRecord; lat
 
       <article className={styles.readerBody}>
         <p className={styles.readerMeta}>
-          {displayUpdatedAt}
+          {note.updatedAtLabel}
           {note.readingTime > 0 ? ` · ${note.readingTime} min read` : ""}
         </p>
         <h1 className={styles.readerTitle}>{note.title}</h1>
@@ -87,13 +88,6 @@ export function MobileNotes({ notesData, selectedNoteSlug, onNoteSelect }: Mobil
   const [viewingSlug, setViewingSlug] = useState<string | null>(selectedNoteSlug);
   const viewingNote = viewingSlug ? notesData.notesBySlug[viewingSlug] ?? null : null;
 
-  // Query guestbook to get the latest comment date for shared notes
-  const guestbookMessages = useQuery(api.guestbook.list);
-  const latestCommentDate = useMemo(() => {
-    if (!guestbookMessages?.length) return null;
-    return new Date(guestbookMessages[0]._creationTime);
-  }, [guestbookMessages]);
-
   const handleNoteSelect = (slug: string) => {
     setViewingSlug(slug);
     onNoteSelect(slug);
@@ -102,7 +96,7 @@ export function MobileNotes({ notesData, selectedNoteSlug, onNoteSelect }: Mobil
   const allGroups = getGroupedNotesForFolder(notesData, notesData.defaultFolderId);
 
   if (viewingNote) {
-    return <NoteReader note={viewingNote} latestCommentDate={latestCommentDate} onBack={() => setViewingSlug(null)} />;
+    return <NoteReader note={viewingNote} onBack={() => setViewingSlug(null)} />;
   }
 
   return (
@@ -124,9 +118,7 @@ export function MobileNotes({ notesData, selectedNoteSlug, onNoteSelect }: Mobil
               {group.heading}
             </h2>
             {group.items.map((note) => {
-              const displayDate = note.isShared && latestCommentDate
-                ? formatDateLabel(latestCommentDate)
-                : note.dateLabel;
+              const displayDate = note.dateLabel;
               return (
                 <button
                   key={note.slug}

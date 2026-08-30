@@ -1,19 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import dynamic from "next/dynamic";
 import { MDXRemote } from "next-mdx-remote";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
 import { getDesktopWindowBounds, getDesktopWindowFrameStyle } from "@/lib/desktop-window";
-import { formatDateLabel, formatUpdatedAtLabel } from "@/lib/date-time";
 import {
   getFolderById,
   getGroupedNotesForFolder,
   type NotesData,
 } from "@/lib/mock-desktop-data";
 import { WindowControls } from "@/app/_components/window-controls";
-import { Guestbook } from "@/app/_components/shared/guestbook";
 import { PinIcon } from "@/app/_components/shared/icons";
 import { createMdxComponents } from "@/app/_components/shared/mdx-components";
 import styles from "./notes-window.module.css";
@@ -86,6 +82,14 @@ interface NotesWindowProps {
   onNoteSelect: (noteSlug: string) => void;
 }
 
+const Guestbook = dynamic(
+  () =>
+    import("@/app/_components/shared/guestbook").then((m) => ({
+      default: m.Guestbook,
+    })),
+  { ssr: false },
+);
+
 const mdxComponents = createMdxComponents(styles);
 
 export function NotesWindow({
@@ -104,13 +108,6 @@ export function NotesWindow({
     getBounds: getDesktopWindowBounds,
     disabled: !isOpen,
   });
-
-  // Query guestbook to get the latest comment date for shared notes
-  const guestbookMessages = useQuery(api.guestbook.list);
-  const latestCommentDate = useMemo(() => {
-    if (!guestbookMessages?.length) return null;
-    return new Date(guestbookMessages[0]._creationTime);
-  }, [guestbookMessages]);
 
   if (!isOpen) return null;
 
@@ -210,9 +207,7 @@ export function NotesWindow({
               {group.items.map((note) => {
                 const isActive = selectedNote?.slug === note.slug;
                 const folderLabel = notesData.folders.find((f) => f.id !== "all-icloud" && f.id !== "shared" && note.folderIds.includes(f.id))?.label;
-                const displayDate = note.isShared && latestCommentDate
-                  ? formatDateLabel(latestCommentDate)
-                  : note.dateLabel;
+                const displayDate = note.dateLabel;
                 return (
                   <button key={note.slug} type="button" data-window-drag-ignore onClick={() => onNoteSelect(note.slug)} className={`${styles.noteCard} ${isActive ? styles.noteCardActive : ""}`}>
                     <div className={styles.noteCardTitleRow}>
@@ -239,9 +234,7 @@ export function NotesWindow({
           {selectedNote ? (
             <>
               <p className={styles.editorMeta}>
-                {selectedNote.isShared && latestCommentDate
-                  ? formatUpdatedAtLabel(latestCommentDate)
-                  : selectedNote.updatedAtLabel}
+                {selectedNote.updatedAtLabel}
                 {selectedNote.isShared ? " · Shared" : ""}
                 {selectedNote.readingTime > 0 ? ` · ${selectedNote.readingTime} min read` : ""}
               </p>
