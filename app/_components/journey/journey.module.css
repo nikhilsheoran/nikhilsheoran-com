@@ -1,60 +1,467 @@
 /* Scene UI sits above the canvas; desktop controls use the existing desktop's layer system. */
-.journey { position: fixed; inset: 0; overflow: hidden; background: #e8e9e5; color: #262c29; touch-action: none; }
-.hidden { display: none; }
-.journey canvas { outline: none; }
-.header { position: absolute; inset: 0 0 auto; padding: 32px 40px; display: flex; align-items: flex-start; justify-content: space-between; pointer-events: none; transition: opacity .35s; }
-.header > * { pointer-events: auto; }
-.wordmark { color: inherit; text-decoration: none; font-size: 16px; font-weight: 600; letter-spacing: -.6px; }
-.wordmark span { display: block; margin-top: 5px; font-size: 12px; font-weight: 400; letter-spacing: 0; color: #646c66; }
-.desktopButton, .returnButton { border: 1px solid #afb6ae; border-radius: 24px; padding: 11px 19px; color: #303a33; background: #f7f8f2b3; backdrop-filter: blur(16px); font: inherit; font-size: 12px; cursor: pointer !important; }
-.desktopButton span { padding-left: 17px; }
-.desktopButton:hover, .returnButton:hover { background: #fff; border-color: #6e7e71; }
-.desktopButton:disabled { opacity: .5; }
-.caption { position: absolute; left: 40px; bottom: 134px; max-width: 300px; pointer-events: none; transition: opacity .35s; }
-.year { font-size: 12px; color: #56665b; }
-.caption h1 { font-size: clamp(25px, 3vw, 38px); line-height: 1.1; letter-spacing: -1.5px; margin: 11px 0 14px; font-weight: 500; text-wrap: balance; }
-.caption p { font-size: 13px; line-height: 1.65; margin: 0; color: #626a65; max-width: 265px; }
-.readLink { font: inherit; font-size: 12px; padding: 12px 0 0; border: 0; background: none; color: #334d3c; pointer-events: auto; cursor: pointer !important; }
-.readLink span { margin-left: 10px; }
-.footer { position: absolute; inset: auto 40px 32px; display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; transition: opacity .35s; }
-.timeline { width: min(410px, 65vw); }
-.timeline input { width: 100%; display: block; height: 18px; margin: 0 0 9px; background: transparent; appearance: none; cursor: ew-resize !important; }
-.timeline input::-webkit-slider-runnable-track { height: 1px; background: #aeb5ae; }
-.timeline input::-webkit-slider-thumb { appearance: none; width: 9px; height: 9px; border-radius: 50%; background: #405c49; margin-top: -4px; box-shadow: 0 0 0 5px #e8e9e5; }
-.timeline input::-moz-range-track { height: 1px; background: #aeb5ae; }
-.timeline input::-moz-range-thumb { width: 9px; height: 9px; border: 0; background: #405c49; }
-.years { display: flex; justify-content: space-between; }
-.years button { font: inherit; font-size: 11px; font-variant-numeric: tabular-nums; border: 0; padding: 8px 3px; background: transparent; color: #737b75; cursor: pointer !important; }
-.years button[aria-current] { color: #1f3829; font-weight: 700; }
-.helpButton { background: transparent; border: 0; padding: 8px 0; font: inherit; font-size: 11px; color: #69736b; white-space: nowrap; cursor: pointer !important; }
-.helpButton span { margin-left: 14px; }
-.help { position: absolute; right: 40px; bottom: 104px; max-width: 300px; padding: 20px 24px; border: 1px solid #ccd0c7; border-radius: 12px; background: #f4f5f0ed; backdrop-filter: blur(16px); font-size: 12px; line-height: 1.65; }
-.help p + p { margin-top: 10px; color: #606960; }
-.faded { opacity: 0; pointer-events: none; }
-.faded * { pointer-events: none; }
-.loading, .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background: #e8e9e5; font-size: 13px; color: #667267; pointer-events: none; }
-.loading { z-index: 1; inset: 45% 20% auto; background: transparent; }
-.fallback { padding: 40px; text-align: center; pointer-events: auto; }
-.fallback h2 { font-size: 24px; margin-bottom: 12px; }
-.fallback button { margin-top: 24px; padding: 10px 20px; border: 1px solid; border-radius: 24px; }
-.desktop { position: fixed; inset: 0; animation: desktopReveal .45s ease-out both; }
-.returnButton { position: fixed; z-index: 110; right: 22px; bottom: 28px; box-shadow: 0 4px 24px #0002; font-size: 11px; }
-.journey button:focus-visible, .journey a:focus-visible, .journey input:focus-visible, .returnButton:focus-visible { outline: 2px solid #466b51; outline-offset: 5px; }
-.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
-@keyframes desktopReveal { from { opacity: 0; } to { opacity: 1; } }
-@media (max-width: 767px) {
-  .header { padding: 23px 22px; }
-  .wordmark { font-size: 14px; }
-  .wordmark span { font-size: 10px; }
-  .desktopButton { font-size: 10px; padding: 10px 13px; }
-  .desktopButton span { padding-left: 6px; }
-  .caption { left: 22px; bottom: 153px; max-width: 240px; }
-  .caption h1 { font-size: 26px; }
-  .caption p { font-size: 12px; max-width: 235px; }
-  .footer { inset: auto 22px 22px; flex-direction: column; align-items: stretch; gap: 9px; }
-  .timeline { width: 100%; }
-  .helpButton { align-self: flex-end; }
-  .help { right: 22px; left: 22px; bottom: 126px; max-width: none; }
-  .returnButton { bottom: 18px; right: 14px; }
+.journey {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #e8e9e5;
+  color: #262c29;
+  touch-action: none;
 }
-@media (prefers-reduced-motion: reduce) { .desktop { animation: none; } .journey * { transition: none !important; } }
+.hidden {
+  display: none;
+}
+.journey canvas {
+  outline: none;
+}
+.header {
+  position: absolute;
+  inset: 0 0 auto;
+  padding: 32px 40px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+.header > * {
+  pointer-events: auto;
+}
+.wordmark {
+  color: inherit;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+}
+.wordmark span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: #646c66;
+}
+.desktopButton,
+.returnButton {
+  border: 1px solid #afb6ae;
+  border-radius: 24px;
+  padding: 11px 19px;
+  color: #303a33;
+  background: #f7f8f2b3;
+  backdrop-filter: blur(16px);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer !important;
+}
+.desktopButton span {
+  padding-left: 17px;
+}
+.desktopButton:hover,
+.returnButton:hover {
+  background: #fff;
+  border-color: #6e7e71;
+}
+.desktopButton:disabled {
+  opacity: 0.5;
+}
+.caption {
+  position: absolute;
+  left: 40px;
+  bottom: 134px;
+  max-width: 300px;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+.year {
+  font-size: 12px;
+  color: #56665b;
+}
+.caption h1 {
+  font-size: clamp(25px, 3vw, 38px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin: 11px 0 14px;
+  font-weight: 500;
+  text-wrap: balance;
+}
+.caption p {
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 0;
+  color: #626a65;
+  max-width: 265px;
+}
+.readLink {
+  font: inherit;
+  font-size: 12px;
+  padding: 12px 0 0;
+  border: 0;
+  background: none;
+  color: #334d3c;
+  pointer-events: auto;
+  cursor: pointer !important;
+}
+.readLink span {
+  margin-left: 10px;
+}
+.footer {
+  position: absolute;
+  inset: auto 40px 32px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  transition: opacity 0.35s;
+}
+.timeline {
+  width: min(410px, 65vw);
+}
+.timeline input {
+  width: 100%;
+  display: block;
+  height: 18px;
+  margin: 0 0 9px;
+  background: transparent;
+  appearance: none;
+  cursor: ew-resize !important;
+}
+.timeline input::-webkit-slider-runnable-track {
+  height: 1px;
+  background: #aeb5ae;
+}
+.timeline input::-webkit-slider-thumb {
+  appearance: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #405c49;
+  margin-top: -4px;
+  box-shadow: 0 0 0 5px #e8e9e5;
+}
+.timeline input::-moz-range-track {
+  height: 1px;
+  background: #aeb5ae;
+}
+.timeline input::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border: 0;
+  background: #405c49;
+}
+.years {
+  display: flex;
+  justify-content: space-between;
+}
+.years button {
+  font: inherit;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  border: 0;
+  padding: 8px 3px;
+  background: transparent;
+  color: #737b75;
+  cursor: pointer !important;
+}
+.years button[aria-current] {
+  color: #1f3829;
+  font-weight: 700;
+}
+.helpButton {
+  background: transparent;
+  border: 0;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 11px;
+  color: #69736b;
+  white-space: nowrap;
+  cursor: pointer !important;
+}
+.helpButton span {
+  margin-left: 14px;
+}
+.help {
+  position: absolute;
+  right: 40px;
+  bottom: 104px;
+  max-width: 300px;
+  padding: 20px 24px;
+  border: 1px solid #ccd0c7;
+  border-radius: 12px;
+  background: #f4f5f0ed;
+  backdrop-filter: blur(16px);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.help p + p {
+  margin-top: 10px;
+  color: #606960;
+}
+.faded {
+  opacity: 0;
+  pointer-events: none;
+}
+.faded * {
+  pointer-events: none;
+}
+.loading,
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: #e8e9e5;
+  font-size: 13px;
+  color: #667267;
+  pointer-events: none;
+}
+.loading {
+  z-index: 1;
+  inset: 45% 20% auto;
+  background: transparent;
+}
+.fallback {
+  padding: 40px;
+  text-align: center;
+  pointer-events: auto;
+}
+.fallback h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+.fallback button {
+  margin-top: 24px;
+  padding: 10px 20px;
+  border: 1px solid;
+  border-radius: 24px;
+}
+.desktop {
+  position: fixed;
+  inset: 0;
+  animation: desktopReveal 0.45s ease-out both;
+}
+.returnButton {
+  position: fixed;
+  z-index: 110;
+  right: 22px;
+  bottom: 28px;
+  box-shadow: 0 4px 24px #0002;
+  font-size: 11px;
+}
+.journey button:focus-visible,
+.journey a:focus-visible,
+.journey input:focus-visible,
+.returnButton:focus-visible {
+  outline: 2px solid #466b51;
+  outline-offset: 5px;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+@keyframes desktopReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 767px) {
+  .header {
+    padding: 23px 22px;
+  }
+  .wordmark {
+    font-size: 14px;
+  }
+  .wordmark span {
+    font-size: 10px;
+  }
+  .desktopButton {
+    font-size: 10px;
+    padding: 10px 13px;
+  }
+  .desktopButton span {
+    padding-left: 6px;
+  }
+  .caption {
+    left: 22px;
+    bottom: 153px;
+    max-width: 240px;
+  }
+  .caption h1 {
+    font-size: 26px;
+  }
+  .caption p {
+    font-size: 12px;
+    max-width: 235px;
+  }
+  .footer {
+    inset: auto 22px 22px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+  }
+  .timeline {
+    width: 100%;
+  }
+  .helpButton {
+    align-self: flex-end;
+  }
+  .help {
+    right: 22px;
+    left: 22px;
+    bottom: 126px;
+    max-width: none;
+  }
+  .returnButton {
+    bottom: 18px;
+    right: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .desktop {
+    animation: none;
+  }
+  .journey * {
+    transition: none !important;
+  }
+}
+
+/* The live DOM screen sits below WebGL; an alpha opening in the laptop reveals it. */
+.journey {
+  background: #626f68;
+  color: #eef1e9;
+}
+.canvasLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.liveScreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  transform-origin: 0 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: #1c2826;
+  will-change: transform;
+}
+.iframe {
+  display: block;
+  border: 0;
+  width: 100%;
+  height: 100%;
+}
+.ui {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+.ui button,
+.ui a,
+.ui input,
+.help {
+  pointer-events: auto;
+}
+.ui.faded,
+.ui.faded * {
+  pointer-events: none;
+}
+.inMac .canvasLayer {
+  opacity: 0 !important;
+  pointer-events: none;
+  visibility: hidden;
+}
+.inMac .liveScreen {
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important;
+  visibility: visible !important;
+  z-index: 8 !important;
+  pointer-events: auto;
+}
+.wordmark span,
+.year,
+.caption p,
+.helpButton {
+  color: #d1d9d1;
+}
+.caption {
+  max-width: 295px;
+}
+.caption h1 {
+  font-weight: 400;
+  letter-spacing: -1.8px;
+}
+.desktopButton {
+  color: #eff1e9;
+  background: #34483c38;
+  border-color: #c6d2c368;
+}
+.desktopButton:hover {
+  color: #fff;
+  background: #d7e2d01c;
+  border-color: #e2e9df;
+}
+.readLink {
+  color: #e0eadb;
+}
+.years button {
+  color: #c2cec0;
+}
+.years button[aria-current] {
+  color: #fff;
+}
+.timeline input::-webkit-slider-runnable-track {
+  background: #bac9b870;
+}
+.timeline input::-webkit-slider-thumb {
+  background: #f0f3df;
+  box-shadow: 0 0 0 5px #626f68;
+}
+.timeline input::-moz-range-thumb {
+  background: #f0f3df;
+}
+.help {
+  background: #263c32ed;
+  border-color: #a9b9a066;
+}
+.help p + p {
+  color: #c8d4c6;
+}
+.loading,
+.fallback {
+  background: #626f68;
+  color: #eef1e9;
+}
+.journey button:focus-visible,
+.journey a:focus-visible,
+.journey input:focus-visible {
+  outline-color: #e6f0d8;
+}
+@media (max-width: 767px) {
+  .caption {
+    max-width: 250px;
+    bottom: 145px;
+  }
+  .caption h1 {
+    font-size: 28px;
+  }
+  .caption p {
+    font-size: 12px;
+  }
+  .caption {
+    text-shadow: 0 1px 18px #20352966;
+  }
+}

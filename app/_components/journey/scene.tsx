@@ -1,177 +1,301 @@
 "use client";
 
-// Three.js materials and vectors are mutable GPU objects, updated outside React render.
-/* eslint-disable react-hooks/immutability */
-
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+/* eslint-disable react-hooks/immutability -- The animation loop updates mutable Three.js scene objects. */
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { chapters, chapterProgress, SCREEN_POSITION, SCREEN_TILT, STORY_END, type Chapter } from "@/lib/journey/story";
-import { orbitAngle, screenFillDistance, smoothStep } from "@/lib/journey/path";
+import {
+  chapters,
+  chapterProgress,
+  SCREEN_POSITION,
+  SCREEN_TILT,
+  STORY_END,
+} from "@/lib/journey/story";
+import {
+  orbitAngle,
+  ribbonPose,
+  screenFillDistance,
+  smoothStep,
+} from "@/lib/journey/path";
 import { Desk, Laptop } from "./objects";
-import { createPageTexture } from "./textures";
+import { Cloth } from "./cloth";
+import { Lens } from "./lens";
+import { ScreenProjection } from "./screen";
 import type { SceneProps } from "./portal";
 
-const vertexShader = `
-  varying vec2 vUv;
-  uniform float uTime;
-  uniform float uHover;
-  uniform float uMotion;
-  void main() {
-    vUv = uv;
-    vec3 p = position;
-    float wave = sin(uv.x * 5.0 + uTime * .8) * .055;
-    float curl = sin(uv.y * 4.0 + uv.x * 2.0 + uTime * .65) * .06;
-    p.z += (wave + curl) * uMotion + pow(abs(uv.x - .5) * 2.0, 2.0) * .1;
-    p.z += sin(uv.x * 3.14159) * .045 * uHover;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-  }
-`;
-const fragmentShader = `
-  varying vec2 vUv;
-  uniform sampler2D uMap;
-  uniform float uHover;
-  uniform float uOpacity;
-  void main() {
-    vec2 coord = gl_FrontFacing ? vUv : vec2(1.0 - vUv.x, vUv.y);
-    vec4 color = texture2D(uMap, coord);
-    float gray = dot(color.rgb, vec3(.299, .587, .114));
-    vec3 paper = mix(vec3(gray), color.rgb, uHover);
-    float edge = smoothstep(0.0, .015, vUv.x) * smoothstep(0.0, .015, 1.0-vUv.x);
-    float shade = .97 + .03 * sin(vUv.x * 6.283);
-    gl_FragColor = vec4(paper * shade, color.a * uOpacity * edge);
-    #include <tonemapping_fragment>
-    #include <colorspace_fragment>
-  }
-`;
-
-// Three's raycaster can hit invisible objects. Faded pages must not block the laptop.
-function raycastVisiblePage(this: THREE.Mesh, raycaster: THREE.Raycaster, intersections: THREE.Intersection[]) {
-  if (this.parent?.visible) THREE.Mesh.prototype.raycast.call(this, raycaster, intersections);
-}
-
-function StoryPage({ item, index, runtimeRef, onEnter }: { item: Chapter; index: number } & Pick<SceneProps, "runtimeRef" | "onEnter">) {
-  const [texture, setTexture] = useState<THREE.Texture | null>(null);
-  const group = useRef<THREE.Group>(null);
-  const hover = useRef(false);
-  const material = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader, fragmentShader, side: THREE.DoubleSide, transparent: true,
-    uniforms: { uMap: { value: null }, uTime: { value: 0 }, uHover: { value: 0 }, uOpacity: { value: 0 }, uMotion: { value: 1 } },
-  }), []);
-  const angle = orbitAngle(chapterProgress(index)) - .23;
-  const y = 2.6 + index * .12;
+function CameraRig({
+  runtimeRef,
+  onEnter,
+  onArrive,
+  onProgress,
+  onReady,
+  onReturnComplete,
+}: SceneProps) {
+  const { camera, size, pointer } = useThree();
+  const targetRef = useRef(new THREE.Vector3(0, 1.4, 0));
+  const fromRef = useRef(new THREE.Vector3());
+  const fromTargetRef = useRef(new THREE.Vector3());
+  const wasEnteringRef = useRef(false);
+  const lastReportRef = useRef(0);
+  const parallaxRef = useRef(new THREE.Vector2());
+  const scratch = useMemo(
+    () => ({
+      position: new THREE.Vector3(),
+      target: new THREE.Vector3(),
+      screen: new THREE.Vector3(...SCREEN_POSITION),
+      normal: new THREE.Vector3(
+        0,
+        -Math.sin(SCREEN_TILT),
+        Math.cos(SCREEN_TILT),
+      ),
+      control: new THREE.Vector3(),
+      end: new THREE.Vector3(),
+      focus: new THREE.Vector3(),
+    }),
+    [],
+  );
   useEffect(() => {
-    let cancelled = false;
-    let pageTexture: THREE.Texture | null = null;
-    createPageTexture(item, index).then((loaded) => {
-      pageTexture = loaded;
-      if (cancelled) loaded.dispose(); else { material.uniforms.uMap.value = loaded; setTexture(loaded); }
-    });
-    return () => { cancelled = true; pageTexture?.dispose(); };
-  }, [item, index, material]);
-  useEffect(() => () => material.dispose(), [material]);
-  useFrame(({ clock, size }, delta) => {
-    const runtime = runtimeRef.current;
-    material.uniforms.uTime.value = clock.elapsedTime + index * 1.3;
-    material.uniforms.uMotion.value = runtime.reducedMotion ? 0 : 1;
-    material.uniforms.uHover.value = THREE.MathUtils.damp(material.uniforms.uHover.value, hover.current ? 1 : 0, 7, delta);
-    const appearance = smoothStep((runtime.progress - .025) / .075);
-    const ending = 1 - smoothStep((runtime.progress - .79) / .07);
-    material.uniforms.uOpacity.value = appearance * ending * (1 - smoothStep(runtime.entry * 2));
-    if (group.current) {
-      group.current.visible = material.uniforms.uOpacity.value > .01;
-      group.current.position.y = y + (runtime.reducedMotion ? 0 : Math.sin(clock.elapsedTime * .35 + index * 2) * .045);
-      const narrow = size.width / size.height < .9;
-      const pageAngle = angle + (narrow ? .23 : 0);
-      group.current.position.x = Math.sin(pageAngle) * 3.25;
-      group.current.position.z = Math.cos(pageAngle) * 3.25;
-      group.current.rotation.y = pageAngle;
-      const scale = (hover.current ? 1.045 : 1) * (narrow ? .85 : 1);
-      group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, scale, 8, delta));
-    }
-  });
-  if (!texture) return null;
-  return <group ref={group} position={[Math.sin(angle) * 3.25, y, Math.cos(angle) * 3.25]} rotation={[0, angle, index % 2 ? -.045 : .04]}>
-    <mesh material={material} raycast={raycastVisiblePage} onPointerOver={(event) => { event.stopPropagation(); hover.current = true; }} onPointerOut={() => { hover.current = false; }} onClick={(event) => { event.stopPropagation(); onEnter(item.note); }}>
-      <planeGeometry args={[2.22, 1.665, 30, 22]} />
-    </mesh>
-  </group>;
-}
-
-function CameraRig({ runtimeRef, onEnter, onArrive, onProgress, onReady }: SceneProps) {
-  const { camera, size } = useThree();
-  const target = useRef(new THREE.Vector3(0, 1.15, 0));
-  const from = useRef(new THREE.Vector3());
-  const fromTarget = useRef(new THREE.Vector3());
-  const wasEntering = useRef(false);
-  const arrived = useRef(false);
-  const lastReport = useRef(0);
-  const scratch = useMemo(() => ({ position: new THREE.Vector3(), target: new THREE.Vector3(), screen: new THREE.Vector3(...SCREEN_POSITION), normal: new THREE.Vector3(0, -Math.sin(SCREEN_TILT), Math.cos(SCREEN_TILT)), control: new THREE.Vector3(), end: new THREE.Vector3() }), []);
-  useEffect(() => { onReady(); }, [onReady]);
+    onReady();
+  }, [onReady]);
   useFrame(({ clock }, rawDelta) => {
-    const runtime = runtimeRef.current;
-    const delta = Math.min(rawDelta, .05);
-    const mobile = size.width < 768;
-    const narrow = size.width / size.height < .9;
-    runtime.progress = runtime.reducedMotion ? runtime.target : THREE.MathUtils.damp(runtime.progress, runtime.target, 5, delta);
-    const angle = orbitAngle(runtime.progress);
-    const zoom = smoothStep((runtime.progress - STORY_END) / .15);
-    const radius = (narrow ? 14.6 : 7.8) - zoom * 2.5;
-    const height = 3.9 + Math.sin(runtime.progress * Math.PI) * .6;
-    scratch.position.set(Math.sin(angle) * radius, height, Math.cos(angle) * radius);
-    // A small camera-local offset reserves the left edge for readable HTML captions.
-    const offset = mobile ? 0 : -.45;
-    scratch.target.set(Math.cos(angle) * offset, mobile ? 1.2 : 1.35, -Math.sin(angle) * offset);
-    if (!runtime.entering && !runtime.returning) {
+    const state = runtimeRef.current;
+    if (state.desktop) return;
+    const delta = Math.min(rawDelta, 0.05);
+    const before = state.progress;
+    state.progress = state.reducedMotion
+      ? state.target
+      : THREE.MathUtils.damp(state.progress, state.target, 4.2, delta);
+    state.velocity = state.reducedMotion
+      ? 0
+      : THREE.MathUtils.damp(
+          state.velocity,
+          (state.progress - before) / Math.max(delta, 0.001),
+          5,
+          delta,
+        );
+    const p = Math.min(state.progress / STORY_END, 1);
+    const approach = smoothStep((state.progress - STORY_END) / (1 - STORY_END));
+    const narrow = size.width / size.height < 0.8;
+    const angle = orbitAngle(state.progress);
+    const radius = (narrow ? 14.5 : 8.6) - p * (narrow ? 1.5 : 1.6);
+    const height = 2.65 + p * 2.65;
+    parallaxRef.current.lerp(
+      state.reducedMotion ? new THREE.Vector2() : pointer,
+      1 - Math.exp(-3 * delta),
+    );
+    const offset = state.entering || state.returning ? 0 : 1;
+    scratch.position.set(
+      Math.sin(angle) * radius,
+      height,
+      Math.cos(angle) * radius,
+    );
+    scratch.position.x +=
+      Math.cos(angle) * parallaxRef.current.x * 0.22 * offset;
+    scratch.position.z -=
+      Math.sin(angle) * parallaxRef.current.x * 0.22 * offset;
+    scratch.position.y += parallaxRef.current.y * 0.12 * offset;
+    scratch.target.set(
+      narrow ? 0 : Math.cos(angle) * -0.3,
+      1.3 + p * 1.3,
+      narrow ? 0 : -Math.sin(angle) * -0.3,
+    );
+    // The final section of the helix bends toward the front of the display.
+    scratch.end
+      .copy(scratch.screen)
+      .addScaledVector(scratch.normal, narrow ? 3.8 : 2.5);
+    scratch.end.y += 0.62;
+    scratch.position.lerp(scratch.end, approach);
+    scratch.target.lerp(scratch.screen, approach);
+    if (state.entering && !wasEnteringRef.current) {
+      fromRef.current.copy(camera.position);
+      fromTargetRef.current.copy(targetRef.current);
+    }
+    if (state.returning) {
+      fromRef.current.copy(scratch.position);
+      fromTargetRef.current.copy(scratch.target);
+    }
+    if (state.entering || state.returning) {
+      state.entry = state.reducedMotion
+        ? state.returning
+          ? 0
+          : 1
+        : THREE.MathUtils.clamp(
+            state.entry + ((state.returning ? -1 : 1) * delta) / 2.15,
+            0,
+            1,
+          );
+      const t = smoothStep(state.entry);
+      scratch.end
+        .copy(scratch.screen)
+        .addScaledVector(
+          scratch.normal,
+          screenFillDistance(
+            size.width / size.height,
+            (camera as THREE.PerspectiveCamera).fov,
+          ),
+        );
+      // A curved approach clears the seated figure instead of cutting through its head.
+      scratch.control.copy(fromRef.current).lerp(scratch.end, 0.55);
+      scratch.control.y = Math.max(fromRef.current.y, 3.7);
+      camera.position
+        .copy(fromRef.current)
+        .multiplyScalar((1 - t) ** 2)
+        .addScaledVector(scratch.control, 2 * (1 - t) * t)
+        .addScaledVector(scratch.end, t * t);
+      targetRef.current.lerpVectors(
+        fromTargetRef.current,
+        scratch.screen,
+        smoothStep(Math.min(1, state.entry * 1.4)),
+      );
+      if (state.entering && state.entry >= 1) onArrive();
+      if (state.returning && state.entry <= 0) {
+        state.returning = false;
+        onReturnComplete();
+      }
+    } else {
       camera.position.copy(scratch.position);
-      target.current.copy(scratch.target);
+      targetRef.current.copy(scratch.target);
     }
-    if (runtime.entering && !wasEntering.current) {
-      from.current.copy(camera.position); fromTarget.current.copy(target.current);
-      arrived.current = false;
+    camera.lookAt(targetRef.current);
+    const roll = state.reducedMotion
+      ? 0
+      : THREE.MathUtils.clamp(state.velocity * -0.028, -0.015, 0.015) *
+        (1 - state.entry);
+    camera.rotateZ(roll);
+    state.cameraPosition = [
+      camera.position.x,
+      camera.position.y,
+      camera.position.z,
+    ];
+    const closest = chapters.reduce(
+      (best, _, i) =>
+        Math.abs(chapterProgress(i) - state.progress) <
+        Math.abs(chapterProgress(best) - state.progress)
+          ? i
+          : best,
+      0,
+    );
+    const pose = ribbonPose(state.progress, chapterProgress(closest));
+    scratch.focus.set(
+      Math.sin(pose.angle) * pose.radius,
+      pose.height,
+      Math.cos(pose.angle) * pose.radius,
+    );
+    const clothFocus = state.progress > 0.055 && state.progress < 0.82;
+    state.focusDistance = camera.position.distanceTo(
+      clothFocus ? scratch.focus : targetRef.current,
+    );
+    wasEnteringRef.current = state.entering;
+    if (clock.elapsedTime - lastReportRef.current > 0.08) {
+      onProgress(state.progress);
+      lastReportRef.current = clock.elapsedTime;
     }
-    if (runtime.entering) {
-      runtime.entry = runtime.reducedMotion ? 1 : Math.min(1, runtime.entry + delta / 2.6);
-      const t = smoothStep(runtime.entry);
-      const perspective = camera as THREE.PerspectiveCamera;
-      scratch.end.copy(scratch.screen).addScaledVector(scratch.normal, screenFillDistance(size.width / size.height, perspective.fov));
-      // Travel above the person before approaching the display from its front.
-      scratch.control.copy(scratch.screen).addScaledVector(scratch.normal, 3.0); scratch.control.y = 5.6;
-      camera.position.copy(from.current).multiplyScalar((1-t) ** 2).addScaledVector(scratch.control, 2*(1-t)*t).addScaledVector(scratch.end, t*t);
-      target.current.lerpVectors(fromTarget.current, scratch.screen, smoothStep(Math.min(1, runtime.entry * 1.6)));
-      if (runtime.entry >= 1 && !arrived.current) { arrived.current = true; onArrive(); }
-    } else if (runtime.returning) {
-      // The scene remounts on return; restore the remembered orbit immediately.
-      runtime.entry = 0;
-      camera.position.copy(scratch.position); target.current.copy(scratch.target);
-      runtime.returning = false;
-    }
-    camera.lookAt(target.current);
-    wasEntering.current = runtime.entering;
-    if (clock.elapsedTime - lastReport.current > .08) { onProgress(runtime.progress); lastReport.current = clock.elapsedTime; }
-    if (runtime.progress > .987 && !runtime.entering && !arrived.current) onEnter();
-  });
+    if (
+      state.progress > 0.991 &&
+      !state.entering &&
+      !state.returning &&
+      !state.desktop
+    )
+      onEnter();
+  }, -2);
   return null;
 }
 
+function Atmosphere() {
+  const pointsRef = useRef<THREE.Points>(null);
+  const positions = useMemo(() => {
+    const result = new Float32Array(150 * 3);
+    for (let i = 0; i < 150; i++) {
+      const phase = i * 2.39996,
+        r = 2 + (i % 19) * 0.35;
+      result[i * 3] = Math.sin(phase) * r;
+      result[i * 3 + 1] = (i * 0.371) % 8;
+      result[i * 3 + 2] = Math.cos(phase) * r;
+    }
+    return result;
+  }, []);
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.012}
+        color="#b2c2b7"
+        transparent
+        opacity={0.24}
+        depthWrite={false}
+      />
+    </points>
+  );
+}
+
 function World(props: SceneProps) {
-  return <>
-    <color attach="background" args={["#e8e9e5"]} />
-    <fog attach="fog" args={["#e8e9e5", 14, 32]} />
-    <ambientLight intensity={1.4} />
-    <hemisphereLight args={["#f9faf6", "#89928a", 1.7]} />
-    <directionalLight position={[-3, 8, -5]} intensity={3.5} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-5} shadow-camera-right={5} shadow-camera-top={5} shadow-camera-bottom={-5} shadow-normalBias={.04} shadow-bias={-.0002} />
-    <directionalLight position={[5, 4, 3]} intensity={1.3} color="#e4eee9" />
-    <Desk />
-    <Laptop onEnter={() => props.onEnter()} runtimeRef={props.runtimeRef} />
-    {chapters.map((item, index) => <StoryPage key={item.year} item={item} index={index} runtimeRef={props.runtimeRef} onEnter={props.onEnter} />)}
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.015, 0]} receiveShadow><planeGeometry args={[100, 100]} /><shadowMaterial transparent opacity={.14} color="#485147" /></mesh>
-    <CameraRig {...props} />
-  </>;
+  return (
+    <>
+      <color attach="background" args={["#626f68"]} />
+      <fog attach="fog" args={["#626f68", 9, 26]} />
+      <ambientLight intensity={0.8} />
+      <hemisphereLight args={["#e6eee8", "#394d40", 1.8]} />
+      <directionalLight
+        position={[-3, 7, -4]}
+        intensity={4.5}
+        color="#f1f4ef"
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-4}
+        shadow-camera-right={4}
+        shadow-camera-top={4}
+        shadow-camera-bottom={-4}
+        shadow-normalBias={0.035}
+        shadow-bias={-0.00015}
+        shadow-radius={3}
+      />
+      <directionalLight position={[3, 5, 4]} intensity={2.2} color="#bcd4cc" />
+      <Desk />
+      <Laptop onEnter={() => props.onEnter()} runtimeRef={props.runtimeRef} />
+      {chapters.map((item, index) => (
+        <Cloth
+          key={item.year}
+          item={item}
+          index={index}
+          runtimeRef={props.runtimeRef}
+          onEnter={props.onEnter}
+        />
+      ))}
+      <Atmosphere />
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -0.025, 0]}
+        receiveShadow
+      >
+        <circleGeometry args={[30, 96]} />
+        <meshStandardMaterial color="#59675e" roughness={1} />
+      </mesh>
+      <CameraRig {...props} />
+      <ScreenProjection {...props} />
+      <Lens runtimeRef={props.runtimeRef} />
+    </>
+  );
 }
 
 export function JourneyScene(props: SceneProps) {
-  return <Canvas camera={{ position: [-5.5, 3.9, -5.5], fov: 38, near: .04, far: 50 }} dpr={[1, 1.5]} shadows={{ type: THREE.PCFShadowMap }} gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }} fallback={<div>Explore the 3D desk with the timeline controls, or use “Enter my Mac” to open the desktop.</div>} onCreated={({ gl }) => { gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1; }}>
-    <Suspense fallback={null}><World {...props} /></Suspense>
-  </Canvas>;
+  return (
+    <Canvas
+      frameloop={props.paused ? "never" : "always"}
+      camera={{ position: [-5.9, 2.65, -5.8], fov: 40, near: 0.04, far: 60 }}
+      dpr={[1, 1.5]}
+      shadows={{ type: THREE.PCFShadowMap }}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      fallback={<div>Use Enter my Mac to open the desktop.</div>}
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = 1.05;
+      }}
+    >
+      <Suspense fallback={null}>
+        <World {...props} />
+      </Suspense>
+    </Canvas>
+  );
 }
