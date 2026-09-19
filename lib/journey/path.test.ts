@@ -7,7 +7,11 @@ import {
   ribbonPose,
   journeyPose,
   screenFillDistance,
-  monitorLift,
+  advanceSpring,
+  screenPose,
+  screenApproach,
+  smootherStep,
+  HELIX_AXIS,
   panelScale,
   panelPresence,
 } from "./path";
@@ -90,14 +94,11 @@ test("the helix tightens continuously into the precomputed desk pose on wide and
       previous = pose.radius;
     }
     const end = journeyPose(1, aspect);
-    const d = screenFillDistance(aspect, 40) * 1.16;
+    const d = screenFillDistance(aspect, 40);
     assert.ok(Math.abs(end.position[0]) < 1e-9);
     assert.ok(
       Math.abs(
-        end.position[1] -
-          (SCREEN_POSITION[1] -
-            Math.sin(SCREEN_TILT) * d +
-            monitorLift(aspect)),
+        end.position[1] - (SCREEN_POSITION[1] - Math.sin(SCREEN_TILT) * d),
       ) < 1e-9,
     );
     assert.ok(
@@ -184,7 +185,7 @@ test("every chapter has a readable position within the camera frame", () => {
     for (let i = 0; i < 5; i++) {
       const progress = chapterProgress(i);
       const pose = journeyPose(progress, aspect),
-        cloth = ribbonPose(progress, progress);
+        cloth = ribbonPose(progress, progress, aspect);
       const camera = new PerspectiveCamera(40, aspect, 0.04, 60);
       camera.position.fromArray(pose.position);
       camera.lookAt(new Vector3(...pose.target));
@@ -192,8 +193,7 @@ test("every chapter has a readable position within the camera frame", () => {
       const projected = new Vector3(
         Math.sin(cloth.angle) * cloth.radius,
         cloth.height,
-        cloth.centerZ +
-          Math.cos(cloth.angle) * cloth.radius * Math.cos(SCREEN_TILT),
+        cloth.centerZ + Math.cos(cloth.angle) * cloth.radius,
       ).project(camera);
       assert.ok(Math.abs(projected.x) < 0.45 && Math.abs(projected.y) < 0.4);
       assert.ok(projected.z > -1 && projected.z < 1);
@@ -209,27 +209,67 @@ test("the display is 13.3 inches at 16:10 in the studio's half-metre units", () 
   assert.ok(Math.abs(SCREEN_WIDTH / SCREEN_HEIGHT - 1.6) < 1e-9);
 });
 
-test("camera and click approaches keep a lens clearance around the seated figure", async () => {
-  const { safeCameraPosition, screenApproach } = await import("./path");
-  for (const aspect of [0.46, 1, 1.36, 1.78, 2.4]) {
+test("camera and panels share one fixed vertical axis throughout the journey", () => {
+  for (const aspect of [0.46, 1, 1.78, 2.4]) {
     for (let i = 0; i <= 100; i++) {
-      const p = journeyPose(i / 100, aspect).position;
-      const points = [safeCameraPosition(p)];
-      if (i % 10 === 0)
-        for (let j = 0; j <= 100; j++)
-          points.push(screenApproach(p, j / 100, aspect));
-      for (const [x, y, z] of points) {
-        const clearance = Math.hypot(
-          x / 0.6,
-          (y - 2.42) / 0.65,
-          (z - 1.3) / 0.67,
-        );
-        assert.ok(
-          clearance >= 1,
-          `camera intersects sitter at ${aspect}/${i}: ${clearance}`,
-        );
-        assert.ok(Math.abs(x) <= 8.8 && z >= -7.6 && z <= 7.6);
-      }
+      const p = i / 100;
+      const camera = journeyPose(p, aspect);
+      const cloth = ribbonPose(p, p, aspect);
+      assert.equal(cloth.centerX, HELIX_AXIS[0]);
+      assert.equal(cloth.centerZ, HELIX_AXIS[1]);
+      assert.ok(
+        Math.abs(
+          Math.hypot(
+            camera.position[0] - HELIX_AXIS[0],
+            camera.position[2] - HELIX_AXIS[1],
+          ) - camera.radius,
+        ) < 1e-9,
+      );
+      assert.ok(camera.position[1] > 1.9 && camera.position[1] < 5);
+      assert.ok(
+        Math.abs(camera.position[0]) < 8 && Math.abs(camera.position[2]) < 8,
+      );
+    }
+    assert.deepEqual(
+      journeyPose(1, aspect).position,
+      screenPose(aspect).position,
+    );
+  }
+});
+
+test("screen handoffs preserve exact endpoints and settle without an extra hop", () => {
+  for (const aspect of [0.46, 1, 1.78, 2.4]) {
+    const end = screenPose(aspect).position;
+    for (const p of [0, 0.3, 0.7, 0.995, 1]) {
+      const from = journeyPose(p, aspect).position;
+      assert.deepEqual(screenApproach(from, 0, aspect), from);
+      assert.deepEqual(screenApproach(from, 1, aspect), end);
+      const first = screenApproach(from, smootherStep(0.0001), aspect);
+      const last = screenApproach(from, smootherStep(0.9999), aspect);
+      assert.ok(Math.hypot(...first.map((v, i) => v - from[i])) < 1e-7);
+      assert.ok(Math.hypot(...last.map((v, i) => v - end[i])) < 1e-7);
     }
   }
+});
+
+test("scroll spring is frame-rate independent and reverses without resetting its velocity", () => {
+  const results = [30, 60, 120].map((fps) => {
+    let value = 0,
+      velocity = 0;
+    for (let i = 0; i < fps; i++) {
+      const step = advanceSpring(
+        value,
+        velocity,
+        i < fps / 2 ? 0.8 : 0.15,
+        1 / fps,
+      );
+      value = step.value;
+      velocity = step.velocity;
+      assert.ok(Number.isFinite(value) && Number.isFinite(velocity));
+    }
+    return value;
+  });
+  assert.ok(Math.max(...results) - Math.min(...results) < 1e-9);
+  const step = advanceSpring(0.5, 0.2, 0.1, 1 / 120);
+  assert.ok(Math.abs(step.value - 0.5) < 0.002);
 });

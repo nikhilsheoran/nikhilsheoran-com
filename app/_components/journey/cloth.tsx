@@ -4,11 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import {
-  chapterProgress,
-  SCREEN_TILT,
-  type Chapter,
-} from "@/lib/journey/story";
+import { chapterProgress, type Chapter } from "@/lib/journey/story";
 import {
   ribbonPose,
   smoothStep,
@@ -29,10 +25,10 @@ const vertexShader = `
     vec3 p = position;
     float x = uv.x, y = uv.y;
     float freeEdge = .3 + .7 * pow(abs(x-.5)*2., 1.3);
-    float billow = sin(x*4.4 + y*1.2 - uTime*.55) * .24;
+    float billow = sin(x*4.4 + y*1.2 - uTime*.55) * .11;
     float ripple = sin(x*11. - y*3.5 - uTime*1.15) * .047;
     float diagonal = sin(x*6. + y*5. + uTime*.7) * .055;
-    float curl = pow(abs(x-.5)*2., 3.) * .26 * sin(y*2.9 + uTime*.3);
+    float curl = pow(abs(x-.5)*2., 3.) * .10 * sin(y*2.9 + uTime*.3);
     float settle = 1. - uHover*.48;
     p.z += ((billow+ripple+diagonal)*freeEdge + curl) * settle;
     p.z += sin(x*3.14159) * uVelocity * .17;
@@ -112,7 +108,7 @@ export function Cloth({
         fragmentShader,
         side: THREE.DoubleSide,
         transparent: true,
-        depthWrite: true,
+        depthWrite: false,
         uniforms: {
           uMap: { value: null },
           uActionMap: { value: null },
@@ -159,7 +155,12 @@ export function Cloth({
   const touchTarget = useRef(new THREE.Vector2(0.5, 0.5));
   useFrame(({ clock, size, camera }, delta) => {
     const state = runtimeRef.current;
-    const pose = ribbonPose(state.progress, chapterProgress(index));
+    const pose = ribbonPose(
+      state.progress,
+      chapterProgress(index),
+      size.width / size.height,
+      (camera as THREE.PerspectiveCamera).fov,
+    );
     const group = groupRef.current;
     if (!group) return;
     const entryFade = 1 - smoothStep(state.entry / 0.45);
@@ -171,28 +172,24 @@ export function Cloth({
       hoveredRef.current = false;
       document.body.style.removeProperty("--journey-cursor");
     }
+    if (!group.visible) return;
     const t = state.reducedMotion ? index * 2 : clock.elapsedTime;
-    const angle = pose.angle;
     group.position.set(
-      Math.sin(angle) * pose.radius,
-      pose.height + Math.sin(t * 0.4 + index) * 0.025,
-      pose.centerZ + Math.cos(angle) * pose.radius * Math.cos(SCREEN_TILT),
+      pose.centerX + Math.sin(pose.angle) * pose.radius,
+      pose.height,
+      pose.centerZ + Math.cos(pose.angle) * pose.radius,
     );
-    group.rotation.set(
-      -0.09 + Math.sin(index * 2) * 0.06,
-      angle,
-      Math.sin(index * 1.8) * 0.11,
-    );
+    // Camera-facing printed fabric; deformation supplies depth without turning text edge-on.
+    group.quaternion.copy(camera.quaternion);
+    group.rotateZ(Math.sin(index * 1.8) * 0.025);
     viewPosition.copy(group.position).applyMatrix4(camera.matrixWorldInverse);
     const targetScale = panelScale(
-        -viewPosition.z,
-        size.width / size.height,
-        state.progress,
-        (camera as THREE.PerspectiveCamera).fov,
-      );
-    // A damped size change avoids the last page visibly collapsing as it exits.
-    const scale = state.reducedMotion ? targetScale : THREE.MathUtils.damp(group.scale.x, targetScale, 14, Math.min(delta, .05));
-    group.scale.setScalar(Math.min(scale, targetScale * 1.08));
+      -viewPosition.z,
+      size.width / size.height,
+      state.progress,
+      (camera as THREE.PerspectiveCamera).fov,
+    );
+    group.scale.setScalar(targetScale);
     material.uniforms.uDefocus.value =
       smoothStep(
         (Math.abs(state.progress - chapterProgress(index)) - 0.055) / 0.18,
@@ -208,7 +205,7 @@ export function Cloth({
         : material.uniforms.uRevealTime.value + Math.min(delta, 0.05);
     material.uniforms.uVelocity.value = THREE.MathUtils.damp(
       material.uniforms.uVelocity.value,
-      state.velocity,
+      THREE.MathUtils.clamp(state.velocity, -0.6, 0.6),
       5,
       delta,
     );
@@ -254,7 +251,7 @@ export function Cloth({
           window.open(item.url, "_blank", "noopener,noreferrer");
         }}
       >
-        <planeGeometry args={[2.8, 1.8, 72, 46]} />
+        <planeGeometry args={[2.8, 1.8, 48, 32]} />
       </mesh>
     </group>
   );

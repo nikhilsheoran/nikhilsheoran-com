@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -34,12 +34,31 @@ export function ScreenProjection({
     () => corners.map(() => new THREE.Vector3()),
     [corners],
   );
+  const previous = useMemo(() => new THREE.Matrix4(), []);
+  const current = useMemo(() => new THREE.Matrix4(), []);
+  const lastRef = useRef({ width: 0, height: 0, ready: false });
   useFrame(({ camera, size }) => {
+    const last = lastRef.current;
     const element = screenRef.current,
       canvas = canvasRef.current,
       state = runtimeRef.current;
     if (!element || !canvas) return;
     camera.updateMatrixWorld();
+    current.multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse,
+    );
+    if (
+      current.equals(previous) &&
+      last.width === size.width &&
+      last.height === size.height &&
+      last.ready === state.frameReady
+    )
+      return;
+    previous.copy(current);
+    last.width = size.width;
+    last.height = size.height;
+    last.ready = state.frameReady;
     const points = corners.map((corner, i): [number, number] => {
       projected[i].copy(corner).project(camera);
       const x = ((projected[i].x + 1) * size.width) / 2,
@@ -53,7 +72,13 @@ export function ScreenProjection({
     element.style.visibility = state.frameReady ? "visible" : "hidden";
     element.style.setProperty(
       "--screen-glare",
-      String(0.48 + Math.min(0.3, Math.abs(camera.position.x - SCREEN_POSITION[0]) * 0.055)),
+      String(
+        0.48 +
+          Math.min(
+            0.3,
+            Math.abs(camera.position.x - SCREEN_POSITION[0]) * 0.055,
+          ),
+      ),
     );
     canvas.style.opacity = "1";
   });

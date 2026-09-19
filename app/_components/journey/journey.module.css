@@ -745,8 +745,8 @@
   width: min(600px, 70vw);
   height: 430px;
   pointer-events: none;
-  backdrop-filter: blur(14px);
-  background: #f5f3edbb;
+  backdrop-filter: blur(8px);
+  background: #f5f3ed55;
   mask-image: radial-gradient(
     ellipse at 15% 95%,
     #000 25%,

@@ -119,6 +119,13 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
       camera.projectionMatrix,
       camera.matrixWorldInverse,
     );
+    if (
+      state.desktop &&
+      state.entry === 1 &&
+      pipeline.initialized &&
+      pipeline.vp.equals(pipeline.previous)
+    )
+      return;
     if (!pipeline.initialized) {
       pipeline.previous.copy(pipeline.vp);
       pipeline.initialized = true;

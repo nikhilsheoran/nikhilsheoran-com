@@ -11,11 +11,16 @@ export function smoothStep(value: number) {
   return t * t * (3 - 2 * t);
 }
 
+/** Zero endpoint velocity and acceleration for reversible camera handoffs. */
+export function smootherStep(value: number) {
+  const t = Math.min(1, Math.max(0, value));
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
 export const HELIX_TURNS = 1.4;
 export const HELIX_START = -Math.PI * 2 * HELIX_TURNS;
+export const HELIX_AXIS = [SCREEN_POSITION[0], SCREEN_POSITION[2]] as const;
 
-// Solve the last pose first. The screen occupies 76% of the limiting viewport
-// dimension, leaving a real bezel and a pointer-accessible border on every device.
 export function screenFillDistance(aspect: number, fovDegrees: number) {
   const halfFov = Math.tan((fovDegrees * Math.PI) / 360);
   return (
@@ -26,54 +31,58 @@ export function screenFillDistance(aspect: number, fovDegrees: number) {
   );
 }
 
-export function monitorLift(aspect: number) {
-  return (
-    Math.max(0, 0.9 - aspect) * 2.5 +
-    0.85 * Math.exp(-Math.pow((aspect - 1) / 0.22, 2))
-  );
+export function screenPose(aspect: number, fov = 40) {
+  const d = screenFillDistance(aspect, fov);
+  return {
+    position: [
+      SCREEN_POSITION[0],
+      SCREEN_POSITION[1] - Math.sin(SCREEN_TILT) * d,
+      SCREEN_POSITION[2] + Math.cos(SCREEN_TILT) * d,
+    ] as [number, number, number],
+    target: SCREEN_POSITION,
+  };
 }
 
 export function orbitAngle(progress: number) {
-  return HELIX_START * (1 - smoothStep(progress / 0.93));
+  return HELIX_START * (1 - smootherStep(progress));
 }
 
-/** The entire journey converges on the desk pose; no separate final zoom segment. */
+/** One fixed vertical axis, one zoom curve, and no collision-driven detours. */
 export function journeyPose(progress: number, aspect: number, fov = 40) {
-  const t = smoothStep(progress);
-  const distance = screenFillDistance(aspect, fov);
-  const endRadius = distance * 1.16;
-  const startRadius = 8.6;
-  const radius = endRadius + (startRadius - endRadius) * (1 - t);
+  const t = smootherStep(progress);
+  const end = screenPose(aspect, fov).position;
+  const endRadius = end[2] - HELIX_AXIS[1];
+  const radius = endRadius + (7.2 - endRadius) * (1 - t);
   const angle = orbitAngle(progress);
-  const centerZ = SCREEN_POSITION[2] * t;
-  const endY =
-    SCREEN_POSITION[1] -
-    Math.sin(SCREEN_TILT) * endRadius +
-    monitorLift(aspect);
-  const reading = ribbonPose(progress, progress);
-  const attention =
-    (aspect < 1.4 ? 0.76 : 0.25) *
-    smoothStep(progress / 0.07) *
-    (1 - smoothStep((progress - 0.75) / 0.14));
-  const center = [0, 1.45 + (SCREEN_POSITION[1] - 1.45) * t, centerZ];
-  const page = [
-    Math.sin(reading.angle) * reading.radius,
-    reading.height,
-    reading.centerZ +
-      Math.cos(reading.angle) * reading.radius * Math.cos(SCREEN_TILT),
-  ];
   return {
     radius,
-    position: safeCameraPosition([
-      Math.sin(angle) * radius,
-      endY + 0.65 * (1 - t) + Math.sin(Math.PI * t) * 2.15,
-      centerZ + Math.cos(angle) * radius * Math.cos(SCREEN_TILT),
-    ]),
-    target: center.map((v, i) => v + (page[i] - v) * attention) as [
-      number,
-      number,
-      number,
-    ],
+    position: [
+      HELIX_AXIS[0] + Math.sin(angle) * radius,
+      end[1] + 1.4 * (1 - t),
+      HELIX_AXIS[1] + Math.cos(angle) * radius,
+    ] as [number, number, number],
+    target: [
+      HELIX_AXIS[0],
+      SCREEN_POSITION[1] + 0.65 * (1 - t),
+      HELIX_AXIS[1],
+    ] as [number, number, number],
+  };
+}
+
+/** Analytic critically damped spring: carries velocity, independent of frame rate. */
+export function advanceSpring(
+  value: number,
+  velocity: number,
+  target: number,
+  dt: number,
+  omega = 11,
+) {
+  const error = value - target;
+  const carry = velocity + omega * error;
+  const decay = Math.exp(-omega * dt);
+  return {
+    value: target + (error + carry * dt) * decay,
+    velocity: (velocity - omega * carry * dt) * decay,
   };
 }
 
@@ -92,26 +101,25 @@ export function panelPresence(progress: number, index: number) {
   return arriving * leaving * handoff * (0.2 + proximity * 0.8);
 }
 
-/** Chapters rise through the helix, easing briefly through their reading position. */
-export function ribbonPose(progress: number, chapterAt: number) {
+/** Pages rise around the camera's axis; the active page lies on its sight line. */
+export function ribbonPose(
+  progress: number,
+  chapterAt: number,
+  aspect = 16 / 9,
+  fov = 40,
+) {
+  const camera = journeyPose(progress, aspect, fov);
   const offset = chapterAt - progress;
-  const readingOffset = offset - 0.023 * Math.tanh(offset / 0.035);
-  const clearScreen = smoothStep((progress - 0.755) / 0.095);
+  const radius = camera.radius * 0.52;
+  const readingHeight =
+    camera.target[1] + (camera.position[1] - camera.target[1]) * 0.52;
+  const rawHeight = readingHeight - offset * 6.5;
   return {
-    angle:
-      orbitAngle(progress) +
-      readingOffset * 8.8 +
-      0.23 * (1 - smoothStep((progress - 0.4) / 0.4)) +
-      clearScreen * 0.7,
-    centerZ: SCREEN_POSITION[2] * smoothStep(progress),
-    height:
-      1.05 +
-      Math.log1p(
-        Math.exp((2.3 + progress * 1.1 - readingOffset * 9 - 1.05) * 2),
-      ) /
-        2 +
-      clearScreen * 0.28,
-    radius: 3 - smoothStep(progress) * 1.4 - clearScreen * 0.6,
+    angle: orbitAngle(progress) + offset * 3.8,
+    centerX: HELIX_AXIS[0],
+    centerZ: HELIX_AXIS[1],
+    height: 1.05 + Math.log1p(Math.exp((rawHeight - 1.05) * 5)) / 5,
+    radius,
   };
 }
 
@@ -171,60 +179,28 @@ export function quadMatrix(
   ];
 }
 
-/** Camera clearance includes the lens near plane, hair and upper-body silhouette. */
-export function safeCameraPosition(
-  position: readonly number[],
-): [number, number, number] {
-  const p: [number, number, number] = [
-    Math.max(-8.8, Math.min(8.8, position[0])),
-    Math.max(1.9, position[1]),
-    Math.max(-7.6, Math.min(7.6, position[2])),
-  ];
-  const center = [0, 2.42, 1.3],
-    radius = [0.6, 0.65, 0.67];
-  const q = p.map((v, i) => (v - center[i]) / radius[i]);
-  const length = Math.hypot(...q);
-  if (length < 0.001)
-    return [center[0], center[1] + radius[1] * 1.18, center[2]];
-  if (length < 1.18) {
-    const target = 1.18;
-    const blend = 1 - smoothStep((length - 1) / 0.18);
-    const stretch = 1 + (target / Math.max(length, 0.001) - 1) * blend;
-    for (let i = 0; i < 3; i++) p[i] = center[i] + q[i] * stretch * radius[i];
-  }
-  return p;
-}
-
+/** Direct, reversible approach with modest clearance over the laptop lid. */
 export function screenApproach(
   from: readonly number[],
   t: number,
   aspect: number,
   fov = 40,
 ): [number, number, number] {
-  const d = screenFillDistance(aspect, fov);
-  const end = [
-    SCREEN_POSITION[0],
-    SCREEN_POSITION[1] - Math.sin(SCREEN_TILT) * d + monitorLift(aspect),
-    SCREEN_POSITION[2] + Math.cos(SCREEN_TILT) * d,
-  ];
-  // Near the endpoint this is a short snap. Earlier clicks travel above and beside the sitter.
-  const distance = Math.hypot(...from.map((v, i) => v - end[i]));
-  const clearance = smoothStep((distance - 0.5) / 1.8);
-  const side = from[0] > 0 ? 1 : -1;
-  const a = [from[0], Math.max(from[1], 4.1 * clearance), from[2]];
-  const b = [
-    end[0] + side * 1.25 * clearance,
-    end[1] + 1.9 * clearance,
-    end[2],
-  ];
-  const u = 1 - t;
-  return safeCameraPosition(
-    end.map(
-      (v, i) =>
-        u * u * u * from[i] +
-        3 * u * u * t * a[i] +
-        3 * u * t * t * b[i] +
-        t * t * t * v,
-    ),
-  );
+  return transitionPosition(from, screenPose(aspect, fov).position, t);
+}
+
+export function transitionPosition(
+  from: readonly number[],
+  to: readonly number[],
+  t: number,
+): [number, number, number] {
+  if (t <= 0) return [from[0], from[1], from[2]];
+  if (t >= 1) return [to[0], to[1], to[2]];
+  const distance = Math.hypot(...from.map((v, i) => v - to[i]));
+  const lift = 0.45 * smoothStep((distance - 0.4) / 2);
+  // A single arch clears the lid. Its amplitude vanishes for the automatic handoff.
+  return to.map(
+    (v, i) =>
+      from[i] + (v - from[i]) * t + (i === 1 ? lift * 4 * t * (1 - t) : 0),
+  ) as [number, number, number];
 }

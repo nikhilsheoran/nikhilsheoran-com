@@ -16,14 +16,7 @@ import { useStaticModel } from "./static-model";
 import styles from "./journey.module.css";
 import type { SceneProps } from "./portal";
 
-const highlightColor = new THREE.Color(0.26, 0.32, 0.36);
-
-export function SeatedPerson() {
-  const model = useStaticModel("/journey/nikhil-seated.glb");
-  return <primitive object={model} />;
-}
-
-/** Blender-authored furniture; the separate figure remains replaceable by the likeness. */
+/** Blender-authored furniture, kept separate from the apartment and laptop. */
 export function Apartment() {
   const model = useStaticModel("/journey/nyc-apartment.glb");
   return <primitive object={model} />;
@@ -34,7 +27,6 @@ export function Desk() {
   return (
     <group>
       <primitive object={model} />
-      <SeatedPerson />
     </group>
   );
 }
@@ -63,22 +55,35 @@ export function Laptop({
     };
   }, []);
   const highlight = useMemo(() => {
-    const materials: {
-      material: THREE.MeshStandardMaterial;
-      base: THREE.Color;
-    }[] = [];
-    model.traverse((object) => {
-      if (!(object instanceof THREE.Mesh)) return;
-      const original = object.material as THREE.MeshStandardMaterial;
-      object.material = original.clone();
-      const material = object.material as THREE.MeshStandardMaterial;
-      materials.push({ material, base: material.emissive.clone() });
+    // Build an owned instance: mutating the cached model here breaks Strict Mode.
+    const object = model.clone(true);
+    const materials: THREE.MeshStandardMaterial[] = [];
+    const strength = new THREE.Uniform(0);
+    object.traverse((mesh) => {
+      if (!(mesh instanceof THREE.Mesh)) return;
+      const material = (mesh.material as THREE.MeshStandardMaterial).clone();
+      mesh.material = material;
+      // A single bounds mesh handles selection instead of ray-testing every key.
+      mesh.raycast = () => {};
+      material.onBeforeCompile = (shader) => {
+        shader.uniforms.uSelection = strength;
+        shader.fragmentShader =
+          `uniform float uSelection;\n${shader.fragmentShader}`.replace(
+            "#include <emissivemap_fragment>",
+            "#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(uSelection);",
+          );
+      };
+      material.customProgramCacheKey = () => "laptop-selection-v1";
+      materials.push(material);
     });
-    return materials;
+    const bounds = new THREE.Box3().setFromObject(object);
+    const center = bounds.getCenter(new THREE.Vector3());
+    const size = bounds.getSize(new THREE.Vector3()).addScalar(0.015);
+    return { object, materials, strength, center, size };
   }, [model]);
   useEffect(
     () => () => {
-      for (const { material } of highlight) material.dispose();
+      for (const material of highlight.materials) material.dispose();
       document.body.style.removeProperty("--journey-cursor");
     },
     [highlight],
@@ -91,16 +96,22 @@ export function Laptop({
       hovered &&
       !runtimeRef.current.dragging &&
       !runtimeRef.current.entering &&
+      !runtimeRef.current.returning &&
       !runtimeRef.current.desktop;
-    if (hovered && (runtimeRef.current.entering || runtimeRef.current.desktop))
+    if (
+      hovered &&
+      (runtimeRef.current.entering ||
+        runtimeRef.current.returning ||
+        runtimeRef.current.desktop)
+    )
       setHovered(false);
-    for (const { material, base } of highlight) {
-      if (material.emissiveMap) continue;
-      material.emissive.lerp(
-        active ? highlightColor : base,
-        1 - Math.exp(-12 * delta),
-      );
-    }
+    // eslint-disable-next-line react-hooks/immutability -- Three.js uniforms are mutable GPU inputs, updated outside React rendering.
+    highlight.strength.value = THREE.MathUtils.damp(
+      highlight.strength.value,
+      active ? 1.8 : 0,
+      12,
+      Math.min(delta, 0.05),
+    );
   });
   return (
     <group
@@ -112,7 +123,12 @@ export function Laptop({
       }}
     >
       {/* Separate invisible interaction volume avoids gaps between keys and screen. */}
-      <HoverRegion onHover={setHovered} runtimeRef={runtimeRef} />
+      <HoverRegion
+        onHover={setHovered}
+        runtimeRef={runtimeRef}
+        center={highlight.center}
+        size={highlight.size}
+      />
       {hovered && (
         <Html
           center
@@ -124,7 +140,7 @@ export function Laptop({
           </div>
         </Html>
       )}
-      <primitive object={model} />
+      <primitive object={highlight.object} />
       <group position={SCREEN_LOCAL_POSITION} rotation={[SCREEN_TILT, 0, 0]}>
         <mesh>
           <planeGeometry args={[SCREEN_WIDTH, SCREEN_HEIGHT]} />
@@ -146,15 +162,25 @@ export function Laptop({
 function HoverRegion({
   onHover,
   runtimeRef,
+  center,
+  size,
 }: {
   onHover: (hovered: boolean) => void;
+  center: THREE.Vector3;
+  size: THREE.Vector3;
 } & Pick<SceneProps, "runtimeRef">) {
   return (
     <mesh
-      position={[0, 0.2, -0.04]}
+      position={center}
       onPointerOver={(event) => {
         event.stopPropagation();
-        if (!runtimeRef.current.entering && !runtimeRef.current.dragging) {
+        const state = runtimeRef.current;
+        if (
+          !state.entering &&
+          !state.returning &&
+          !state.desktop &&
+          !state.dragging
+        ) {
           onHover(true);
           document.body.style.setProperty("--journey-cursor", "pointer");
         }
@@ -164,7 +190,7 @@ function HoverRegion({
         document.body.style.removeProperty("--journey-cursor");
       }}
     >
-      <boxGeometry args={[0.67, 0.48, 0.49]} />
+      <boxGeometry args={[size.x, size.y, size.z]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>
   );

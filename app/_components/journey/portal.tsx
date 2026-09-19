@@ -78,6 +78,7 @@ type Mode = "orbit" | "entering" | "desktop" | "returning";
 export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const [mode, setMode] = useState<Mode>("orbit");
   const [ready, setReady] = useState(false);
+  const [nearScreen, setNearScreen] = useState(false);
   const [fallback, setFallback] = useState(false);
   const [chapter, setChapter] = useState(-1);
   const [showHelp, setShowHelp] = useState(false);
@@ -110,6 +111,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   });
   const desktop = mode === "desktop";
   const transitioning = mode === "entering" || mode === "returning";
+  const uiHidden = transitioning || desktop || nearScreen;
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -150,7 +152,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           window.location.origin,
         );
       }
-      if (!ready || state.reducedMotion) {
+      if (!ready) {
         arrive();
         return;
       }
@@ -169,15 +171,17 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   }, []);
   const returnToScene = useCallback(() => {
     const state = runtimeRef.current;
+    if (state.returning) return;
+    state.snapArmed = false;
+    state.target = Math.min(state.progress, 0.78);
+    setExitHint(false);
+    setFallback(false);
+    if (!state.desktop && !state.entering) return;
     state.desktop = false;
     state.entering = false;
-
-    state.snapArmed = false;
-    setExitHint(false);
     state.returning = true;
-    setFallback(false);
     setMode("returning");
-    if (state.reducedMotion || !ready) returned();
+    if (!ready) returned();
   }, [ready, returned]);
   useEffect(() => {
     const receive = (event: MessageEvent) => {
@@ -230,8 +234,11 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     } | null = null;
     const advance = (delta: number) => {
       const state = runtimeRef.current;
-      if (state.entering || state.returning) return;
-      if (state.desktop) {
+      if (state.returning) {
+        state.target = Math.max(0, Math.min(1, state.target + delta));
+        return;
+      }
+      if (state.desktop || state.entering) {
         state.target = Math.max(0, state.progress - 0.06);
         returnToScene();
         return;
@@ -254,7 +261,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       if (
         !event.isPrimary ||
         event.button !== 0 ||
-        state.entering ||
         state.returning ||
         (event.target as Element).closest("button,input,a,iframe")
       )
@@ -277,7 +283,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         dy = event.clientY - drag.y;
       if (!drag.axis && Math.hypot(dx, dy) < 6) return;
       if (!drag.axis) {
-        if (runtimeRef.current.desktop) {
+        if (runtimeRef.current.desktop || runtimeRef.current.entering) {
           runtimeRef.current.target = Math.max(
             0,
             runtimeRef.current.progress - 0.06,
@@ -303,7 +309,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       drag.last = next;
       drag.time = event.timeStamp;
       runtimeRef.current.target = next;
-      runtimeRef.current.progress = next;
       runtimeRef.current.suppressClickUntil = performance.now() + 250;
     };
     const finish = (event: PointerEvent) => {
@@ -333,6 +338,11 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       }
     };
     const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        returnToScene();
+        return;
+      }
       if ((event.target as Element).closest("input,button,a,textarea")) return;
       const delta = (
         {
@@ -382,6 +392,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const progressChanged = useCallback((progress: number) => {
     if (rangeRef.current)
       rangeRef.current.value = String(Math.round(progress * 1000));
+    setNearScreen(progress > 0.84);
     const next = activeChapter(progress);
     if (lastChapterRef.current !== next) {
       lastChapterRef.current = next;
@@ -445,9 +456,9 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           </SceneBoundary>
         </div>
         <div
-          className={`${styles.ui} ${transitioning || desktop ? styles.faded : ""}`}
-          inert={transitioning || desktop}
-          aria-hidden={transitioning || desktop}
+          className={`${styles.ui} ${uiHidden ? styles.faded : ""}`}
+          inert={uiHidden}
+          aria-hidden={uiHidden}
         >
           <header className={styles.header}>
             <div className={styles.profile}>
@@ -596,7 +607,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             />
           </div>
         )}
-        {desktop && (
+        {uiHidden && (
           <button
             id="back-to-journey"
             className={`${styles.returnButton} ${exitHint ? styles.returnHint : ""}`}
