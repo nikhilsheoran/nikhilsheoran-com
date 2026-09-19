@@ -14,9 +14,9 @@ import {
 } from "@/lib/journey/story";
 import {
   journeyPose,
-  monitorLift,
+  safeCameraPosition,
+  screenApproach,
   ribbonPose,
-  screenFillDistance,
   smoothStep,
 } from "@/lib/journey/path";
 import { Apartment, Desk, Laptop } from "./objects";
@@ -28,6 +28,7 @@ import type { SceneProps } from "./portal";
 function CameraRig({
   runtimeRef,
   onArrive,
+  onEnter,
   onProgress,
   onReady,
   onReturnComplete,
@@ -44,13 +45,6 @@ function CameraRig({
       position: new THREE.Vector3(),
       target: new THREE.Vector3(),
       screen: new THREE.Vector3(...SCREEN_POSITION),
-      normal: new THREE.Vector3(
-        0,
-        -Math.sin(SCREEN_TILT),
-        Math.cos(SCREEN_TILT),
-      ),
-      control: new THREE.Vector3(),
-      end: new THREE.Vector3(),
       focus: new THREE.Vector3(),
     }),
     [],
@@ -110,26 +104,14 @@ function CameraRig({
             1,
           );
       const t = smoothStep(state.entry);
-      scratch.end
-        .copy(scratch.screen)
-        .addScaledVector(
-          scratch.normal,
-          screenFillDistance(
-            size.width / size.height,
-            (camera as THREE.PerspectiveCamera).fov,
-          ),
-        );
-      scratch.end.y += monitorLift(aspect);
-      // A curved approach clears the seated figure instead of cutting through its head.
-      scratch.control.copy(fromRef.current).lerp(scratch.end, 0.55);
-      scratch.control.y =
-        Math.max(fromRef.current.y, scratch.end.y) +
-        (state.progress < 0.85 ? 0.7 : 0.025);
-      camera.position
-        .copy(fromRef.current)
-        .multiplyScalar((1 - t) ** 2)
-        .addScaledVector(scratch.control, 2 * (1 - t) * t)
-        .addScaledVector(scratch.end, t * t);
+      camera.position.fromArray(
+        screenApproach(
+          fromRef.current.toArray(),
+          t,
+          aspect,
+          (camera as THREE.PerspectiveCamera).fov,
+        ),
+      );
       targetRef.current.lerpVectors(
         fromTargetRef.current,
         scratch.screen,
@@ -144,6 +126,17 @@ function CameraRig({
       camera.position.copy(scratch.position);
       targetRef.current.copy(scratch.target);
     }
+    camera.position.fromArray(safeCameraPosition(camera.position.toArray()));
+    if (state.progress < 0.88) state.snapArmed = true;
+    if (
+      state.snapArmed &&
+      state.progress > 0.965 &&
+      !state.dragging &&
+      !state.entering &&
+      !state.returning &&
+      !state.desktop
+    )
+      onEnter();
     camera.lookAt(targetRef.current);
     const roll = state.reducedMotion
       ? 0
@@ -221,13 +214,13 @@ function World(props: SceneProps) {
       <fog attach="fog" args={["#c9c9c2", 45, 95]} />
       <Environment
         files="/journey/studio_small_09_1k.hdr"
-        environmentIntensity={0.9}
+        environmentIntensity={0.45}
       />
-      <ambientLight intensity={0.3} />
-      <hemisphereLight args={["#fff5e7", "#b6a791", 0.8]} />
+      <ambientLight intensity={0.06} />
+      <hemisphereLight args={["#fff5e7", "#b6a791", 0.32]} />
       <directionalLight
         position={[-3, 7, 7.5]}
-        intensity={1.7}
+        intensity={2.1}
         color="#fff5e8"
         castShadow
         shadow-mapSize={[4096, 4096]}
@@ -237,9 +230,13 @@ function World(props: SceneProps) {
         shadow-camera-bottom={-4}
         shadow-normalBias={0.035}
         shadow-bias={-0.00015}
-        shadow-radius={3}
+        shadow-radius={12}
       />
-      <directionalLight position={[1, 4, -4]} intensity={0.9} color="#eef3ff" />
+      <directionalLight
+        position={[1, 4, -4]}
+        intensity={0.35}
+        color="#eef3ff"
+      />
       <Apartment />
       <Desk />
       <Laptop onEnter={() => props.onEnter()} runtimeRef={props.runtimeRef} />
@@ -265,12 +262,12 @@ export function JourneyScene(props: SceneProps) {
       frameloop="always"
       camera={{ position: [-5.9, 2.65, -5.8], fov: 40, near: 0.04, far: 120 }}
       dpr={[1, 2]}
-      shadows={{ type: THREE.PCFSoftShadowMap }}
+      shadows={{ type: THREE.PCFShadowMap }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       fallback={<Link href="/notes/about-me">Open the accessible website</Link>}
       onCreated={({ gl }) => {
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMapping = THREE.AgXToneMapping;
+        gl.toneMappingExposure = 1.0;
       }}
     >
       <Suspense fallback={null}>

@@ -16,7 +16,7 @@ import { useStaticModel } from "./static-model";
 import styles from "./journey.module.css";
 import type { SceneProps } from "./portal";
 
-const highlightColor = new THREE.Color(0.075, 0.064, 0.042);
+const highlightColor = new THREE.Color(0.26, 0.32, 0.36);
 
 export function SeatedPerson() {
   const model = useStaticModel("/journey/nikhil-seated.glb");
@@ -63,7 +63,10 @@ export function Laptop({
     };
   }, []);
   const highlight = useMemo(() => {
-    const materials: { material: THREE.MeshStandardMaterial; base: THREE.Color }[] = [];
+    const materials: {
+      material: THREE.MeshStandardMaterial;
+      base: THREE.Color;
+    }[] = [];
     model.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return;
       const original = object.material as THREE.MeshStandardMaterial;
@@ -73,19 +76,30 @@ export function Laptop({
     });
     return materials;
   }, [model]);
-  useEffect(() => () => {
-    for (const { material } of highlight) material.dispose();
-    document.body.style.removeProperty("--journey-cursor");
-  }, [highlight]);
+  useEffect(
+    () => () => {
+      for (const { material } of highlight) material.dispose();
+      document.body.style.removeProperty("--journey-cursor");
+    },
+    [highlight],
+  );
   useFrame((_, delta) => {
     if (screenMaterialRef.current) {
       screenMaterialRef.current.opacity = runtimeRef.current.frameReady ? 0 : 1;
     }
-    const active = hovered && !runtimeRef.current.dragging && !runtimeRef.current.entering && !runtimeRef.current.desktop;
-    if (hovered && (runtimeRef.current.entering || runtimeRef.current.desktop)) setHovered(false);
+    const active =
+      hovered &&
+      !runtimeRef.current.dragging &&
+      !runtimeRef.current.entering &&
+      !runtimeRef.current.desktop;
+    if (hovered && (runtimeRef.current.entering || runtimeRef.current.desktop))
+      setHovered(false);
     for (const { material, base } of highlight) {
       if (material.emissiveMap) continue;
-      material.emissive.lerp(active ? highlightColor : base, 1 - Math.exp(-12 * delta));
+      material.emissive.lerp(
+        active ? highlightColor : base,
+        1 - Math.exp(-12 * delta),
+      );
     }
   });
   return (
@@ -98,14 +112,15 @@ export function Laptop({
       }}
     >
       {/* Separate invisible interaction volume avoids gaps between keys and screen. */}
-      <HoverRegion
-        onHover={setHovered}
-        runtimeRef={runtimeRef}
-      />
+      <HoverRegion onHover={setHovered} runtimeRef={runtimeRef} />
       {hovered && (
-        <Html center position={[0, 0.36, -0.24]} style={{ pointerEvents: "none" }}>
+        <Html
+          center
+          position={[0.23, 0.47, -0.32]}
+          style={{ pointerEvents: "none" }}
+        >
           <div className={styles.laptopTooltip} role="tooltip">
-            <span className={styles.tooltipDot} /> Click to view my Mac <span aria-hidden="true">↗</span>
+            <span className={styles.tooltipDot} /> Click to use
           </div>
         </Html>
       )}
@@ -128,7 +143,10 @@ export function Laptop({
   );
 }
 
-function HoverRegion({ onHover, runtimeRef }: {
+function HoverRegion({
+  onHover,
+  runtimeRef,
+}: {
   onHover: (hovered: boolean) => void;
 } & Pick<SceneProps, "runtimeRef">) {
   return (

@@ -10,33 +10,24 @@ const fragment = `
   uniform sampler2D tColor,tDepth;
   uniform mat4 uInverseVP,uPreviousVP;
   uniform vec2 uResolution;
-  uniform float uNear,uFar,uFocus,uTime,uMotion,uStrength;
+  uniform float uMotion;
   varying vec2 vUv;
-  float distanceAt(float depth) { return uNear*uFar/(uFar-depth*(uFar-uNear)); }
-  float hash(vec2 p) { return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
   void main(){
     vec4 original=texture2D(tColor,vUv);
     float depth=texture2D(tDepth,vUv).r;
-    float distance=distanceAt(depth);
-    float coc=clamp((abs(distance-uFocus)-.55)*1.65,0.,12.)*uStrength;
-    if(distance<uFocus) coc*=.5;
-    if(original.a<.98) coc=0.;
+    // The architecture and laptop stay optically sharp. Only the cloth shader
+    // softens distant pages; a short shutter is used while the camera moves.
     vec4 world=uInverseVP*vec4(vUv*2.-1.,depth*2.-1.,1.);
     world/=world.w;
     vec4 previous=uPreviousVP*world;
     vec2 velocity=(vUv-(previous.xy/previous.w*.5+.5))*uMotion;
-    velocity=clamp(velocity,vec2(-.025),vec2(.025));
+    velocity=clamp(velocity,-1.5/uResolution,1.5/uResolution);
     vec3 sum=original.rgb;
     float total=1.;
-    // Depth-aware disk samples keep a sharp silhouette from bleeding into distant cloth.
-    for(int i=0;i<8;i++){
-      float fi=float(i)+.5;
-      float angle=fi*2.39996323;
-      vec2 disk=vec2(cos(angle),sin(angle))*sqrt(fi/8.);
-      vec2 uv=vUv+disk*coc/uResolution+velocity*(fi/8.-.5);
-      vec4 sampleColor=texture2D(tColor,uv);
-      float sampleDistance=distanceAt(texture2D(tDepth,uv).r);
-      float weight=sampleColor.a*smoothstep(-1.2,.1,sampleDistance-distance);
+    for(int i=0;i<4;i++){
+      float t=(float(i)+.5)/4.-.5;
+      vec4 sampleColor=texture2D(tColor,vUv+velocity*t);
+      float weight=step(.98,sampleColor.a)*step(.98,original.a)*.25;
       sum+=sampleColor.rgb*weight;total+=weight;
     }
     vec3 color=sum/total;
@@ -44,22 +35,19 @@ const fragment = `
     vec3 bloom=vec3(0.);
     for(int j=0;j<12;j++){
       float a=float(j)*2.39996323;
-      vec2 offset=vec2(cos(a),sin(a))*(2.+float(j)*.65)/uResolution;
+      vec2 offset=vec2(cos(a),sin(a))*(.8+float(j)*.22)/uResolution;
       vec4 glow=texture2D(tColor,vUv+offset);
       bloom+=max(glow.rgb-vec3(1.7),vec3(0.))*glow.a;
     }
-    color+=bloom*.055*original.a;
+    color+=bloom*.022*original.a;
 
-    vec2 centered=(vUv-.5)*vec2(1.,.8);
-    color*=1.-dot(centered,centered)*.28*uStrength;
-    color+=(hash(gl_FragCoord.xy+floor(uTime*24.))-.5)*.008*uStrength;
     gl_FragColor=vec4(color,original.a);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
 `;
 
-/** Camera-reprojection motion blur and actual depth-buffer focus, not a CSS canvas blur. */
+/** Restrained HDR bloom and short camera shutter; no full-scene defocus. */
 export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
   const { gl, size } = useThree();
   const pipeline = useMemo(() => {
@@ -76,12 +64,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
         uInverseVP: { value: new THREE.Matrix4() },
         uPreviousVP: { value: new THREE.Matrix4() },
         uResolution: { value: new THREE.Vector2() },
-        uNear: { value: 0.04 },
-        uFar: { value: 120 },
-        uFocus: { value: 8 },
-        uTime: { value: 0 },
         uMotion: { value: 0 },
-        uStrength: { value: 1 },
       },
       vertexShader: `varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`,
       fragmentShader: fragment,
@@ -128,7 +111,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
     },
     [pipeline],
   );
-  useFrame(({ scene, camera, clock }, delta) => {
+  useFrame(({ scene, camera }, delta) => {
     const state = runtimeRef.current;
     const uniforms = pipeline.material.uniforms;
     camera.updateMatrixWorld();
@@ -142,22 +125,17 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
     }
     uniforms.uInverseVP.value.copy(pipeline.vp).invert();
     uniforms.uPreviousVP.value.copy(pipeline.previous);
-    uniforms.uFocus.value = THREE.MathUtils.damp(
-      uniforms.uFocus.value,
-      state.focusDistance,
-      6,
-      Math.min(delta, 0.05),
-    );
-    uniforms.uTime.value = clock.elapsedTime;
-    uniforms.uStrength.value = size.width < 600 ? 0.6 : 1;
     // Normalize shutter time against frame rate and remove temporal effects for reduced motion.
     uniforms.uMotion.value = state.reducedMotion
       ? 0
-      : Math.min(0.65, 0.012 / Math.max(delta, 0.008)) * (1 - state.entry);
+      : Math.min(0.18, 0.003 / Math.max(delta, 0.008)) * (1 - state.entry);
+    const toneMapping = gl.toneMapping;
+    gl.toneMapping = THREE.NoToneMapping;
     gl.setRenderTarget(pipeline.target);
     gl.clear();
     gl.render(scene, camera);
     gl.setRenderTarget(null);
+    gl.toneMapping = toneMapping;
     gl.render(pipeline.scene, pipeline.camera);
     pipeline.previous.copy(pipeline.vp);
   }, 1);

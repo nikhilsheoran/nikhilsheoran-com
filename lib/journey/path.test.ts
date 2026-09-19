@@ -208,3 +208,28 @@ test("the display is 13.3 inches at 16:10 in the studio's half-metre units", () 
   );
   assert.ok(Math.abs(SCREEN_WIDTH / SCREEN_HEIGHT - 1.6) < 1e-9);
 });
+
+test("camera and click approaches keep a lens clearance around the seated figure", async () => {
+  const { safeCameraPosition, screenApproach } = await import("./path");
+  for (const aspect of [0.46, 1, 1.36, 1.78, 2.4]) {
+    for (let i = 0; i <= 100; i++) {
+      const p = journeyPose(i / 100, aspect).position;
+      const points = [safeCameraPosition(p)];
+      if (i % 10 === 0)
+        for (let j = 0; j <= 100; j++)
+          points.push(screenApproach(p, j / 100, aspect));
+      for (const [x, y, z] of points) {
+        const clearance = Math.hypot(
+          x / 0.6,
+          (y - 2.42) / 0.65,
+          (z - 1.3) / 0.67,
+        );
+        assert.ok(
+          clearance >= 1,
+          `camera intersects sitter at ${aspect}/${i}: ${clearance}`,
+        );
+        assert.ok(Math.abs(x) <= 8.8 && z >= -7.6 && z <= 7.6);
+      }
+    }
+  }
+});

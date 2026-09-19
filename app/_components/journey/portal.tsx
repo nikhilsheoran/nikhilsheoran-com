@@ -36,6 +36,7 @@ export interface JourneyRuntime {
   suppressClickUntil: number;
   focusDistance: number;
   cameraPosition: [number, number, number];
+  snapArmed: boolean;
 }
 export interface SceneProps {
   runtimeRef: RefObject<JourneyRuntime>;
@@ -88,7 +89,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const rangeRef = useRef<HTMLInputElement>(null);
   const draggingRef = useRef(false);
   const outsideRef = useRef(false);
-  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [exitHint, setExitHint] = useState(false);
   const lastChapterRef = useRef(-1);
   const pendingNoteRef = useRef<string | null>(null);
   const runtimeRef = useRef<JourneyRuntime>({
@@ -104,6 +105,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     dragging: false,
     suppressClickUntil: 0,
     focusDistance: 8,
+    snapArmed: true,
     cameraPosition: [-5.9, 2.65, -5.8],
   });
   const desktop = mode === "desktop";
@@ -124,6 +126,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     state.entering = false;
     state.returning = false;
     outsideRef.current = false;
+    setExitHint(false);
     state.desktop = true;
     state.entry = 1;
     setFallback(!state.frameReady);
@@ -169,6 +172,8 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     state.desktop = false;
     state.entering = false;
 
+    state.snapArmed = false;
+    setExitHint(false);
     state.returning = true;
     setFallback(false);
     setMode("returning");
@@ -191,16 +196,10 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       }
       if (event.data?.type === "journey:drag") {
         draggingRef.current = event.data.active === true;
-        if (
-          !draggingRef.current &&
-          outsideRef.current &&
-          runtimeRef.current.desktop
-        )
-          returnToScene();
       }
       if (event.data?.type === "journey:inside") {
         outsideRef.current = false;
-        if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+        setExitHint(false);
       }
       if (event.data?.type === "journey:return" && runtimeRef.current.desktop)
         returnToScene();
@@ -212,27 +211,12 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     if (desktop) iframeRef.current?.focus();
   }, [desktop]);
   const leaveScreen = useCallback(() => {
-    if (outsideRef.current && leaveTimerRef.current) return;
     outsideRef.current = true;
-    leaveTimerRef.current = setTimeout(() => {
-      leaveTimerRef.current = null;
-      if (
-        runtimeRef.current.desktop &&
-        !draggingRef.current &&
-        outsideRef.current
-      )
-        returnToScene();
-    }, 180);
-  }, [returnToScene]);
-  useEffect(
-    () => () => {
-      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
-    },
-    [],
-  );
+    if (runtimeRef.current.desktop) setExitHint(true);
+  }, []);
   useEffect(() => {
     const node = surfaceRef.current;
-    if (!node || desktop) return;
+    if (!node) return;
     const inputState = runtimeRef.current;
     let drag: {
       id: number;
@@ -247,6 +231,11 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     const advance = (delta: number) => {
       const state = runtimeRef.current;
       if (state.entering || state.returning) return;
+      if (state.desktop) {
+        state.target = Math.max(0, state.progress - 0.06);
+        returnToScene();
+        return;
+      }
       state.target = Math.max(0, Math.min(1, state.target + delta));
     };
     const wheel = (event: WheelEvent) => {
@@ -288,6 +277,15 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         dy = event.clientY - drag.y;
       if (!drag.axis && Math.hypot(dx, dy) < 6) return;
       if (!drag.axis) {
+        if (runtimeRef.current.desktop) {
+          runtimeRef.current.target = Math.max(
+            0,
+            runtimeRef.current.progress - 0.06,
+          );
+          returnToScene();
+          drag = null;
+          return;
+        }
         drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
         node.setPointerCapture(event.pointerId);
         runtimeRef.current.dragging = true;
@@ -380,7 +378,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       delete node.dataset.dragging;
       window.removeEventListener("keydown", key);
     };
-  }, [desktop]);
+  }, [desktop, returnToScene]);
   const progressChanged = useCallback((progress: number) => {
     if (rangeRef.current)
       rangeRef.current.value = String(Math.round(progress * 1000));
@@ -419,7 +417,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           aria-hidden={!desktop}
           onPointerEnter={() => {
             outsideRef.current = false;
-            if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+            setExitHint(false);
           }}
           onPointerLeave={leaveScreen}
         >
@@ -456,7 +454,9 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               <Link className={styles.wordmark} href="/">
                 Nikhil Sheoran
               </Link>
-              <p>I like tech and enjoy playing with videos.</p>
+              <p>
+                I’m 20, I love tech and my dream is to produce a movie someday.
+              </p>
               <nav className={styles.socials} aria-label="Social profiles">
                 {[
                   ["X", "https://x.com/_nikhilsheoran", XLogoIcon],
@@ -488,45 +488,36 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               </nav>
             </div>
           </header>
-          <section
-            className={`${styles.caption} ${chapter === -2 ? styles.endCaption : ""}`}
-            aria-live="polite"
-          >
-            <span className={styles.year}>
-              {chapter >= 0
-                ? chapters[chapter].year
-                : chapter === -2
-                  ? "One more thing."
-                  : "Hello, I’m Nikhil."}
-            </span>
-            <h1>
-              {chapter >= 0
-                ? chapters[chapter].name
-                : chapter === -2
-                  ? "Make yourself at home."
+          {chapter !== -2 && (
+            <section className={styles.caption} aria-live="polite">
+              <span className={styles.year}>
+                {chapter >= 0 ? chapters[chapter].year : "Hello, I’m Nikhil."}
+              </span>
+              <h1>
+                {chapter >= 0
+                  ? chapters[chapter].name
                   : "It started at a desk."}
-            </h1>
-            <p>
-              {chapter >= 0
-                ? chapters[chapter].subtitle
-                : chapter === -2
-                  ? "Click the laptop to use my Mac. Move outside the screen to look around."
+              </h1>
+              <p>
+                {chapter >= 0
+                  ? chapters[chapter].subtitle
                   : "A few years of curiosity, experiments, and things I’ve built."}
-            </p>
-            {chapter >= 0 && (
-              <a
-                className={styles.readLink}
-                href={chapters[chapter].url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {chapters[chapter].kind === "youtube"
-                  ? "Watch on YouTube"
-                  : "Read on X"}
-                <ArrowUpRightIcon size={14} aria-label="Opens in a new tab" />
-              </a>
-            )}
-          </section>
+              </p>
+              {chapter >= 0 && (
+                <a
+                  className={styles.readLink}
+                  href={chapters[chapter].url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {chapters[chapter].kind === "youtube"
+                    ? "Watch on YouTube"
+                    : "Read on X"}
+                  <ArrowUpRightIcon size={14} aria-label="Opens in a new tab" />
+                </a>
+              )}
+            </section>
+          )}
           <button className={styles.keyboardScreen} onClick={() => enter()}>
             Focus the laptop screen
           </button>
@@ -580,11 +571,13 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             <aside className={styles.help}>
               <p>
                 Scroll or drag the scene along the spiral. Hover over the fabric
-                to reveal its color. Hover or tap the Mac to use its screen.
+                to reveal its color. Click the Mac, or finish the spiral, to use
+                its screen.
               </p>
               <p>
-                Use the years or slider to navigate. Move outside the screen or
-                press Escape to pull back. The figure is a placeholder.
+                Use the years or slider to navigate. Click Back to the desk,
+                scroll or drag outside the display, or press Escape to pull
+                back.
               </p>
               {reducedMotion && (
                 <p>
@@ -606,7 +599,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         {desktop && (
           <button
             id="back-to-journey"
-            className={styles.returnButton}
+            className={`${styles.returnButton} ${exitHint ? styles.returnHint : ""}`}
             onClick={returnToScene}
           >
             Back to the desk

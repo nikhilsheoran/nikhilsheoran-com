@@ -27,7 +27,10 @@ export function screenFillDistance(aspect: number, fovDegrees: number) {
 }
 
 export function monitorLift(aspect: number) {
-  return Math.max(0, 0.9 - aspect) * 2.5;
+  return (
+    Math.max(0, 0.9 - aspect) * 2.5 +
+    0.85 * Math.exp(-Math.pow((aspect - 1) / 0.22, 2))
+  );
 }
 
 export function orbitAngle(progress: number) {
@@ -39,7 +42,7 @@ export function journeyPose(progress: number, aspect: number, fov = 40) {
   const t = smoothStep(progress);
   const distance = screenFillDistance(aspect, fov);
   const endRadius = distance * 1.16;
-  const startRadius = aspect < 0.8 ? 13 : 8.6;
+  const startRadius = 8.6;
   const radius = endRadius + (startRadius - endRadius) * (1 - t);
   const angle = orbitAngle(progress);
   const centerZ = SCREEN_POSITION[2] * t;
@@ -47,14 +50,26 @@ export function journeyPose(progress: number, aspect: number, fov = 40) {
     SCREEN_POSITION[1] -
     Math.sin(SCREEN_TILT) * endRadius +
     monitorLift(aspect);
+  const reading = ribbonPose(progress, progress);
+  const attention =
+    (aspect < 1.4 ? 0.76 : 0.25) *
+    smoothStep(progress / 0.07) *
+    (1 - smoothStep((progress - 0.75) / 0.14));
+  const center = [0, 1.45 + (SCREEN_POSITION[1] - 1.45) * t, centerZ];
+  const page = [
+    Math.sin(reading.angle) * reading.radius,
+    reading.height,
+    reading.centerZ +
+      Math.cos(reading.angle) * reading.radius * Math.cos(SCREEN_TILT),
+  ];
   return {
     radius,
-    position: [
+    position: safeCameraPosition([
       Math.sin(angle) * radius,
       endY + 0.65 * (1 - t) + Math.sin(Math.PI * t) * 2.15,
       centerZ + Math.cos(angle) * radius * Math.cos(SCREEN_TILT),
-    ] as [number, number, number],
-    target: [0, 1.45 + (SCREEN_POSITION[1] - 1.45) * t, centerZ] as [
+    ]),
+    target: center.map((v, i) => v + (page[i] - v) * attention) as [
       number,
       number,
       number,
@@ -154,4 +169,62 @@ export function quadMatrix(
     0,
     1,
   ];
+}
+
+/** Camera clearance includes the lens near plane, hair and upper-body silhouette. */
+export function safeCameraPosition(
+  position: readonly number[],
+): [number, number, number] {
+  const p: [number, number, number] = [
+    Math.max(-8.8, Math.min(8.8, position[0])),
+    Math.max(1.9, position[1]),
+    Math.max(-7.6, Math.min(7.6, position[2])),
+  ];
+  const center = [0, 2.42, 1.3],
+    radius = [0.6, 0.65, 0.67];
+  const q = p.map((v, i) => (v - center[i]) / radius[i]);
+  const length = Math.hypot(...q);
+  if (length < 0.001)
+    return [center[0], center[1] + radius[1] * 1.18, center[2]];
+  if (length < 1.18) {
+    const target = 1.18;
+    const blend = 1 - smoothStep((length - 1) / 0.18);
+    const stretch = 1 + (target / Math.max(length, 0.001) - 1) * blend;
+    for (let i = 0; i < 3; i++) p[i] = center[i] + q[i] * stretch * radius[i];
+  }
+  return p;
+}
+
+export function screenApproach(
+  from: readonly number[],
+  t: number,
+  aspect: number,
+  fov = 40,
+): [number, number, number] {
+  const d = screenFillDistance(aspect, fov);
+  const end = [
+    SCREEN_POSITION[0],
+    SCREEN_POSITION[1] - Math.sin(SCREEN_TILT) * d + monitorLift(aspect),
+    SCREEN_POSITION[2] + Math.cos(SCREEN_TILT) * d,
+  ];
+  // Near the endpoint this is a short snap. Earlier clicks travel above and beside the sitter.
+  const distance = Math.hypot(...from.map((v, i) => v - end[i]));
+  const clearance = smoothStep((distance - 0.5) / 1.8);
+  const side = from[0] > 0 ? 1 : -1;
+  const a = [from[0], Math.max(from[1], 4.1 * clearance), from[2]];
+  const b = [
+    end[0] + side * 1.25 * clearance,
+    end[1] + 1.9 * clearance,
+    end[2],
+  ];
+  const u = 1 - t;
+  return safeCameraPosition(
+    end.map(
+      (v, i) =>
+        u * u * u * from[i] +
+        3 * u * u * t * a[i] +
+        3 * u * t * t * b[i] +
+        t * t * t * v,
+    ),
+  );
 }
