@@ -171,10 +171,11 @@ function CameraRig({
         Math.cos(clothPose.angle) * clothPose.radius * Math.cos(SCREEN_TILT),
     );
     const clothFocus =
-      state.entry < 0.2 && state.progress > 0.055 && state.progress < 0.78;
-    state.focusDistance = camera.position.distanceTo(
-      clothFocus ? scratch.focus : targetRef.current,
-    );
+      state.entry < 0.2 && state.progress > 0.055 && state.progress < 0.89;
+    const focusBlend = smoothStep((state.progress - 0.76) / 0.12);
+    scratch.focus.lerp(targetRef.current, clothFocus ? focusBlend : 1);
+    state.focusDistance = -scratch.focus.applyMatrix4(camera.matrixWorldInverse)
+      .z;
     wasEnteringRef.current = state.entering;
     if (clock.elapsedTime - lastReportRef.current > 0.08) {
       onProgress(state.progress);

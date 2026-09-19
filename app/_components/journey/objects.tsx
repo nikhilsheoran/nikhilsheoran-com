@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RoundedBox, useTexture, useGLTF } from "@react-three/drei";
+import { RoundedBox } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { LAPTOP_POSITION, SCREEN_TILT } from "@/lib/journey/story";
 import { createLogoTexture, createScreenTexture } from "./textures";
+import { useStaticModel } from "./static-model";
 import type { SceneProps } from "./portal";
 
 type Vec3 = [number, number, number];
@@ -157,156 +158,13 @@ export function SeatedPerson() {
   );
 }
 
-function Chair() {
-  return (
-    <group position={[0, 0, 1.45]}>
-      <RoundedBox
-        args={[0.8, 0.12, 0.76]}
-        radius={0.055}
-        position={[0, 0.93, 0]}
-        castShadow
-      >
-        <meshStandardMaterial color="#4e5a54" roughness={0.8} />
-      </RoundedBox>
-      <RoundedBox
-        args={[0.75, 0.7, 0.12]}
-        radius={0.1}
-        position={[0, 1.32, 0.38]}
-        rotation={[-0.12, 0, 0]}
-        castShadow
-      >
-        <meshStandardMaterial color="#59635b" roughness={0.8} />
-      </RoundedBox>
-      <Joint
-        start={[0, 0.1, 0]}
-        end={[0, 0.92, 0]}
-        radius={0.06}
-        color="#939b93"
-      />
-      {Array.from({ length: 5 }, (_, i) => {
-        const angle = (i / 5) * Math.PI * 2;
-        const end: Vec3 = [Math.sin(angle) * 0.5, 0.1, Math.cos(angle) * 0.5];
-        return (
-          <group key={i}>
-            <Joint
-              start={[0, 0.19, 0]}
-              end={end}
-              radius={0.035}
-              color="#7e8880"
-            />
-            <mesh position={end} rotation={[Math.PI / 2, 0, angle]} castShadow>
-              <cylinderGeometry args={[0.07, 0.07, 0.065, 16]} />
-              <meshStandardMaterial color="#3f4841" />
-            </mesh>
-          </group>
-        );
-      })}
-    </group>
-  );
-}
-
+/** Blender-authored furniture; the separate figure remains replaceable by the likeness. */
 export function Desk() {
-  const wood = useTexture({
-    map: "/journey/diffuse.jpg",
-    normalMap: "/journey/nor_gl.jpg",
-    roughnessMap: "/journey/roughness.jpg",
-  });
-  useEffect(() => {
-    for (const texture of Object.values(wood)) {
-      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(1.7, 1);
-      texture.anisotropy = 8;
-      texture.needsUpdate = true;
-    }
-    // eslint-disable-next-line react-hooks/immutability -- Configure the loaded Three.js texture before rendering.
-    wood.map.colorSpace = THREE.SRGBColorSpace;
-  }, [wood]);
+  const model = useStaticModel("/journey/studio-furniture.glb");
   return (
     <group>
-      <RoundedBox
-        args={[3.05, 0.12, 1.5]}
-        radius={0.035}
-        position={[0, 1.53, -0.08]}
-        castShadow
-        receiveShadow
-      >
-        <meshPhysicalMaterial
-          {...wood}
-          color="#bbb2a1"
-          roughness={0.7}
-          normalScale={[0.22, 0.22]}
-          clearcoat={0.18}
-          clearcoatRoughness={0.5}
-        />
-      </RoundedBox>
-      {[-1.3, 1.3].flatMap((x) =>
-        [-0.67, 0.5].map((z) => (
-          <mesh key={`${x},${z}`} position={[x, 0.75, z]} castShadow>
-            <boxGeometry args={[0.065, 1.47, 0.065]} />
-            <meshStandardMaterial
-              color="#707b72"
-              metalness={0.5}
-              roughness={0.4}
-            />
-          </mesh>
-        )),
-      )}
-      <Joint
-        start={[-1.3, 0.21, -0.67]}
-        end={[1.3, 0.21, -0.67]}
-        radius={0.022}
-        color="#707b72"
-      />
-      <Chair />
+      <primitive object={model} />
       <SeatedPerson />
-      <group position={[-1.04, 1.66, 0.15]}>
-        <mesh castShadow>
-          <cylinderGeometry args={[0.09, 0.085, 0.2, 32]} />
-          <meshStandardMaterial color="#cdd0c5" roughness={0.6} />
-        </mesh>
-        <mesh position={[0.102, 0, 0]} rotation={[0, 0, 0]}>
-          <torusGeometry args={[0.062, 0.016, 10, 24]} />
-          <meshStandardMaterial color="#cdd0c5" />
-        </mesh>
-        <mesh position={[0, 0.102, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.074, 32]} />
-          <meshStandardMaterial color="#514e45" />
-        </mesh>
-      </group>
-      <group position={[1.04, 1.61, -0.13]} rotation={[0, -0.25, 0]}>
-        <RoundedBox args={[0.44, 0.04, 0.62]} radius={0.015} castShadow>
-          <meshStandardMaterial color="#d4d4ca" roughness={0.95} />
-        </RoundedBox>
-        <mesh position={[-0.12, 0.031, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.014, 0.014, 0.46, 8]} />
-          <meshStandardMaterial color="#555c55" />
-        </mesh>
-      </group>
-      <group position={[-1.17, 1.59, -0.62]}>
-        <mesh position={[0, 0.11, 0]} castShadow>
-          <cylinderGeometry args={[0.12, 0.085, 0.22, 20]} />
-          <meshStandardMaterial color="#cccfc2" />
-        </mesh>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <group key={i} rotation={[0, i * 2.4, 0]}>
-            <Joint
-              start={[0, 0.19, 0]}
-              end={[0.1, 0.43 + (i % 2) * 0.1, 0.025]}
-              radius={0.009}
-              color="#727e6b"
-            />
-            <mesh
-              position={[0.1, 0.4 + (i % 2) * 0.1, 0.025]}
-              rotation={[0, 0, -0.5]}
-              scale={[0.055, 0.12, 0.015]}
-              castShadow
-            >
-              <sphereGeometry args={[1, 12, 8]} />
-              <meshStandardMaterial color="#87927c" roughness={1} />
-            </mesh>
-          </group>
-        ))}
-      </group>
     </group>
   );
 }
@@ -318,17 +176,7 @@ export function Laptop({
   const [screen, setScreen] = useState<THREE.Texture | null>(null);
   const [logo, setLogo] = useState<THREE.Texture | null>(null);
   const hoverStarted = useRef<number | null>(null);
-  const gltf = useGLTF("/journey/macbook-air-2017.glb");
-  const model = useMemo(() => {
-    const clone = gltf.scene.clone(true);
-    clone.traverse((object) => {
-      if (object instanceof THREE.Mesh) {
-        object.castShadow = true;
-        object.receiveShadow = true;
-      }
-    });
-    return clone;
-  }, [gltf.scene]);
+  const model = useStaticModel("/journey/macbook-air-2017.glb");
   const screenMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
   const isTouch = useRef(false);
   useEffect(() => {

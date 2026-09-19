@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { PerspectiveCamera, Vector3 } from "three";
 import {
   quadMatrix,
   orbitAngle,
@@ -8,6 +9,7 @@ import {
   screenFillDistance,
   monitorLift,
   panelScale,
+  panelPresence,
 } from "./path";
 import { chapterProgress, SCREEN_POSITION, SCREEN_TILT } from "./story";
 
@@ -142,5 +144,49 @@ test("panel size stays bounded as the camera gets close, including curled edges"
       assert.ok(
         panelScale(1, aspect, progress) < panelScale(4, aspect, progress),
       );
+    }
+});
+
+test("the travelling chapter window shows at most three panels without a visibility jump", () => {
+  for (let n = 0; n <= 1000; n++) {
+    const p = n / 1000;
+    const visible = Array.from({ length: 5 }, (_, i) =>
+      panelPresence(p, i),
+    ).filter((a) => a > 0.015);
+    assert.ok(visible.length <= 3, `too many panels at ${p}`);
+    for (let i = 0; i < 5; i++)
+      assert.ok(
+        Math.abs(panelPresence(p, i) - panelPresence(p + 0.0001, i)) < 0.006,
+      );
+  }
+  assert.equal(
+    Array.from({ length: 5 }, (_, i) => panelPresence(0, i)).filter(
+      (a) => a > 0.015,
+    ).length,
+    3,
+  );
+  assert.equal(panelPresence(0.9, 4), 0);
+  for (let i = 0; i < 5; i++)
+    assert.ok(panelPresence(chapterProgress(i), i) > 0.95);
+});
+
+test("every chapter has a readable position within the camera frame", () => {
+  for (const aspect of [0.46, 1, 1.78, 2.4])
+    for (let i = 0; i < 5; i++) {
+      const progress = chapterProgress(i);
+      const pose = journeyPose(progress, aspect),
+        cloth = ribbonPose(progress, progress);
+      const camera = new PerspectiveCamera(40, aspect, 0.04, 60);
+      camera.position.fromArray(pose.position);
+      camera.lookAt(new Vector3(...pose.target));
+      camera.updateMatrixWorld();
+      const projected = new Vector3(
+        Math.sin(cloth.angle) * cloth.radius,
+        cloth.height,
+        cloth.centerZ +
+          Math.cos(cloth.angle) * cloth.radius * Math.cos(SCREEN_TILT),
+      ).project(camera);
+      assert.ok(Math.abs(projected.x) < 0.45 && Math.abs(projected.y) < 0.4);
+      assert.ok(projected.z > -1 && projected.z < 1);
     }
 });

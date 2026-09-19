@@ -1,4 +1,4 @@
-import { SCREEN_POSITION, SCREEN_TILT } from "./story";
+import { chapterProgress, SCREEN_POSITION, SCREEN_TILT } from "./story";
 
 export function smoothStep(value: number) {
   const t = Math.min(1, Math.max(0, value));
@@ -20,7 +20,7 @@ export function monitorLift(aspect: number) {
 }
 
 export function orbitAngle(progress: number) {
-  return HELIX_START * (1 - smoothStep(progress));
+  return HELIX_START * (1 - smoothStep(progress / 0.93));
 }
 
 /** The entire journey converges on the desk pose; no separate final zoom segment. */
@@ -51,19 +51,40 @@ export function journeyPose(progress: number, aspect: number, fov = 40) {
   };
 }
 
-/** Earlier chapters rise above the camera; later chapters arrive from below. */
+/** A travelling window never draws more than three chapters, even during fades. */
+export function panelPresence(progress: number, index: number) {
+  const start = index < 3 ? -1 : chapterProgress(index - 2) + 0.075;
+  const end =
+    index < 2
+      ? chapterProgress(index + 1) + 0.075
+      : chapterProgress(index) + 0.19;
+  const arriving = index < 3 ? 1 : smoothStep((progress - start) / 0.065);
+  const leaving = 1 - smoothStep((progress - (end - 0.085)) / 0.085);
+  const handoff = 1 - smoothStep((progress - 0.79) / 0.1);
+  const proximity =
+    1 - smoothStep(Math.abs(progress - chapterProgress(index)) / 0.23);
+  return arriving * leaving * handoff * (0.2 + proximity * 0.8);
+}
+
+/** Chapters rise through the helix, easing briefly through their reading position. */
 export function ribbonPose(progress: number, chapterAt: number) {
   const offset = chapterAt - progress;
+  const readingOffset = offset - 0.023 * Math.tanh(offset / 0.035);
+  const clearScreen = smoothStep((progress - 0.77) / 0.12);
   return {
     angle:
       orbitAngle(progress) +
-      offset * 8.8 +
-      0.23 * (1 - smoothStep((progress - 0.4) / 0.4)),
+      readingOffset * 8.8 +
+      0.23 * (1 - smoothStep((progress - 0.4) / 0.4)) +
+      clearScreen * 0.35,
     centerZ: SCREEN_POSITION[2] * smoothStep(progress),
-    // A smooth floor keeps future panels above the ground from the first frame.
     height:
       1.05 +
-      Math.log1p(Math.exp((2.3 + progress * 1.1 - offset * 9 - 1.05) * 2)) / 2,
+      Math.log1p(
+        Math.exp((2.3 + progress * 1.1 - readingOffset * 9 - 1.05) * 2),
+      ) /
+        2 +
+      clearScreen * 1.1,
     radius: 3 - smoothStep(progress) * 1.4,
   };
 }

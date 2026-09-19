@@ -9,3 +9,5 @@ Files were downloaded from the asset URLs returned by https://api.polyhaven.com/
 
 - `macbook-air-2017.glb`: original model authored for this project in Blender; editable source and generator are in `assets/blender/` and `scripts/build-studio.py`. Proportions reference https://support.apple.com/en-ca/111924 . Not manufacturer CAD.
 - `action-play.svg`, `action-x.svg`, `action-external.svg`: Phosphor Icons, MIT license, generated from the installed `@phosphor-icons/react` package. Full notice: `PHOSPHOR-LICENSE.txt`. https://github.com/phosphor-icons/react
+
+- `studio-furniture.glb`: original Blender-authored desk, chair and props. Embeds the credited Poly Haven wood maps and an original procedural upholstery normal map. Detailed source: `assets/blender/nikhil-studio-detailed.blend`.

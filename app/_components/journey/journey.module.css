@@ -557,3 +557,33 @@
 .canvasLayer canvas {
   cursor: var(--journey-cursor, grab);
 }
+
+/* Keep the final instruction out of the display as the bezel settles into frame. */
+.endCaption {
+  left: auto;
+  right: 40px;
+  bottom: 94px;
+  max-width: 220px;
+  padding: 14px 17px;
+  background: #0b100ee8;
+  border-left: 1px solid #ffffff30;
+}
+.endCaption .year {
+  display: none;
+}
+.endCaption h1 {
+  font-size: 17px;
+  letter-spacing: -0.4px;
+  margin: 0 0 7px;
+}
+.endCaption p {
+  font-size: 11px;
+  line-height: 1.55;
+}
+@media (max-width: 600px) {
+  .endCaption {
+    right: 20px;
+    bottom: 106px;
+    max-width: 190px;
+  }
+}

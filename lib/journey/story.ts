@@ -74,7 +74,7 @@ export const chapters = [
 
 export type Chapter = (typeof chapters)[number];
 
-export const STORY_END = 0.84;
+export const STORY_END = 0.81;
 export const LAPTOP_POSITION: [number, number, number] = [0, 1.63, -0.13];
 export const SCREEN_TILT = -0.35;
 // Center of the display plane, including the lid's tilt and local screen offset.

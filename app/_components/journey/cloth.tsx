@@ -9,7 +9,12 @@ import {
   SCREEN_TILT,
   type Chapter,
 } from "@/lib/journey/story";
-import { ribbonPose, smoothStep, panelScale } from "@/lib/journey/path";
+import {
+  ribbonPose,
+  smoothStep,
+  panelScale,
+  panelPresence,
+} from "@/lib/journey/path";
 import { createPageTexture, createActionTexture } from "./textures";
 import type { SceneProps } from "./portal";
 
@@ -43,7 +48,7 @@ const vertexShader = `
 `;
 const fragmentShader = `
   uniform sampler2D uMap, uActionMap;
-  uniform float uHover, uOpacity, uRevealTime;
+  uniform float uHover, uOpacity, uRevealTime, uDefocus;
   uniform vec2 uPointer;
   varying vec2 vUv;
   varying vec3 vView;
@@ -53,7 +58,13 @@ const fragmentShader = `
     vec2 delta = (vUv-uPointer)*vec2(1.55,1.);
     float d = length(delta);
     float front = uRevealTime * 5.;
-    vec3 ink = texture2D(uMap, coord).rgb;
+    // Prefilter distant printed surfaces; depth-of-field then softens their silhouette.
+    vec2 blur = vec2(uDefocus * .009);
+    vec3 ink = texture2D(uMap, coord).rgb * .28;
+    ink += texture2D(uMap, coord + vec2(blur.x,0.)).rgb * .18;
+    ink += texture2D(uMap, coord - vec2(blur.x,0.)).rgb * .18;
+    ink += texture2D(uMap, coord + vec2(0.,blur.y)).rgb * .18;
+    ink += texture2D(uMap, coord - vec2(0.,blur.y)).rgb * .18;
     float gray = dot(ink,vec3(.2126,.7152,.0722));
     float reveal = (1.-smoothstep(front-.18,front+.12,d))*uHover;
     vec3 color = mix(vec3(gray),ink,reveal);
@@ -110,6 +121,7 @@ export function Cloth({
           uRevealTime: { value: 0 },
           uVelocity: { value: 0 },
           uOpacity: { value: 0 },
+          uDefocus: { value: 0 },
           uPointer: { value: new THREE.Vector2(0.5, 0.5) },
           uTouch: { value: new THREE.Vector2(0.5, 0.5) },
         },
@@ -151,7 +163,7 @@ export function Cloth({
     const group = groupRef.current;
     if (!group) return;
     const entryFade = 1 - smoothStep(state.entry / 0.45);
-    const ending = 1 - smoothStep((state.progress - 0.8) / 0.095);
+    const ending = panelPresence(state.progress, index);
     material.uniforms.uOpacity.value = ending * entryFade;
     group.visible =
       material.uniforms.uOpacity.value > 0.015 && pose.height > -0.4;
@@ -180,6 +192,10 @@ export function Cloth({
         (camera as THREE.PerspectiveCamera).fov,
       ),
     );
+    material.uniforms.uDefocus.value =
+      smoothStep(
+        (Math.abs(state.progress - chapterProgress(index)) - 0.055) / 0.18,
+      ) * (hoveredRef.current ? 0.2 : 1);
     material.uniforms.uTouch.value.lerp(
       touchTarget.current,
       1 - Math.exp(-14 * delta),
@@ -202,11 +218,7 @@ export function Cloth({
       delta,
     );
     if (hoveredRef.current && group.visible)
-      state.focusDistance = Math.hypot(
-        group.position.x - state.cameraPosition[0],
-        group.position.y - state.cameraPosition[1],
-        group.position.z - state.cameraPosition[2],
-      );
+      state.focusDistance = -viewPosition.z;
   });
   if (!loaded) return null;
   return (

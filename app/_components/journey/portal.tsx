@@ -500,7 +500,10 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               </nav>
             </div>
           </header>
-          <section className={styles.caption} aria-live="polite">
+          <section
+            className={`${styles.caption} ${chapter === -2 ? styles.endCaption : ""}`}
+            aria-live="polite"
+          >
             <span className={styles.year}>
               {chapter >= 0
                 ? chapters[chapter].year
