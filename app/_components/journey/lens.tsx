@@ -40,6 +40,16 @@ const fragment = `
       sum+=sampleColor.rgb*weight;total+=weight;
     }
     vec3 color=sum/total;
+    // Only HDR emission blooms; the DOM-screen opening keeps its exact alpha.
+    vec3 bloom=vec3(0.);
+    for(int j=0;j<12;j++){
+      float a=float(j)*2.39996323;
+      vec2 offset=vec2(cos(a),sin(a))*(2.+float(j)*.65)/uResolution;
+      vec4 glow=texture2D(tColor,vUv+offset);
+      bloom+=max(glow.rgb-vec3(1.7),vec3(0.))*glow.a;
+    }
+    color+=bloom*.055*original.a;
+
     vec2 centered=(vUv-.5)*vec2(1.,.8);
     color*=1.-dot(centered,centered)*.28*uStrength;
     color+=(hash(gl_FragCoord.xy+floor(uTime*24.))-.5)*.008*uStrength;
@@ -67,7 +77,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
         uPreviousVP: { value: new THREE.Matrix4() },
         uResolution: { value: new THREE.Vector2() },
         uNear: { value: 0.04 },
-        uFar: { value: 60 },
+        uFar: { value: 120 },
         uFocus: { value: 8 },
         uTime: { value: 0 },
         uMotion: { value: 0 },
@@ -139,7 +149,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
       Math.min(delta, 0.05),
     );
     uniforms.uTime.value = clock.elapsedTime;
-    uniforms.uStrength.value = (1 - state.entry) * (size.width < 600 ? 0.6 : 1);
+    uniforms.uStrength.value = size.width < 600 ? 0.6 : 1;
     // Normalize shutter time against frame rate and remove temporal effects for reduced motion.
     uniforms.uMotion.value = state.reducedMotion
       ? 0

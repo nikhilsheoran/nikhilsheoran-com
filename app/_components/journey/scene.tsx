@@ -19,7 +19,7 @@ import {
   screenFillDistance,
   smoothStep,
 } from "@/lib/journey/path";
-import { Desk, Laptop } from "./objects";
+import { Apartment, Desk, Laptop } from "./objects";
 import { Cloth } from "./cloth";
 import { Lens } from "./lens";
 import { ScreenProjection } from "./screen";
@@ -217,18 +217,18 @@ function Atmosphere() {
 function World(props: SceneProps) {
   return (
     <>
-      <color attach="background" args={["#626f68"]} />
-      <fog attach="fog" args={["#626f68", 9, 26]} />
+      <color attach="background" args={["#c9c9c2"]} />
+      <fog attach="fog" args={["#c9c9c2", 45, 95]} />
       <Environment
         files="/journey/studio_small_09_1k.hdr"
-        environmentIntensity={0.75}
+        environmentIntensity={0.9}
       />
-      <ambientLight intensity={0.2} />
-      <hemisphereLight args={["#e6eee8", "#394d40", 0.65]} />
+      <ambientLight intensity={0.3} />
+      <hemisphereLight args={["#fff5e7", "#b6a791", 0.8]} />
       <directionalLight
-        position={[-3, 7, -4]}
-        intensity={2.8}
-        color="#f1f4ef"
+        position={[-3, 7, 7.5]}
+        intensity={1.7}
+        color="#fff5e8"
         castShadow
         shadow-mapSize={[4096, 4096]}
         shadow-camera-left={-4}
@@ -239,7 +239,8 @@ function World(props: SceneProps) {
         shadow-bias={-0.00015}
         shadow-radius={3}
       />
-      <directionalLight position={[3, 5, 4]} intensity={0.8} color="#bcd4cc" />
+      <directionalLight position={[1, 4, -4]} intensity={0.9} color="#eef3ff" />
+      <Apartment />
       <Desk />
       <Laptop onEnter={() => props.onEnter()} runtimeRef={props.runtimeRef} />
       {chapters.map((item, index) => (
@@ -251,14 +252,6 @@ function World(props: SceneProps) {
         />
       ))}
       <Atmosphere />
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, -0.025, 0]}
-        receiveShadow
-      >
-        <circleGeometry args={[30, 96]} />
-        <meshStandardMaterial color="#59675e" roughness={1} />
-      </mesh>
       <CameraRig {...props} />
       <ScreenProjection {...props} />
       <Lens runtimeRef={props.runtimeRef} />
@@ -270,7 +263,7 @@ export function JourneyScene(props: SceneProps) {
   return (
     <Canvas
       frameloop="always"
-      camera={{ position: [-5.9, 2.65, -5.8], fov: 40, near: 0.04, far: 60 }}
+      camera={{ position: [-5.9, 2.65, -5.8], fov: 40, near: 0.04, far: 120 }}
       dpr={[1, 2]}
       shadows={{ type: THREE.PCFSoftShadowMap }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}

@@ -158,3 +158,13 @@ The existing web figure remains provisional. Finishing a likeness requires front
 left/right profile, three-quarter, full-body and seated references, height, hair
 and clothing choices. Stock scan licenses must explicitly support delivery of
 extractable web 3D assets; permission to render images alone is insufficient.
+
+## Daylight loft pass — 2026-09-20
+
+The live Blender MCP source is `assets/blender/nikhil-nyc-studio.blend`. New static exports add the apartment and seated reference figure. The window view combines an AI-generated panorama and nearby modeled buildings for parallax. This remains a stylized real-time set; it is not a finished photoreal architectural render.
+
+Laptop hover now provides a material highlight and paper tooltip; entry requires a click. The iframe glare no longer changes with interaction state. Screen and scene exposure stay stable across the handoff. The logo emits above the HDR bloom threshold; the daylight fill exposes the aluminum bezel. Three paper-textured profile strips contain the name, description, and X/Instagram/LinkedIn links.
+
+Panels peel away and fade between 76.5% and 85%, before the camera overtakes them. Their projected size remains bounded and now damps toward that bound. Existing path tests cover maximum visibility, projected bounds, screen framing and continuity.
+
+The human uses Blender Studio's anatomical base, normalized to 181 cm before posing, with local photo landmarks and a facial UV crop. Hair, neck/face integration, sleeve edges and garment topology still need specialist sculpting/retopology and visual likeness review. This is not scan-level identity or body-composition accuracy. Raw references are ignored by git and were not uploaded to an external generator. `scripts/build-seated-likeness.py` expects the local `FACE` landmark dictionary and local normalized reference image; `scripts/refine-seated-likeness.py` is the subsequent face/shoe refinement.

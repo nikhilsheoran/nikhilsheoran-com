@@ -80,7 +80,7 @@ const fragmentShader = `
     color *= .69 + diffuse*.36 + weave*.014;
     color += grazing*.05 + vFold*.025;
     float fog = smoothstep(6.,17.,-vView.z);
-    color = mix(color,vec3(.24,.29,.27),fog*.8);
+    color = mix(color,vec3(.63,.63,.59),fog*.8);
     float edge = smoothstep(0.,.004,min(min(vUv.x,1.-vUv.x),min(vUv.y,1.-vUv.y)));
     gl_FragColor = vec4(color,uOpacity*edge);
     #include <tonemapping_fragment>
@@ -184,14 +184,15 @@ export function Cloth({
       Math.sin(index * 1.8) * 0.11,
     );
     viewPosition.copy(group.position).applyMatrix4(camera.matrixWorldInverse);
-    group.scale.setScalar(
-      panelScale(
+    const targetScale = panelScale(
         -viewPosition.z,
         size.width / size.height,
         state.progress,
         (camera as THREE.PerspectiveCamera).fov,
-      ),
-    );
+      );
+    // A damped size change avoids the last page visibly collapsing as it exits.
+    const scale = state.reducedMotion ? targetScale : THREE.MathUtils.damp(group.scale.x, targetScale, 14, Math.min(delta, .05));
+    group.scale.setScalar(Math.min(scale, targetScale * 1.08));
     material.uniforms.uDefocus.value =
       smoothStep(
         (Math.abs(state.progress - chapterProgress(index)) - 0.055) / 0.18,

@@ -53,7 +53,7 @@ export function ScreenProjection({
     element.style.visibility = state.frameReady ? "visible" : "hidden";
     element.style.setProperty(
       "--screen-glare",
-      String(0.45 + (1 - state.entry) * 0.35),
+      String(0.48 + Math.min(0.3, Math.abs(camera.position.x - SCREEN_POSITION[0]) * 0.055)),
     );
     canvas.style.opacity = "1";
   });

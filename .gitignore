@@ -36,3 +36,6 @@ yarn-error.log*
 next-env.d.ts
 # Blender's recoverable local save backups
 /assets/blender/*.blend1
+
+# Private likeness references stay local
+/assets/references/

@@ -71,7 +71,7 @@ export function panelPresence(progress: number, index: number) {
       : chapterProgress(index) + 0.19;
   const arriving = index < 3 ? 1 : smoothStep((progress - start) / 0.065);
   const leaving = 1 - smoothStep((progress - (end - 0.085)) / 0.085);
-  const handoff = 1 - smoothStep((progress - 0.79) / 0.1);
+  const handoff = 1 - smoothStep((progress - 0.765) / 0.085);
   const proximity =
     1 - smoothStep(Math.abs(progress - chapterProgress(index)) / 0.23);
   return arriving * leaving * handoff * (0.2 + proximity * 0.8);
@@ -81,13 +81,13 @@ export function panelPresence(progress: number, index: number) {
 export function ribbonPose(progress: number, chapterAt: number) {
   const offset = chapterAt - progress;
   const readingOffset = offset - 0.023 * Math.tanh(offset / 0.035);
-  const clearScreen = smoothStep((progress - 0.77) / 0.12);
+  const clearScreen = smoothStep((progress - 0.755) / 0.095);
   return {
     angle:
       orbitAngle(progress) +
       readingOffset * 8.8 +
       0.23 * (1 - smoothStep((progress - 0.4) / 0.4)) +
-      clearScreen * 0.35,
+      clearScreen * 0.7,
     centerZ: SCREEN_POSITION[2] * smoothStep(progress),
     height:
       1.05 +
@@ -95,8 +95,8 @@ export function ribbonPose(progress: number, chapterAt: number) {
         Math.exp((2.3 + progress * 1.1 - readingOffset * 9 - 1.05) * 2),
       ) /
         2 +
-      clearScreen * 1.1,
-    radius: 3 - smoothStep(progress) * 1.4,
+      clearScreen * 0.28,
+    radius: 3 - smoothStep(progress) * 1.4 - clearScreen * 0.6,
   };
 }
 

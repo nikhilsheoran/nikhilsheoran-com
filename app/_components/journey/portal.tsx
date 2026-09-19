@@ -13,11 +13,9 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   ArrowUpRightIcon,
-  GithubLogoIcon,
   InstagramLogoIcon,
   LinkedinLogoIcon,
   XLogoIcon,
-  YoutubeLogoIcon,
 } from "@phosphor-icons/react";
 import { DesktopShell } from "@/app/_components/desktop-shell";
 import type { NotesData } from "@/lib/mock-desktop-data";
@@ -461,11 +459,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               <p>I like tech and enjoy playing with videos.</p>
               <nav className={styles.socials} aria-label="Social profiles">
                 {[
-                  [
-                    "YouTube",
-                    "https://youtube.com/@thenikhilsheoran",
-                    YoutubeLogoIcon,
-                  ],
                   ["X", "https://x.com/_nikhilsheoran", XLogoIcon],
                   [
                     "Instagram",
@@ -473,17 +466,12 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
                     InstagramLogoIcon,
                   ],
                   [
-                    "GitHub",
-                    "https://github.com/nikhilsheoran",
-                    GithubLogoIcon,
-                  ],
-                  [
                     "LinkedIn",
                     "https://linkedin.com/in/nikhilsheoran/",
                     LinkedinLogoIcon,
                   ],
                 ].map(([label, href, Icon]) => {
-                  const SocialIcon = Icon as typeof YoutubeLogoIcon;
+                  const SocialIcon = Icon as typeof XLogoIcon;
                   return (
                     <a
                       key={String(label)}
@@ -522,7 +510,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               {chapter >= 0
                 ? chapters[chapter].subtitle
                 : chapter === -2
-                  ? "Hover over the screen to use my Mac. Move outside it to look around."
+                  ? "Click the laptop to use my Mac. Move outside the screen to look around."
                   : "A few years of curiosity, experiments, and things I’ve built."}
             </p>
             {chapter >= 0 && (
