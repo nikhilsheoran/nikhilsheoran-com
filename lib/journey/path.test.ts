@@ -1,7 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { quadMatrix, orbitAngle, ribbonPose } from "./path";
-import { chapterProgress } from "./story";
+import {
+  quadMatrix,
+  orbitAngle,
+  ribbonPose,
+  journeyPose,
+  screenFillDistance,
+  monitorLift,
+} from "./path";
+import { chapterProgress, SCREEN_POSITION, SCREEN_TILT } from "./story";
 
 test("screen projection maps all four corners without stretching the iframe's coordinate space", () => {
   const quads = [
@@ -63,4 +70,46 @@ test("chapters form a vertical helix and rise as scroll advances", () => {
   assert.ok(later.height > earlier.height);
   assert.notEqual(later.angle, earlier.angle);
   assert.ok(orbitAngle(0.84) - orbitAngle(0) > Math.PI * 2);
+});
+
+test("the helix tightens continuously into the precomputed desk pose on wide and narrow viewports", () => {
+  for (const aspect of [390 / 844, 1045 / 770, 16 / 9, 2.4]) {
+    let previous = Infinity;
+    for (let i = 0; i <= 100; i++) {
+      const pose = journeyPose(i / 100, aspect);
+      assert.ok(pose.radius <= previous);
+      previous = pose.radius;
+    }
+    const end = journeyPose(1, aspect);
+    const d = screenFillDistance(aspect, 40) * 1.16;
+    assert.ok(Math.abs(end.position[0]) < 1e-9);
+    assert.ok(
+      Math.abs(
+        end.position[1] -
+          (SCREEN_POSITION[1] -
+            Math.sin(SCREEN_TILT) * d +
+            monitorLift(aspect)),
+      ) < 1e-9,
+    );
+    assert.ok(
+      Math.abs(
+        end.position[2] - (SCREEN_POSITION[2] + Math.cos(SCREEN_TILT) * d),
+      ) < 1e-9,
+    );
+    assert.deepEqual(end.target, SCREEN_POSITION);
+    const almost = journeyPose(0.9999, aspect);
+    assert.ok(
+      Math.hypot(...end.position.map((v, i) => v - almost.position[i])) <
+        0.00001,
+    );
+  }
+});
+
+test("focused display fits with a 12% hover-out margin on each limiting edge", () => {
+  for (const aspect of [390 / 844, 1045 / 770, 16 / 9, 2.4]) {
+    const d = screenFillDistance(aspect, 40);
+    const height = 2 * d * Math.tan((20 * Math.PI) / 180);
+    const fraction = Math.max(0.679 / height, 1.085 / (height * aspect));
+    assert.ok(Math.abs(fraction - 0.76) < 1e-9);
+  }
 });

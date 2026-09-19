@@ -3,6 +3,9 @@
 /* eslint-disable react-hooks/immutability -- Uniforms and Three objects are intentionally mutable outside React rendering. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
+import { Html } from "@react-three/drei";
+import { ArrowUpRightIcon, PlayIcon, XLogoIcon } from "@phosphor-icons/react";
+import styles from "./journey.module.css";
 import * as THREE from "three";
 import { chapterProgress, type Chapter } from "@/lib/journey/story";
 import { ribbonPose, smoothStep } from "@/lib/journey/path";
@@ -10,7 +13,8 @@ import { createPageTexture } from "./textures";
 import type { SceneProps } from "./portal";
 
 const vertexShader = `
-  uniform float uTime, uHover, uVelocity;
+  uniform float uTime, uHover, uVelocity, uRippleTime;
+  uniform vec2 uPointer;
   varying vec2 vUv;
   varying vec3 vView;
   varying float vFold;
@@ -28,6 +32,9 @@ const vertexShader = `
     p.z += sin(x*3.14159) * uVelocity * .17;
     p.y += sin(x*5.2-uTime*.7)*.06*freeEdge;
     p.x += sin(y*3.14159)*.06*sin(uTime*.45+x*2.);
+    float d = length((uv-uPointer)*vec2(1.55,1.));
+    float wave = sin(d*38.-uRippleTime*10.) * exp(-pow((d-uRippleTime*.72)*5.,2.));
+    p.z += wave * .025 * uHover;
     vFold = billow;
     vec4 view = modelViewMatrix * vec4(p,1.);
     vView = view.xyz;
@@ -36,17 +43,22 @@ const vertexShader = `
 `;
 const fragmentShader = `
   uniform sampler2D uMap;
-  uniform float uHover, uOpacity;
+  uniform float uHover, uOpacity, uRippleTime;
   uniform vec2 uPointer;
   varying vec2 vUv;
   varying vec3 vView;
   varying float vFold;
   void main() {
     vec2 coord = gl_FrontFacing ? vUv : vec2(1.-vUv.x,vUv.y);
-    vec3 ink = texture2D(uMap, coord).rgb;
+    vec2 delta = (vUv-uPointer)*vec2(1.55,1.);
+    float d = length(delta);
+    float front = uRippleTime*.95;
+    float envelope = exp(-pow((d-front)*5.,2.));
+    float rings = sin(d*42.-uRippleTime*13.)*envelope;
+    vec2 refraction = normalize(delta+vec2(.0001)) * rings * .005 * uHover;
+    vec3 ink = texture2D(uMap, clamp(coord+refraction, .002, .998)).rgb;
     float gray = dot(ink,vec3(.2126,.7152,.0722));
-    float reveal = 1.-smoothstep(uHover*1.65-.16,uHover*1.65+.08,distance(vUv,uPointer));
-    reveal *= smoothstep(0.,.1,uHover);
+    float reveal = (1.-smoothstep(front-.16,front+.1,d+rings*.035))*uHover;
     vec3 color = mix(vec3(gray),ink,reveal);
     vec3 n = normalize(cross(dFdx(vView),dFdy(vView)));
     if(!gl_FrontFacing) n=-n;
@@ -55,7 +67,7 @@ const fragmentShader = `
     float grazing = pow(1.-abs(dot(n,normalize(-vView))),3.);
     float weave = sin(vUv.x*1900.)*sin(vUv.y*1300.);
     color *= .69 + diffuse*.36 + weave*.014;
-    color += grazing*.05 + vFold*.025;
+    color += grazing*.05 + vFold*.025 + rings*.035*uHover;
     float fog = smoothstep(6.,17.,-vView.z);
     color = mix(color,vec3(.24,.29,.27),fog*.8);
     float edge = smoothstep(0.,.004,min(min(vUv.x,1.-vUv.x),min(vUv.y,1.-vUv.y)));
@@ -78,11 +90,8 @@ export function Cloth({
   item,
   index,
   runtimeRef,
-  onEnter,
-}: { item: Chapter; index: number } & Pick<
-  SceneProps,
-  "runtimeRef" | "onEnter"
->) {
+}: { item: Chapter; index: number } & Pick<SceneProps, "runtimeRef">) {
+  const [hovered, setHovered] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const groupRef = useRef<THREE.Group>(null);
   const hoveredRef = useRef(false);
@@ -98,6 +107,7 @@ export function Cloth({
           uMap: { value: null },
           uTime: { value: 0 },
           uHover: { value: 0 },
+          uRippleTime: { value: 0 },
           uVelocity: { value: 0 },
           uOpacity: { value: 0 },
           uPointer: { value: new THREE.Vector2(0.5, 0.5) },
@@ -121,7 +131,13 @@ export function Cloth({
       texture?.dispose();
     };
   }, [item, index, material]);
-  useEffect(() => () => material.dispose(), [material]);
+  useEffect(
+    () => () => {
+      material.dispose();
+      document.body.style.cursor = "";
+    },
+    [material],
+  );
   useFrame(({ clock, size }, delta) => {
     const state = runtimeRef.current;
     const pose = ribbonPose(state.progress, chapterProgress(index));
@@ -133,6 +149,11 @@ export function Cloth({
     material.uniforms.uOpacity.value = opening * ending * entryFade;
     group.visible =
       material.uniforms.uOpacity.value > 0.015 && pose.height > -0.4;
+    if (!group.visible && hoveredRef.current) {
+      hoveredRef.current = false;
+      setHovered(false);
+      document.body.style.cursor = "";
+    }
     const t = state.reducedMotion ? index * 2 : clock.elapsedTime;
     const angle = pose.angle - (size.width / size.height < 0.8 ? 0.23 : 0);
     group.position.set(
@@ -145,8 +166,15 @@ export function Cloth({
       angle,
       Math.sin(index * 1.8) * 0.11,
     );
-    group.scale.setScalar(size.width / size.height < 0.8 ? 0.8 : 1);
+    group.scale.setScalar(
+      (size.width / size.height < 0.8 ? 0.8 : 1) *
+        (1 - smoothStep(state.progress) * 0.28),
+    );
     material.uniforms.uTime.value = t + index * 3.1;
+    if (hoveredRef.current)
+      material.uniforms.uRippleTime.value = state.reducedMotion
+        ? 3
+        : material.uniforms.uRippleTime.value + Math.min(delta, 0.05);
     material.uniforms.uVelocity.value = THREE.MathUtils.damp(
       material.uniforms.uVelocity.value,
       state.velocity,
@@ -175,20 +203,51 @@ export function Cloth({
         onPointerOver={(e) => {
           e.stopPropagation();
           hoveredRef.current = true;
-        }}
-        onPointerMove={(e) => {
+          setHovered(true);
+          document.body.style.cursor = "pointer";
+          material.uniforms.uRippleTime.value = 0;
           if (e.uv) material.uniforms.uPointer.value.copy(e.uv);
         }}
         onPointerOut={() => {
           hoveredRef.current = false;
+          setHovered(false);
+          document.body.style.cursor = "";
         }}
         onClick={(e) => {
           e.stopPropagation();
-          onEnter(item.note);
+          window.open(item.url, "_blank", "noopener,noreferrer");
         }}
       >
         <planeGeometry args={[2.8, 1.8, 72, 46]} />
       </mesh>
+      {hovered && (
+        <>
+          <Html
+            center
+            position={[0, 0, 0.25]}
+            zIndexRange={[4, 3]}
+            style={{ pointerEvents: "none" }}
+          >
+            <span className={styles.clothAction} aria-hidden="true">
+              {item.kind === "youtube" ? (
+                <PlayIcon weight="fill" size={25} />
+              ) : (
+                <XLogoIcon size={25} />
+              )}
+            </span>
+          </Html>
+          <Html
+            center
+            position={[1.13, 0.66, 0.25]}
+            zIndexRange={[4, 3]}
+            style={{ pointerEvents: "none" }}
+          >
+            <span className={styles.clothArrow} aria-hidden="true">
+              <ArrowUpRightIcon size={22} />
+            </span>
+          </Html>
+        </>
+      )}
     </group>
   );
 }

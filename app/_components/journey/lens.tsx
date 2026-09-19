@@ -56,6 +56,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
     const target = new THREE.WebGLRenderTarget(1, 1, {
       type: THREE.HalfFloatType,
       depthBuffer: true,
+      samples: 2,
     });
     target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
     const material = new THREE.ShaderMaterial({
@@ -93,7 +94,12 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
     };
   }, []);
   useEffect(() => {
-    const dpr = Math.min(gl.getPixelRatio(), 1);
+    const dpr = Math.min(
+      gl.getPixelRatio(),
+      2,
+      3840 / size.width,
+      2160 / size.height,
+    );
     pipeline.target.setSize(
       Math.round(size.width * dpr),
       Math.round(size.height * dpr),

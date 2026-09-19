@@ -2,6 +2,8 @@
 
 /* eslint-disable react-hooks/immutability -- The animation loop updates mutable Three.js scene objects. */
 import { Suspense, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
+import { Environment } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -9,10 +11,10 @@ import {
   chapterProgress,
   SCREEN_POSITION,
   SCREEN_TILT,
-  STORY_END,
 } from "@/lib/journey/story";
 import {
-  orbitAngle,
+  journeyPose,
+  monitorLift,
   ribbonPose,
   screenFillDistance,
   smoothStep,
@@ -25,7 +27,6 @@ import type { SceneProps } from "./portal";
 
 function CameraRig({
   runtimeRef,
-  onEnter,
   onArrive,
   onProgress,
   onReady,
@@ -59,12 +60,15 @@ function CameraRig({
   }, [onReady]);
   useFrame(({ clock }, rawDelta) => {
     const state = runtimeRef.current;
-    if (state.desktop) return;
+
     const delta = Math.min(rawDelta, 0.05);
     const before = state.progress;
-    state.progress = state.reducedMotion
-      ? state.target
-      : THREE.MathUtils.damp(state.progress, state.target, 4.2, delta);
+    state.progress =
+      state.entering || state.returning || state.desktop
+        ? state.progress
+        : state.reducedMotion
+          ? state.target
+          : THREE.MathUtils.damp(state.progress, state.target, 4.2, delta);
     state.velocity = state.reducedMotion
       ? 0
       : THREE.MathUtils.damp(
@@ -73,54 +77,35 @@ function CameraRig({
           5,
           delta,
         );
-    const p = Math.min(state.progress / STORY_END, 1);
-    const approach = smoothStep((state.progress - STORY_END) / (1 - STORY_END));
-    const narrow = size.width / size.height < 0.8;
-    const angle = orbitAngle(state.progress);
-    const radius = (narrow ? 14.5 : 8.6) - p * (narrow ? 1.5 : 1.6);
-    const height = 2.65 + p * 2.65;
+    const aspect = size.width / size.height;
+    const pose = journeyPose(
+      state.progress,
+      aspect,
+      (camera as THREE.PerspectiveCamera).fov,
+    );
+    scratch.position.fromArray(pose.position);
+    scratch.target.fromArray(pose.target);
     parallaxRef.current.lerp(
       state.reducedMotion ? new THREE.Vector2() : pointer,
       1 - Math.exp(-3 * delta),
     );
-    const offset = state.entering || state.returning ? 0 : 1;
-    scratch.position.set(
-      Math.sin(angle) * radius,
-      height,
-      Math.cos(angle) * radius,
-    );
-    scratch.position.x +=
-      Math.cos(angle) * parallaxRef.current.x * 0.22 * offset;
-    scratch.position.z -=
-      Math.sin(angle) * parallaxRef.current.x * 0.22 * offset;
-    scratch.position.y += parallaxRef.current.y * 0.12 * offset;
-    scratch.target.set(
-      narrow ? 0 : Math.cos(angle) * -0.3,
-      1.3 + p * 1.3,
-      narrow ? 0 : -Math.sin(angle) * -0.3,
-    );
-    // The final section of the helix bends toward the front of the display.
-    scratch.end
-      .copy(scratch.screen)
-      .addScaledVector(scratch.normal, narrow ? 3.8 : 2.5);
-    scratch.end.y += 0.62;
-    scratch.position.lerp(scratch.end, approach);
-    scratch.target.lerp(scratch.screen, approach);
+    const offset =
+      (1 - smoothStep(state.progress)) *
+      (state.entering || state.returning || state.desktop ? 0 : 1);
+    scratch.position.x += parallaxRef.current.x * 0.15 * offset;
+    scratch.position.y += parallaxRef.current.y * 0.08 * offset;
     if (state.entering && !wasEnteringRef.current) {
       fromRef.current.copy(camera.position);
       fromTargetRef.current.copy(targetRef.current);
     }
-    if (state.returning) {
-      fromRef.current.copy(scratch.position);
-      fromTargetRef.current.copy(scratch.target);
-    }
-    if (state.entering || state.returning) {
+
+    if (state.entering || state.returning || state.desktop) {
       state.entry = state.reducedMotion
         ? state.returning
           ? 0
           : 1
         : THREE.MathUtils.clamp(
-            state.entry + ((state.returning ? -1 : 1) * delta) / 2.15,
+            state.entry + ((state.returning ? -1 : 1) * delta) / 1.65,
             0,
             1,
           );
@@ -134,9 +119,12 @@ function CameraRig({
             (camera as THREE.PerspectiveCamera).fov,
           ),
         );
+      scratch.end.y += monitorLift(aspect);
       // A curved approach clears the seated figure instead of cutting through its head.
       scratch.control.copy(fromRef.current).lerp(scratch.end, 0.55);
-      scratch.control.y = Math.max(fromRef.current.y, 3.7);
+      scratch.control.y =
+        Math.max(fromRef.current.y, scratch.end.y) +
+        (state.progress < 0.85 ? 0.7 : 0.025);
       camera.position
         .copy(fromRef.current)
         .multiplyScalar((1 - t) ** 2)
@@ -175,13 +163,14 @@ function CameraRig({
           : best,
       0,
     );
-    const pose = ribbonPose(state.progress, chapterProgress(closest));
+    const clothPose = ribbonPose(state.progress, chapterProgress(closest));
     scratch.focus.set(
-      Math.sin(pose.angle) * pose.radius,
-      pose.height,
-      Math.cos(pose.angle) * pose.radius,
+      Math.sin(clothPose.angle) * clothPose.radius,
+      clothPose.height,
+      Math.cos(clothPose.angle) * clothPose.radius,
     );
-    const clothFocus = state.progress > 0.055 && state.progress < 0.82;
+    const clothFocus =
+      state.entry < 0.2 && state.progress > 0.055 && state.progress < 0.78;
     state.focusDistance = camera.position.distanceTo(
       clothFocus ? scratch.focus : targetRef.current,
     );
@@ -190,13 +179,6 @@ function CameraRig({
       onProgress(state.progress);
       lastReportRef.current = clock.elapsedTime;
     }
-    if (
-      state.progress > 0.991 &&
-      !state.entering &&
-      !state.returning &&
-      !state.desktop
-    )
-      onEnter();
   }, -2);
   return null;
 }
@@ -235,14 +217,18 @@ function World(props: SceneProps) {
     <>
       <color attach="background" args={["#626f68"]} />
       <fog attach="fog" args={["#626f68", 9, 26]} />
-      <ambientLight intensity={0.8} />
-      <hemisphereLight args={["#e6eee8", "#394d40", 1.8]} />
+      <Environment
+        files="/journey/studio_small_09_1k.hdr"
+        environmentIntensity={0.75}
+      />
+      <ambientLight intensity={0.2} />
+      <hemisphereLight args={["#e6eee8", "#394d40", 0.65]} />
       <directionalLight
         position={[-3, 7, -4]}
-        intensity={4.5}
+        intensity={2.8}
         color="#f1f4ef"
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[4096, 4096]}
         shadow-camera-left={-4}
         shadow-camera-right={4}
         shadow-camera-top={4}
@@ -251,7 +237,7 @@ function World(props: SceneProps) {
         shadow-bias={-0.00015}
         shadow-radius={3}
       />
-      <directionalLight position={[3, 5, 4]} intensity={2.2} color="#bcd4cc" />
+      <directionalLight position={[3, 5, 4]} intensity={0.8} color="#bcd4cc" />
       <Desk />
       <Laptop onEnter={() => props.onEnter()} runtimeRef={props.runtimeRef} />
       {chapters.map((item, index) => (
@@ -260,7 +246,6 @@ function World(props: SceneProps) {
           item={item}
           index={index}
           runtimeRef={props.runtimeRef}
-          onEnter={props.onEnter}
         />
       ))}
       <Atmosphere />
@@ -282,12 +267,12 @@ function World(props: SceneProps) {
 export function JourneyScene(props: SceneProps) {
   return (
     <Canvas
-      frameloop={props.paused ? "never" : "always"}
+      frameloop="always"
       camera={{ position: [-5.9, 2.65, -5.8], fov: 40, near: 0.04, far: 60 }}
-      dpr={[1, 1.5]}
-      shadows={{ type: THREE.PCFShadowMap }}
+      dpr={[1, 2]}
+      shadows={{ type: THREE.PCFSoftShadowMap }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-      fallback={<div>Use Enter my Mac to open the desktop.</div>}
+      fallback={<Link href="/notes/about-me">Open the accessible website</Link>}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.05;

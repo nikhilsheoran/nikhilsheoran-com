@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.10.13",
+    "@phosphor-icons/react": "^2.1.10",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "better-auth": "1.4.9",

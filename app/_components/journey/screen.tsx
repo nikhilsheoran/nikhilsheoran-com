@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { SCREEN_POSITION, SCREEN_TILT } from "@/lib/journey/story";
-import { quadMatrix, smoothStep } from "@/lib/journey/path";
+import { quadMatrix } from "@/lib/journey/path";
 import type { SceneProps } from "./portal";
 
 /** A persistent DOM iframe is projected onto the same four corners as the WebGL screen. */
@@ -35,29 +35,22 @@ export function ScreenProjection({
       state = runtimeRef.current;
     if (!element || !canvas) return;
     camera.updateMatrixWorld();
-    const blend = smoothStep((state.entry - 0.82) / 0.18);
-    const targets = [
-      [0, 0],
-      [size.width, 0],
-      [size.width, size.height],
-      [0, size.height],
-    ];
     const points = corners.map((corner, i): [number, number] => {
       projected[i].copy(corner).project(camera);
       const x = ((projected[i].x + 1) * size.width) / 2,
         y = ((1 - projected[i].y) * size.height) / 2;
-      return [
-        THREE.MathUtils.lerp(x, targets[i][0], blend),
-        THREE.MathUtils.lerp(y, targets[i][1], blend),
-      ];
+      return [x, y];
     });
-    element.style.width = `${size.width}px`;
-    element.style.height = `${size.height}px`;
-    element.style.transform = `matrix3d(${quadMatrix(points, size.width, size.height).join(",")})`;
-    // Once the screen expands beyond the physical bezel, bring it above the scene.
-    element.style.zIndex = blend > 0 ? "4" : "1";
+    element.style.width = "1440px";
+    element.style.height = "900px";
+    element.style.transform = `matrix3d(${quadMatrix(points, 1440, 900).join(",")})`;
+    element.style.zIndex = "1";
     element.style.visibility = state.frameReady ? "visible" : "hidden";
-    canvas.style.opacity = String(1 - blend);
+    element.style.setProperty(
+      "--screen-glare",
+      String(0.45 + (1 - state.entry) * 0.35),
+    );
+    canvas.style.opacity = "1";
   });
   return null;
 }

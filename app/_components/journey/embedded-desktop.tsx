@@ -29,6 +29,15 @@ export function EmbeddedDesktop({ notesData }: { notesData: NotesData }) {
           window.location.origin,
         );
     };
+    const send = (type: string, active?: boolean) =>
+      window.parent.postMessage({ type, active }, window.location.origin);
+    const down = () => send("journey:drag", true);
+    const up = () => send("journey:drag", false);
+    const inside = () => send("journey:inside");
+    window.addEventListener("pointerdown", down, true);
+    window.addEventListener("pointerup", up, true);
+    window.addEventListener("pointercancel", up, true);
+    document.documentElement.addEventListener("pointerenter", inside);
     window.addEventListener("message", receive);
     window.addEventListener("keydown", key);
     window.parent.postMessage(
@@ -36,6 +45,10 @@ export function EmbeddedDesktop({ notesData }: { notesData: NotesData }) {
       window.location.origin,
     );
     return () => {
+      window.removeEventListener("pointerdown", down, true);
+      window.removeEventListener("pointerup", up, true);
+      window.removeEventListener("pointercancel", up, true);
+      document.documentElement.removeEventListener("pointerenter", inside);
       window.removeEventListener("message", receive);
       window.removeEventListener("keydown", key);
     };

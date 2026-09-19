@@ -11,6 +11,14 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import {
+  ArrowUpRightIcon,
+  GithubLogoIcon,
+  InstagramLogoIcon,
+  LinkedinLogoIcon,
+  XLogoIcon,
+  YoutubeLogoIcon,
+} from "@phosphor-icons/react";
 import { DesktopShell } from "@/app/_components/desktop-shell";
 import type { NotesData } from "@/lib/mock-desktop-data";
 import { activeChapter, chapters, chapterProgress } from "@/lib/journey/story";
@@ -57,7 +65,7 @@ class SceneBoundary extends Component<
       <div className={styles.fallback}>
         <h2>The desktop is still open.</h2>
         <p>This browser couldn’t render the scene.</p>
-        <button onClick={this.props.onSkip}>Enter my Mac</button>
+        <button onClick={this.props.onSkip}>Open the website</button>
       </div>
     ) : (
       this.props.children
@@ -78,7 +86,9 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const screenRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const rangeRef = useRef<HTMLInputElement>(null);
-  const entryButtonRef = useRef<HTMLButtonElement>(null);
+  const draggingRef = useRef(false);
+  const outsideRef = useRef(false);
+  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastChapterRef = useRef(-1);
   const pendingNoteRef = useRef<string | null>(null);
   const runtimeRef = useRef<JourneyRuntime>({
@@ -111,6 +121,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     const state = runtimeRef.current;
     state.entering = false;
     state.returning = false;
+    outsideRef.current = false;
     state.desktop = true;
     state.entry = 1;
     setFallback(!state.frameReady);
@@ -142,14 +153,13 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     runtimeRef.current.entry = 0;
     runtimeRef.current.returning = false;
     setMode("orbit");
-    entryButtonRef.current?.focus();
+    rangeRef.current?.focus({ preventScroll: true });
   }, []);
   const returnToScene = useCallback(() => {
     const state = runtimeRef.current;
     state.desktop = false;
     state.entering = false;
-    state.target = Math.min(state.target, 0.82);
-    state.progress = Math.min(state.progress, 0.82);
+
     state.returning = true;
     setFallback(false);
     setMode("returning");
@@ -170,6 +180,19 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             window.location.origin,
           );
       }
+      if (event.data?.type === "journey:drag") {
+        draggingRef.current = event.data.active === true;
+        if (
+          !draggingRef.current &&
+          outsideRef.current &&
+          runtimeRef.current.desktop
+        )
+          returnToScene();
+      }
+      if (event.data?.type === "journey:inside") {
+        outsideRef.current = false;
+        if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+      }
       if (event.data?.type === "journey:return" && runtimeRef.current.desktop)
         returnToScene();
     };
@@ -177,8 +200,27 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     return () => window.removeEventListener("message", receive);
   }, [returnToScene]);
   useEffect(() => {
-    if (desktop) document.getElementById("back-to-journey")?.focus();
+    if (desktop) iframeRef.current?.focus();
   }, [desktop]);
+  const leaveScreen = useCallback(() => {
+    if (outsideRef.current && leaveTimerRef.current) return;
+    outsideRef.current = true;
+    leaveTimerRef.current = setTimeout(() => {
+      leaveTimerRef.current = null;
+      if (
+        runtimeRef.current.desktop &&
+        !draggingRef.current &&
+        outsideRef.current
+      )
+        returnToScene();
+    }, 180);
+  }, [returnToScene]);
+  useEffect(
+    () => () => {
+      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+    },
+    [],
+  );
   useEffect(() => {
     const node = surfaceRef.current;
     if (!node || desktop) return;
@@ -269,12 +311,27 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         className={`portfolio-journey ${styles.journey} ${desktop ? styles.inMac : ""}`}
         data-testid="journey"
         data-mode={mode}
+        onPointerMove={(event) => {
+          if (!runtimeRef.current.desktop || event.pointerType === "touch")
+            return;
+          draggingRef.current = event.buttons !== 0;
+          if (!(event.target as Element).closest("iframe")) leaveScreen();
+        }}
+        onPointerUp={() => {
+          draggingRef.current = false;
+          if (outsideRef.current && runtimeRef.current.desktop) leaveScreen();
+        }}
       >
         <div
           ref={screenRef}
           className={styles.liveScreen}
           inert={!desktop}
           aria-hidden={!desktop}
+          onPointerEnter={() => {
+            outsideRef.current = false;
+            if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+          }}
+          onPointerLeave={leaveScreen}
         >
           <iframe
             ref={iframeRef}
@@ -290,7 +347,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               runtimeRef={runtimeRef}
               screenRef={screenRef}
               canvasRef={canvasRef}
-              paused={desktop}
+              paused={false}
               onEnter={enter}
               onArrive={arrive}
               onReturnComplete={returned}
@@ -305,16 +362,51 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           aria-hidden={transitioning || desktop}
         >
           <header className={styles.header}>
-            <Link className={styles.wordmark} href="/">
-              Nikhil Sheoran<span>A life in the making.</span>
-            </Link>
-            <button
-              ref={entryButtonRef}
-              className={styles.desktopButton}
-              onClick={() => enter()}
-            >
-              Enter my Mac <span aria-hidden="true">↗</span>
-            </button>
+            <div className={styles.profile}>
+              <Link className={styles.wordmark} href="/">
+                Nikhil Sheoran
+              </Link>
+              <p>I like tech and enjoy playing with videos.</p>
+              <nav className={styles.socials} aria-label="Social profiles">
+                {[
+                  [
+                    "YouTube",
+                    "https://youtube.com/@thenikhilsheoran",
+                    YoutubeLogoIcon,
+                  ],
+                  ["X", "https://x.com/_nikhilsheoran", XLogoIcon],
+                  [
+                    "Instagram",
+                    "https://instagram.com/thenikhilsheoran/",
+                    InstagramLogoIcon,
+                  ],
+                  [
+                    "GitHub",
+                    "https://github.com/nikhilsheoran",
+                    GithubLogoIcon,
+                  ],
+                  [
+                    "LinkedIn",
+                    "https://linkedin.com/in/nikhilsheoran/",
+                    LinkedinLogoIcon,
+                  ],
+                ].map(([label, href, Icon]) => {
+                  const SocialIcon = Icon as typeof YoutubeLogoIcon;
+                  return (
+                    <a
+                      key={String(label)}
+                      href={String(href)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${label} (opens in a new tab)`}
+                      title={String(label)}
+                    >
+                      <SocialIcon size={19} />
+                    </a>
+                  );
+                })}
+              </nav>
+            </div>
           </header>
           <section className={styles.caption} aria-live="polite">
             <span className={styles.year}>
@@ -335,18 +427,26 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               {chapter >= 0
                 ? chapters[chapter].subtitle
                 : chapter === -2
-                  ? "Keep going. My notes, projects, and favorite things are all here."
+                  ? "Hover over the screen to use my Mac. Move outside it to look around."
                   : "A few years of curiosity, experiments, and things I’ve built."}
             </p>
             {chapter >= 0 && (
-              <button
+              <a
                 className={styles.readLink}
-                onClick={() => enter(chapters[chapter].note)}
+                href={chapters[chapter].url}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                Read this chapter <span aria-hidden="true">↗</span>
-              </button>
+                {chapters[chapter].kind === "youtube"
+                  ? "Watch on YouTube"
+                  : "Read on X"}
+                <ArrowUpRightIcon size={14} aria-label="Opens in a new tab" />
+              </a>
             )}
           </section>
+          <button className={styles.keyboardScreen} onClick={() => enter()}>
+            Focus the laptop screen
+          </button>
           <footer className={styles.footer}>
             <div className={styles.timeline}>
               <label className={styles.srOnly} htmlFor="journey-progress">
@@ -397,11 +497,11 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             <aside className={styles.help}>
               <p>
                 Scroll or swipe along the spiral. Hover over the fabric to
-                reveal its color. Hover or click the Mac to step inside.
+                reveal its color. Hover or tap the Mac to use its screen.
               </p>
               <p>
-                Use the years or slider to navigate. Press Escape inside the Mac
-                to return. The figure is a placeholder.
+                Use the years or slider to navigate. Move outside the screen or
+                press Escape to pull back. The figure is a placeholder.
               </p>
               {reducedMotion && (
                 <p>
@@ -426,7 +526,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             className={styles.returnButton}
             onClick={returnToScene}
           >
-            ↖ Back to the scene
+            Back to the desk
           </button>
         )}
       </div>

@@ -378,18 +378,122 @@
 .ui.faded * {
   pointer-events: none;
 }
-.inMac .canvasLayer {
-  opacity: 0 !important;
-  pointer-events: none;
-  visibility: hidden;
+.inMac .canvasLayer,
+.inMac .canvasLayer * {
+  pointer-events: none !important;
 }
 .inMac .liveScreen {
-  width: 100% !important;
-  height: 100% !important;
-  transform: none !important;
-  visibility: visible !important;
-  z-index: 8 !important;
   pointer-events: auto;
+}
+.liveScreen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      125deg,
+      #eaf1f733,
+      transparent 38%,
+      #15302313 67%,
+      #090e1424
+    ),
+    repeating-linear-gradient(0deg, #00000005 0 1px, transparent 1px 3px);
+  box-shadow:
+    inset 0 0 22px #0008,
+    inset 0 0 4px #fff4;
+  opacity: var(--screen-glare, 0.7);
+}
+.iframe {
+  filter: saturate(0.88) contrast(0.96) brightness(0.9);
+}
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  color: #fff;
+}
+.profile .wordmark,
+.profile p {
+  background: #080909;
+  padding: 7px 13px;
+  margin: 0;
+  line-height: 1.4;
+}
+.profile .wordmark {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.25px;
+}
+.profile p {
+  font-size: 11px;
+  font-weight: 400;
+}
+.socials {
+  display: flex;
+  gap: 4px;
+}
+.socials a {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 34px;
+  background: #080909;
+  color: #fff;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+.socials a:hover {
+  background: #26372e;
+  transform: translateY(-2px);
+}
+.readLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+}
+.readLink svg {
+  transition: transform 0.2s;
+}
+.readLink:hover svg {
+  transform: translate(2px, -2px);
+}
+.keyboardScreen {
+  position: absolute;
+  left: 40px;
+  top: 170px;
+  opacity: 0;
+  pointer-events: none !important;
+}
+.keyboardScreen:focus-visible {
+  opacity: 1;
+  pointer-events: auto !important;
+  background: #080909;
+  padding: 10px 14px;
+}
+.clothAction {
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 1px solid #ffffffb0;
+  background: #1119;
+  color: white;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 24px #0002;
+}
+.clothArrow {
+  pointer-events: none;
+  color: white;
+  padding: 6px;
+  background: #101a;
+  border-radius: 50%;
+  transform: translate(2px, -2px);
 }
 .wordmark span,
 .year,
@@ -463,5 +567,37 @@
   }
   .caption {
     text-shadow: 0 1px 18px #20352966;
+  }
+}
+.clothAction {
+  animation: clothActionReveal 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.clothArrow {
+  animation: clothArrowReveal 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes clothActionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes clothArrowReveal {
+  from {
+    opacity: 0;
+    transform: translate(-5px, 5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(2px, -2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clothAction,
+  .clothArrow {
+    animation: none;
   }
 }

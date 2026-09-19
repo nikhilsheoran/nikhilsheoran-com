@@ -1,31 +1,64 @@
-import { STORY_END } from "./story";
+import { SCREEN_POSITION, SCREEN_TILT } from "./story";
 
 export function smoothStep(value: number) {
   const t = Math.min(1, Math.max(0, value));
   return t * t * (3 - 2 * t);
 }
 
-export const HELIX_START = -2.35;
-export const HELIX_TURNS = 1.65;
+export const HELIX_TURNS = 1.4;
+export const HELIX_START = -Math.PI * 2 * HELIX_TURNS;
 
-export function orbitAngle(progress: number) {
-  const t = Math.max(0, Math.min(progress / STORY_END, 1));
-  return HELIX_START + t * Math.PI * 2 * HELIX_TURNS;
+// Solve the last pose first. The screen occupies 76% of the limiting viewport
+// dimension, leaving a real bezel and a pointer-accessible border on every device.
+export function screenFillDistance(aspect: number, fovDegrees: number) {
+  const halfFov = Math.tan((fovDegrees * Math.PI) / 360);
+  return Math.max(0.679 / (2 * halfFov), 1.085 / (2 * halfFov * aspect)) / 0.76;
 }
 
-/** A moving helix: earlier chapters rise above us, later chapters arrive from below. */
+export function monitorLift(aspect: number) {
+  return Math.max(0, 0.9 - aspect) * 2.5;
+}
+
+export function orbitAngle(progress: number) {
+  return HELIX_START * (1 - smoothStep(progress));
+}
+
+/** The entire journey converges on the desk pose; no separate final zoom segment. */
+export function journeyPose(progress: number, aspect: number, fov = 40) {
+  const t = smoothStep(progress);
+  const distance = screenFillDistance(aspect, fov);
+  const endRadius = distance * 1.16;
+  const startRadius = aspect < 0.8 ? 13 : 8.6;
+  const radius = endRadius + (startRadius - endRadius) * (1 - t);
+  const angle = orbitAngle(progress);
+  const centerZ = SCREEN_POSITION[2] * t;
+  const endY =
+    SCREEN_POSITION[1] -
+    Math.sin(SCREEN_TILT) * endRadius +
+    monitorLift(aspect);
+  return {
+    radius,
+    position: [
+      Math.sin(angle) * radius,
+      endY + 0.65 * (1 - t) + Math.sin(Math.PI * t) * 2.15,
+      centerZ + Math.cos(angle) * radius * Math.cos(SCREEN_TILT),
+    ] as [number, number, number],
+    target: [0, 1.45 + (SCREEN_POSITION[1] - 1.45) * t, centerZ] as [
+      number,
+      number,
+      number,
+    ],
+  };
+}
+
+/** Earlier chapters rise above the camera; later chapters arrive from below. */
 export function ribbonPose(progress: number, chapterAt: number) {
   const offset = chapterAt - progress;
   return {
     angle: orbitAngle(progress) + offset * 8.8 + 0.23,
-    height: 2.3 + progress * 1.55 - offset * 9,
-    radius: 3,
+    height: 2.3 + progress * 1.1 - offset * 9,
+    radius: 3 - smoothStep(progress) * 1.4,
   };
-}
-
-export function screenFillDistance(aspect: number, fovDegrees: number) {
-  const halfFov = Math.tan((fovDegrees * Math.PI) / 360);
-  return Math.max(0.679 / (2 * halfFov), 1.085 / (2 * halfFov * aspect)) * 1.04;
 }
 
 /** Project a rectangle onto four screen-space corners (TL, TR, BR, BL). */

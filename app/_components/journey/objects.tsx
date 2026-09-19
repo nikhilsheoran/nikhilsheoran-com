@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RoundedBox } from "@react-three/drei";
+import { RoundedBox, useTexture } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { LAPTOP_POSITION, SCREEN_TILT } from "@/lib/journey/story";
@@ -9,9 +9,9 @@ import { createLogoTexture, createScreenTexture } from "./textures";
 import type { SceneProps } from "./portal";
 
 type Vec3 = [number, number, number];
-const skin = "#b8b8b0";
-const clothes = "#858c85";
-const pants = "#535e59";
+const skin = "#b9957b";
+const clothes = "#c8c4b8";
+const pants = "#29322f";
 
 function Joint({
   start,
@@ -49,7 +49,7 @@ function Joint({
 /** Original procedural placeholder: the final commissioned/scanned likeness replaces this group. */
 export function SeatedPerson() {
   return (
-    <group position={[0, 0, 1.03]}>
+    <group position={[0, 0, 1.33]}>
       <RoundedBox
         args={[0.65, 0.36, 0.5]}
         radius={0.15}
@@ -118,12 +118,12 @@ export function SeatedPerson() {
           />
           <Joint
             start={[side * 0.42, 1.39, -0.28]}
-            end={[side * 0.26, 1.63, -0.86]}
+            end={[side * 0.26, 1.63, -1.16]}
             radius={0.08}
             color={skin}
           />
           <mesh
-            position={[side * 0.26, 1.64, -0.89]}
+            position={[side * 0.26, 1.64, -1.19]}
             rotation={[0.3, side * 0.25, 0]}
             scale={[0.073, 0.032, 0.13]}
             castShadow
@@ -159,7 +159,7 @@ export function SeatedPerson() {
 
 function Chair() {
   return (
-    <group position={[0, 0, 1.15]}>
+    <group position={[0, 0, 1.45]}>
       <RoundedBox
         args={[0.8, 0.12, 0.76]}
         radius={0.055}
@@ -206,6 +206,21 @@ function Chair() {
 }
 
 export function Desk() {
+  const wood = useTexture({
+    map: "/journey/diffuse.jpg",
+    normalMap: "/journey/nor_gl.jpg",
+    roughnessMap: "/journey/roughness.jpg",
+  });
+  useEffect(() => {
+    for (const texture of Object.values(wood)) {
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(1.7, 1);
+      texture.anisotropy = 8;
+      texture.needsUpdate = true;
+    }
+    // eslint-disable-next-line react-hooks/immutability -- Configure the loaded Three.js texture before rendering.
+    wood.map.colorSpace = THREE.SRGBColorSpace;
+  }, [wood]);
   return (
     <group>
       <RoundedBox
@@ -215,7 +230,14 @@ export function Desk() {
         castShadow
         receiveShadow
       >
-        <meshStandardMaterial color="#a3a69a" roughness={0.8} />
+        <meshPhysicalMaterial
+          {...wood}
+          color="#bbb2a1"
+          roughness={0.7}
+          normalScale={[0.22, 0.22]}
+          clearcoat={0.18}
+          clearcoatRoughness={0.5}
+        />
       </RoundedBox>
       {[-1.3, 1.3].flatMap((x) =>
         [-0.67, 0.5].map((z) => (
@@ -332,7 +354,7 @@ export function Laptop({
     if (
       !runtimeRef.current.entering &&
       hoverStarted.current !== null &&
-      clock.elapsedTime - hoverStarted.current > 0.85
+      clock.elapsedTime - hoverStarted.current > 0.35
     ) {
       hoverStarted.current = null;
       onEnter();
@@ -360,7 +382,7 @@ export function Laptop({
           ref={glow}
           color="#c4c9ca"
           metalness={0.82}
-          roughness={0.3}
+          roughness={0.24}
           emissive="#93a995"
           emissiveIntensity={0.05}
         />
@@ -401,9 +423,9 @@ export function Laptop({
       <group position={[0, 0.38, -0.395]} rotation={[SCREEN_TILT, 0, 0]}>
         <RoundedBox args={[1.2, 0.79, 0.035]} radius={0.025} castShadow>
           <meshStandardMaterial
-            color="#cbd0d1"
+            color="#d7dadb"
             metalness={0.8}
-            roughness={0.3}
+            roughness={0.24}
           />
         </RoundedBox>
         <mesh position={[0, 0.018, 0.019]}>
