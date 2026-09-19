@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { JourneyPortal } from "@/app/_components/journey/portal";
 import { DesktopShell } from "@/app/_components/desktop-shell";
 import { RouteDocument } from "@/app/_components/route-document";
 import { getAllNotes } from "@/lib/content";
@@ -79,7 +80,11 @@ export default async function DesktopPage({ params }: DesktopPageProps) {
   return (
     <>
       <RouteDocument pathname={initialPathname} />
-      <DesktopShell initialPathname={initialPathname} notesData={notesData} />
+      {initialPathname === "/" ? (
+        <JourneyPortal notesData={notesData} />
+      ) : (
+        <DesktopShell initialPathname={initialPathname} notesData={notesData} />
+      )}
     </>
   );
 }
