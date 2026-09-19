@@ -1,4 +1,10 @@
-import { chapterProgress, SCREEN_POSITION, SCREEN_TILT } from "./story";
+import {
+  chapterProgress,
+  SCREEN_POSITION,
+  SCREEN_TILT,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+} from "./story";
 
 export function smoothStep(value: number) {
   const t = Math.min(1, Math.max(0, value));
@@ -12,7 +18,12 @@ export const HELIX_START = -Math.PI * 2 * HELIX_TURNS;
 // dimension, leaving a real bezel and a pointer-accessible border on every device.
 export function screenFillDistance(aspect: number, fovDegrees: number) {
   const halfFov = Math.tan((fovDegrees * Math.PI) / 360);
-  return Math.max(0.679 / (2 * halfFov), 1.085 / (2 * halfFov * aspect)) / 0.76;
+  return (
+    Math.max(
+      SCREEN_HEIGHT / (2 * halfFov),
+      SCREEN_WIDTH / (2 * halfFov * aspect),
+    ) / 0.76
+  );
 }
 
 export function monitorLift(aspect: number) {

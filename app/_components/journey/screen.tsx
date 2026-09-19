@@ -3,7 +3,12 @@
 import { useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { SCREEN_POSITION, SCREEN_TILT } from "@/lib/journey/story";
+import {
+  SCREEN_POSITION,
+  SCREEN_TILT,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+} from "@/lib/journey/story";
 import { quadMatrix } from "@/lib/journey/path";
 import type { SceneProps } from "./portal";
 
@@ -17,10 +22,10 @@ export function ScreenProjection({
     const rotation = new THREE.Matrix4().makeRotationX(SCREEN_TILT);
     const origin = new THREE.Vector3(...SCREEN_POSITION);
     return [
-      [-0.5425, 0.3395],
-      [0.5425, 0.3395],
-      [0.5425, -0.3395],
-      [-0.5425, -0.3395],
+      [-(SCREEN_WIDTH / 2), SCREEN_HEIGHT / 2],
+      [SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2],
+      [SCREEN_WIDTH / 2, -(SCREEN_HEIGHT / 2)],
+      [-(SCREEN_WIDTH / 2), -(SCREEN_HEIGHT / 2)],
     ].map(([x, y]) =>
       new THREE.Vector3(x, y, 0).applyMatrix4(rotation).add(origin),
     );

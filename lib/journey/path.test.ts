@@ -11,7 +11,13 @@ import {
   panelScale,
   panelPresence,
 } from "./path";
-import { chapterProgress, SCREEN_POSITION, SCREEN_TILT } from "./story";
+import {
+  chapterProgress,
+  SCREEN_POSITION,
+  SCREEN_TILT,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+} from "./story";
 
 test("screen projection maps all four corners without stretching the iframe's coordinate space", () => {
   const quads = [
@@ -112,7 +118,10 @@ test("focused display fits with a 12% hover-out margin on each limiting edge", (
   for (const aspect of [390 / 844, 1045 / 770, 16 / 9, 2.4]) {
     const d = screenFillDistance(aspect, 40);
     const height = 2 * d * Math.tan((20 * Math.PI) / 180);
-    const fraction = Math.max(0.679 / height, 1.085 / (height * aspect));
+    const fraction = Math.max(
+      SCREEN_HEIGHT / height,
+      SCREEN_WIDTH / (height * aspect),
+    );
     assert.ok(Math.abs(fraction - 0.76) < 1e-9);
   }
 });
@@ -189,4 +198,13 @@ test("every chapter has a readable position within the camera frame", () => {
       assert.ok(Math.abs(projected.x) < 0.45 && Math.abs(projected.y) < 0.4);
       assert.ok(projected.z > -1 && projected.z < 1);
     }
+});
+
+// Physical specification independent of camera framing tests.
+test("the display is 13.3 inches at 16:10 in the studio's half-metre units", () => {
+  assert.ok(
+    Math.abs((Math.hypot(SCREEN_WIDTH, SCREEN_HEIGHT) * 0.5) / 0.0254 - 13.3) <
+      1e-6,
+  );
+  assert.ok(Math.abs(SCREEN_WIDTH / SCREEN_HEIGHT - 1.6) < 1e-9);
 });

@@ -1,3 +1,5 @@
+import air from "./air-model.json";
+
 /** Content is adapted from content/notes/about-me.mdx. Artwork is intentionally provisional. */
 export const chapters = [
   {
@@ -75,20 +77,19 @@ export const chapters = [
 export type Chapter = (typeof chapters)[number];
 
 export const STORY_END = 0.81;
-export const LAPTOP_POSITION: [number, number, number] = [0, 1.63, -0.13];
-export const SCREEN_TILT = -0.35;
-// Center of the display plane, including the lid's tilt and local screen offset.
-export const SCREEN_POSITION: [number, number, number] = [
-  0,
-  LAPTOP_POSITION[1] +
-    0.38 +
-    0.018 * Math.cos(SCREEN_TILT) -
-    0.019 * Math.sin(SCREEN_TILT),
-  LAPTOP_POSITION[2] -
-    0.395 +
-    0.018 * Math.sin(SCREEN_TILT) +
-    0.019 * Math.cos(SCREEN_TILT),
+// The whole studio uses two scene units per metre; anchors are exported by Blender.
+export const LAPTOP_POSITION: [number, number, number] = [0, 1.59, -0.13];
+export const SCREEN_TILT = air.screenTilt;
+export const SCREEN_WIDTH = air.screenWidth;
+export const SCREEN_HEIGHT = air.screenHeight;
+export const SCREEN_LOCAL_POSITION = air.screenLocalPosition as [
+  number,
+  number,
+  number,
 ];
+export const SCREEN_POSITION = LAPTOP_POSITION.map(
+  (value, index) => value + SCREEN_LOCAL_POSITION[index],
+) as [number, number, number];
 
 export function chapterProgress(index: number) {
   return 0.13 + (index / (chapters.length - 1)) * 0.61;

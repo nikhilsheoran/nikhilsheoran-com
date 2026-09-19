@@ -4,8 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RoundedBox } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
-import { LAPTOP_POSITION, SCREEN_TILT } from "@/lib/journey/story";
-import { createLogoTexture, createScreenTexture } from "./textures";
+import {
+  LAPTOP_POSITION,
+  SCREEN_TILT,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+  SCREEN_LOCAL_POSITION,
+} from "@/lib/journey/story";
+import { createScreenTexture } from "./textures";
 import { useStaticModel } from "./static-model";
 import type { SceneProps } from "./portal";
 
@@ -174,28 +180,24 @@ export function Laptop({
   runtimeRef,
 }: Pick<SceneProps, "onEnter" | "runtimeRef">) {
   const [screen, setScreen] = useState<THREE.Texture | null>(null);
-  const [logo, setLogo] = useState<THREE.Texture | null>(null);
   const hoverStarted = useRef<number | null>(null);
-  const model = useStaticModel("/journey/macbook-air-2017.glb");
+  const model = useStaticModel("/journey/macbook-air-calibrated.glb");
   const screenMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
   const isTouch = useRef(false);
   useEffect(() => {
     isTouch.current = window.matchMedia("(hover: none)").matches;
     let cancelled = false;
     let screenTexture: THREE.Texture | null = null;
-    const logoTexture = createLogoTexture();
     createScreenTexture().then((texture) => {
       screenTexture = texture;
       if (cancelled) texture.dispose();
       else {
         setScreen(texture);
-        setLogo(logoTexture);
       }
     });
     return () => {
       cancelled = true;
       screenTexture?.dispose();
-      logoTexture.dispose();
     };
   }, []);
   useFrame(({ clock }) => {
@@ -232,9 +234,9 @@ export function Laptop({
         touchRef={isTouch}
       />
       <primitive object={model} />
-      <group position={[0, 0.38, -0.395]} rotation={[SCREEN_TILT, 0, 0]}>
-        <mesh position={[0, 0.018, 0.019]}>
-          <planeGeometry args={[1.085, 0.679]} />
+      <group position={SCREEN_LOCAL_POSITION} rotation={[SCREEN_TILT, 0, 0]}>
+        <mesh>
+          <planeGeometry args={[SCREEN_WIDTH, SCREEN_HEIGHT]} />
           <meshBasicMaterial
             ref={screenMaterialRef}
             key={screen?.uuid ?? "loading"}
@@ -245,17 +247,6 @@ export function Laptop({
             transparent
           />
         </mesh>
-        {logo && (
-          <mesh position={[0, 0.025, -0.021]} rotation={[0, Math.PI, 0]}>
-            <planeGeometry args={[0.2, 0.2]} />
-            <meshBasicMaterial
-              map={logo}
-              transparent
-              toneMapped={false}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        )}
       </group>
     </group>
   );
@@ -275,7 +266,7 @@ function HoverRegion({
   });
   return (
     <mesh
-      position={[0, 0.28, -0.06]}
+      position={[0, 0.2, -0.04]}
       onPointerOver={(event) => {
         event.stopPropagation();
         if (
@@ -289,7 +280,7 @@ function HoverRegion({
         startedRef.current = null;
       }}
     >
-      <boxGeometry args={[1.25, 0.88, 0.88]} />
+      <boxGeometry args={[0.67, 0.48, 0.49]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>
   );

@@ -157,15 +157,3 @@ export async function createScreenTexture() {
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
-
-export function createLogoTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 128;
-  const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = "#fff";
-  ctx.font = "100px -apple-system, BlinkMacSystemFont, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("", 64, 65);
-  return new THREE.CanvasTexture(canvas);
-}

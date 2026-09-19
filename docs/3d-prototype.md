@@ -107,3 +107,54 @@ Static GLB meshes are batched by material at load time to reduce draw calls. The
 The final panel now rises and moves aside during the handoff, disappearing by 89% of the timeline. Camera rotation settles by 93%, while the radius continues toward the computed screen framing. The large chapter caption becomes a compact screen instruction after 81%, and focus shifts continuously from the photograph to the laptop. No automatic fullscreen entry is introduced.
 
 MCP for Blender is installed as the `blender_mcp` Blender add-on and registered as `blender` in the user's Codex configuration. It listens on localhost:9876, with telemetry disabled and MCP safe mode enabled. The connection was verified using actual MCP `get_scene_info`, `execute_blender_code` and `get_viewport_screenshot` calls. Codex may need a restart for newly registered tools to appear directly. Start the add-on's server again from Blender's MCP sidebar after a Blender restart. The current task used a standard MCP client to communicate with the server without restarting Codex.
+
+## Calibrated Air replacement (20 September 2026)
+
+The local prototype now uses the user's downloaded Riccardo Pavone Air model,
+with the original archive preserved under `assets/source-models/MacBook Air`.
+This is an older Air design, not a verified 2017 production CAD file.
+
+- Published reference: [Apple, MacBook Air 13-inch 2017 specifications](https://support.apple.com/en-ca/111924).
+- Corrected case footprint: 325 × 227 mm. The studio uses two scene units per metre
+  (the desk is 1525 mm wide, with its top at 795 mm).
+- Active screen: derived from the published 13.3-inch diagonal at 16:10,
+  286.47 × 179.04 mm. The legacy aperture was too tall and has been corrected.
+- The live iframe, fallback screen, camera focus and screen projection all use
+  `lib/journey/air-model.json`, exported from the same geometry conversion.
+- Rebuilt legacy material masks as PBR textures; preserved the sculpted body,
+  keyboard recess, individual keys, feet, hinge and perimeter seal. Added a camera
+  lens and emissive Apple inlay. Removed the platform-dependent Apple font glyph.
+- Exact published footprint and nominal display diagonal do **not** establish
+  manufacturing accuracy: taper, closed thickness, port revision (particularly
+  MagSafe 2), logo placement, key layout and radii still need model-specific
+  references. The legacy asset must not be described as exact 2017 CAD.
+
+`convert-air-reference.py` runs in a separate background Blender with automatic
+script execution disabled. `install-air-scene.py` imports its data-only GLB through
+Blender MCP. Import with `scale_length=1`, then restore the studio's `0.5` scale:
+Blender's glTF importer otherwise rescales mesh data using the existing scene units.
+The editable assembled source is `assets/blender/nikhil-studio-calibrated.blend`.
+Old laptop geometry remains hidden and recoverable in that source.
+
+### Asset attribution and distribution status
+
+Original model: **MacBook Air — Riccardo Pavone**, BlendSwap legacy asset 53154.
+The bundled `BLENDSWAP_LICENSE.txt` identifies CC BY-SA 3.0 but also contains a
+noncommercial fan-art restriction; the public listing encountered in research
+reports a different license. Preserve the bundled files and obtain clear reuse
+terms or replace the asset before publishing the derivative. No deployment has
+been made as part of this work. No claim that the entire site inherits an asset
+license is intended.
+
+### Human reference preparation
+
+[Blender Studio Human Base Meshes v1.4.1](https://www.blender.org/download/demo-files/)
+is supplied under CC0. The anatomical male body and eyes were extracted from the
+[official bundle](https://download.blender.org/demo/asset-bundles/human-base-meshes/human-base-meshes-bundle-v1.4.1.zip)
+with automatic script execution disabled, and exported without bundled drivers
+or animations to `assets/blender/human-anatomical-reference.glb`.
+It is a sculpting foundation, not a textured, clothed, posed or personalized person.
+The existing web figure remains provisional. Finishing a likeness requires front,
+left/right profile, three-quarter, full-body and seated references, height, hair
+and clothing choices. Stock scan licenses must explicitly support delivery of
+extractable web 3D assets; permission to render images alone is insufficient.
