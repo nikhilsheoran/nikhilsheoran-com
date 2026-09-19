@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useBattery } from "@/lib/use-battery";
-import { useClock } from "@/lib/use-clock";
 import { wifiInfo } from "@/lib/settings-data";
 import styles from "../top-bar.module.css";
 import {
@@ -18,7 +17,6 @@ import {
   AirPlayIcon,
   SunIconSm,
   SunIconLg,
-  SpeakerLow,
   SpeakerHigh,
   IconPrev,
   IconPlay,
@@ -27,6 +25,7 @@ import {
   WarningIcon,
   ChevronRight,
   HotspotIcon,
+  MusicNoteIcon,
 } from "./top-bar-icons";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -309,9 +308,9 @@ export function CCSlider({
   min: number;
   max: number;
   onChange: (v: number) => void;
-  iconLeft?: React.ReactNode;
-  iconRight?: React.ReactNode;
-  endButton?: React.ReactNode;
+  iconLeft?: ReactNode;
+  iconRight?: ReactNode;
+  endButton?: ReactNode;
   ariaLabel: string;
 }) {
   const pct = ((value - min) / (max - min)) * 100;
@@ -340,6 +339,32 @@ export function CCSlider({
 // ─────────────────────────────────────────────────────────────────────────────
 // Control Center panel
 // ─────────────────────────────────────────────────────────────────────────────
+function CCConnectivityPill({
+  label,
+  sub,
+  on,
+  onClick,
+  areaClass,
+  children,
+}: {
+  label: string;
+  sub: string;
+  on: boolean;
+  onClick: () => void;
+  areaClass: string;
+  children: ReactNode;
+}) {
+  return (
+    <button type="button" className={`${styles.ccPill} ${styles.ccTile} ${areaClass}`} onClick={onClick}>
+      <span className={`${styles.ccPillIcon} ${on ? "" : styles.ccPillIconOff}`}>{children}</span>
+      <span className={styles.ccPillText}>
+        <span className={styles.ccPillLabel}>{label}</span>
+        <span className={styles.ccPillSub}>{sub}</span>
+      </span>
+    </button>
+  );
+}
+
 export function ControlCenterPanel({
   nowPlaying,
   onMusicPrev,
@@ -354,12 +379,16 @@ export function ControlCenterPanel({
   const [wifiOn, setWifiOn] = useState(true);
   const [bluetoothOn, setBluetoothOn] = useState(true);
   const [airdropOn, setAirdropOn] = useState(true);
+  const [darkOn, setDarkOn] = useState(false);
   const [brightness, setBrightness] = useState(100);
   const [volume, setVolume] = useState(80);
   const [focusOn, setFocusOn] = useState(false);
 
-  // Apply brightness
   useEffect(() => {
+    if (brightness >= 100) {
+      document.documentElement.style.filter = "";
+      return;
+    }
     document.documentElement.style.filter = `brightness(${brightness}%)`;
     return () => {
       document.documentElement.style.filter = "";
@@ -368,154 +397,130 @@ export function ControlCenterPanel({
 
   return (
     <div className={styles.ccWrap}>
-      {/* Top: Wi-Fi + Bluetooth pills (left col) | Now Playing (right col, spans 2 rows) */}
-      <div className={styles.ccTopLeft}>
-        <button
-          type="button"
-          className={`${styles.ccPill} ${styles.glassDark}`}
-          onClick={() => setWifiOn((v) => !v)}
-        >
-          <span className={`${styles.ccPillIcon} ${!wifiOn ? styles.ccPillIconOff : ""}`}>
-            <WifiIconSm size={22} />
-          </span>
-          <span className={styles.ccPillText}>
-            <span className={styles.ccPillLabel}>Wi-Fi</span>
-            <span className={styles.ccPillSub}>{wifiOn ? wifiInfo.networkName : "Off"}</span>
-          </span>
-        </button>
+      <CCConnectivityPill
+        areaClass={styles.ccWifi}
+        label="Wi-Fi"
+        sub={wifiOn ? wifiInfo.networkName : "Off"}
+        on={wifiOn}
+        onClick={() => setWifiOn((v) => !v)}
+      >
+        <WifiIconSm size={18} />
+      </CCConnectivityPill>
 
-        <button
-          type="button"
-          className={`${styles.ccPill} ${styles.glassDark}`}
-          onClick={() => setBluetoothOn((v) => !v)}
-        >
-          <span className={`${styles.ccPillIcon} ${!bluetoothOn ? styles.ccPillIconOff : ""}`}>
-            <BluetoothIconSm size={20} />
-          </span>
-          <span className={styles.ccPillText}>
-            <span className={styles.ccPillLabel}>Bluetooth</span>
-            <span className={styles.ccPillSub}>{bluetoothOn ? "On" : "Off"}</span>
-          </span>
-        </button>
-      </div>
-
-      <div className={styles.ccTopRight}>
-        {nowPlaying ? (
-          <div className={`${styles.ccNowPlaying} ${styles.glassDark}`}>
-            <div className={styles.ccNpHeader}>
-              <Image
-                src={nowPlaying.artworkUrl}
-                alt={nowPlaying.title}
-                width={36}
-                height={36}
-                className={styles.ccNpArt}
-                unoptimized
-              />
-              <div className={styles.ccNpMeta}>
-                <p className={styles.ccNpTitle}>{nowPlaying.title}</p>
-                <p className={styles.ccNpArtist}>{nowPlaying.artist}</p>
-              </div>
-            </div>
-            <div className={styles.ccNpControls}>
-              <button type="button" className={styles.ccNpBtn} onClick={onMusicPrev} aria-label="Previous">
-                <IconPrev />
-              </button>
-              <button
-                type="button"
-                className={styles.ccNpBtn}
-                onClick={onMusicToggle}
-                aria-label={nowPlaying.isPlaying ? "Pause" : "Play"}
-              >
-                {nowPlaying.isPlaying ? <IconPause /> : <IconPlay />}
-              </button>
-              <button type="button" className={styles.ccNpBtn} onClick={onMusicNext} aria-label="Next">
-                <IconNext />
-              </button>
-            </div>
+      <div className={`${styles.ccNowPlaying} ${styles.ccTile}`}>
+        <div className={styles.ccNpHead}>
+          {nowPlaying ? (
+            <Image
+              src={nowPlaying.artworkUrl}
+              alt=""
+              width={36}
+              height={36}
+              className={styles.ccNpArt}
+              unoptimized
+            />
+          ) : (
+            <span className={styles.ccNpArtFallback}>
+              <MusicNoteIcon size={16} />
+            </span>
+          )}
+          <div className={styles.ccNpMeta}>
+            <p className={styles.ccNpTitle}>{nowPlaying?.title ?? "Not Playing"}</p>
+            <p className={styles.ccNpArtist}>{nowPlaying?.artist ?? "Music"}</p>
           </div>
-        ) : (
+        </div>
+        <div className={`${styles.ccNpControls} ${nowPlaying ? "" : styles.ccNpControlsIdle}`}>
           <button
             type="button"
-            className={`${styles.ccPill} ${styles.glassDark}`}
-            onClick={() => setAirdropOn((v) => !v)}
-            style={{ flex: 1, height: 154 }}
+            className={styles.ccNpBtn}
+            onClick={onMusicPrev}
+            aria-label="Previous"
+            disabled={!nowPlaying}
           >
-            <span className={`${styles.ccPillIcon} ${!airdropOn ? styles.ccPillIconOff : ""}`}>
-              <AirDropIconSm size={22} />
-            </span>
-            <span className={styles.ccPillText}>
-              <span className={styles.ccPillLabel}>AirDrop</span>
-              <span className={styles.ccPillSub}>{airdropOn ? "Everyone" : "Off"}</span>
-            </span>
+            <IconPrev />
           </button>
-        )}
-      </div>
-
-      {/* AirDrop pill + Stage Manager + Mirror (only when nowPlaying shown above) */}
-      {nowPlaying && (
-        <>
           <button
             type="button"
-            className={`${styles.ccPill} ${styles.glassDark}`}
-            onClick={() => setAirdropOn((v) => !v)}
+            className={styles.ccNpBtn}
+            onClick={onMusicToggle}
+            aria-label={nowPlaying?.isPlaying ? "Pause" : "Play"}
+            disabled={!nowPlaying}
           >
-            <span className={`${styles.ccPillIcon} ${!airdropOn ? styles.ccPillIconOff : ""}`}>
-              <AirDropIconSm size={22} />
-            </span>
-            <span className={styles.ccPillText}>
-              <span className={styles.ccPillLabel}>AirDrop</span>
-              <span className={styles.ccPillSub}>{airdropOn ? "Everyone" : "Off"}</span>
-            </span>
+            {nowPlaying?.isPlaying ? <IconPause /> : <IconPlay />}
           </button>
-          <div className={styles.ccRoundRow} style={{ justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              className={`${styles.ccRoundTile} ${styles.glassDark}`}
-              aria-label="Stage Manager"
-            >
-              <StageManagerTahoe />
-            </button>
-            <button
-              type="button"
-              className={`${styles.ccRoundTile} ${styles.glassDark}`}
-              aria-label="Screen Mirroring"
-            >
-              <MirrorTahoe />
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Dark Mode + Camera + Focus pill */}
-      <div className={`${styles.ccRoundRow} ${styles.ccFullRow}`}>
-        <button
-          type="button"
-          className={`${styles.ccRoundTile} ${styles.glassDark}`}
-          aria-label="Dark Mode"
-        >
-          <DarkModeIcon />
-        </button>
-        <button
-          type="button"
-          className={`${styles.ccRoundTile} ${styles.glassDark}`}
-          aria-label="Screenshot"
-        >
-          <CameraIcon />
-        </button>
-        <button
-          type="button"
-          className={`${styles.ccFocusPill} ${styles.glassDark} ${focusOn ? styles.ccFocusPillActive : ""}`}
-          onClick={() => setFocusOn((v) => !v)}
-        >
-          <span className={styles.ccFocusIcon}>
-            <MoonIcon size={22} />
-          </span>
-          <span>Focus</span>
-        </button>
+          <button
+            type="button"
+            className={styles.ccNpBtn}
+            onClick={onMusicNext}
+            aria-label="Next"
+            disabled={!nowPlaying}
+          >
+            <IconNext />
+          </button>
+        </div>
       </div>
 
-      {/* Display slider */}
-      <div className={`${styles.ccSliderTile} ${styles.glassDark} ${styles.ccFullRow}`}>
+      <CCConnectivityPill
+        areaClass={styles.ccBluetooth}
+        label="Bluetooth"
+        sub={bluetoothOn ? "On" : "Off"}
+        on={bluetoothOn}
+        onClick={() => setBluetoothOn((v) => !v)}
+      >
+        <BluetoothIconSm size={18} />
+      </CCConnectivityPill>
+
+      <CCConnectivityPill
+        areaClass={styles.ccAirdrop}
+        label="AirDrop"
+        sub={airdropOn ? "Everyone" : "Off"}
+        on={airdropOn}
+        onClick={() => setAirdropOn((v) => !v)}
+      >
+        <AirDropIconSm size={18} />
+      </CCConnectivityPill>
+
+      <button
+        type="button"
+        className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccStage}`}
+        aria-label="Stage Manager"
+      >
+        <StageManagerTahoe size={36} />
+      </button>
+      <button
+        type="button"
+        className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccMirror}`}
+        aria-label="Screen Mirroring"
+      >
+        <MirrorTahoe size={36} />
+      </button>
+
+      <button
+        type="button"
+        className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccDark} ${darkOn ? styles.ccRoundTileActive : ""}`}
+        aria-label="Dark Mode"
+        onClick={() => setDarkOn((v) => !v)}
+      >
+        <DarkModeIcon size={36} />
+      </button>
+      <button
+        type="button"
+        className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccCamera}`}
+        aria-label="Screenshot"
+      >
+        <CameraIcon size={36} />
+      </button>
+      <button
+        type="button"
+        className={`${styles.ccFocusPill} ${styles.ccTile} ${focusOn ? styles.ccFocusPillActive : ""}`}
+        onClick={() => setFocusOn((v) => !v)}
+      >
+        <span className={styles.ccFocusIcon}>
+          <MoonIcon size={18} />
+        </span>
+        <span>Focus</span>
+      </button>
+
+      <div className={`${styles.ccSliderTile} ${styles.ccTile} ${styles.ccDisplay}`}>
         <span className={styles.ccSliderLabel}>Display</span>
         <CCSlider
           value={brightness}
@@ -528,29 +533,24 @@ export function ControlCenterPanel({
         />
       </div>
 
-      {/* Sound slider */}
-      <div className={`${styles.ccSliderTile} ${styles.glassDark} ${styles.ccFullRow}`}>
+      <div className={`${styles.ccSliderTile} ${styles.ccTile} ${styles.ccSound}`}>
         <span className={styles.ccSliderLabel}>Sound</span>
         <CCSlider
           value={volume}
           min={0}
           max={100}
           onChange={setVolume}
-          iconLeft={<SpeakerLow />}
-          iconRight={<SpeakerHigh />}
+          iconLeft={<SpeakerHigh />}
           endButton={
             <button type="button" className={styles.ccSoundEnd} aria-label="AirPlay">
-              <AirPlayIcon />
+              <AirPlayIcon size={12} />
             </button>
           }
           ariaLabel="Sound volume"
         />
       </div>
 
-      <button
-        type="button"
-        className={`${styles.ccEditBtn} ${styles.glassDark} ${styles.ccFullRow}`}
-      >
+      <button type="button" className={`${styles.ccEditBtn} ${styles.ccTile}`}>
         Edit Controls
       </button>
     </div>

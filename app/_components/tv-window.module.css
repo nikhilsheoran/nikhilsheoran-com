@@ -12,11 +12,10 @@
   max-width: calc(100vw - 12px);
   max-height: calc(100vh - 44px);
   border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.52);
   background: #efedf0;
   box-shadow:
     0 30px 90px rgba(0, 0, 0, 0.38),
-    0 1px 0 rgba(255, 255, 255, 0.52) inset;
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.55);
   font-family:
     "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont,
     "Helvetica Neue", sans-serif;

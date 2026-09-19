@@ -172,6 +172,8 @@ export function TopBar({
             <span
               className={`${styles.topbarBtn} px-1 ${openPanel === "wifi" ? styles.topbarBtnActive : ""}`}
               onClick={() => togglePanel("wifi")}
+              role="button"
+              aria-label="Wi-Fi"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-lg" aria-hidden>
                 <path d="M12 21q-1.05 0-1.775-.725T9.5 18.5q0-1.05.725-1.775T12 16q1.05 0 1.775.725T14.5 18.5q0 1.05-.725 1.775T12 21Zm-5.65-5.65l-2.1-2.15q1.475-1.475 3.463-2.337T12 10q2.3 0 4.288.875t3.462 2.375l-2.1 2.1q-1.1-1.1-2.55-1.725T12 13q-1.65 0-3.1.625T6.35 15.35ZM2.1 11.1L0 9q2.3-2.35 5.375-3.675T12 4q3.55 0 6.625 1.325T24 9l-2.1 2.1q-1.925-1.925-4.463-3.013T12 7Q9.1 7 6.562 8.088T2.1 11.1Z"/>
@@ -180,6 +182,8 @@ export function TopBar({
             <span
               className={`${styles.topbarBtn} px-1 ${openPanel === "control-center" ? styles.topbarBtnActive : ""}`}
               onClick={() => togglePanel("control-center")}
+              role="button"
+              aria-label="Control Center"
             >
               <CCMIcon size={16} />
             </span>
