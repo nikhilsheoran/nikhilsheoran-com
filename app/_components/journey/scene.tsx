@@ -167,7 +167,8 @@ function CameraRig({
     scratch.focus.set(
       Math.sin(clothPose.angle) * clothPose.radius,
       clothPose.height,
-      Math.cos(clothPose.angle) * clothPose.radius,
+      clothPose.centerZ +
+        Math.cos(clothPose.angle) * clothPose.radius * Math.cos(SCREEN_TILT),
     );
     const clothFocus =
       state.entry < 0.2 && state.progress > 0.055 && state.progress < 0.78;

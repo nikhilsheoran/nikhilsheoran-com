@@ -7,6 +7,7 @@ import {
   journeyPose,
   screenFillDistance,
   monitorLift,
+  panelScale,
 } from "./path";
 import { chapterProgress, SCREEN_POSITION, SCREEN_TILT } from "./story";
 
@@ -63,7 +64,7 @@ test("chapters form a vertical helix and rise as scroll advances", () => {
   assert.ok(
     Math.max(...poses.map((p) => p.height)) -
       Math.min(...poses.map((p) => p.height)) >
-      5,
+      3,
   );
   const earlier = ribbonPose(0.3, chapterProgress(2)),
     later = ribbonPose(0.5, chapterProgress(2));
@@ -112,4 +113,34 @@ test("focused display fits with a 12% hover-out margin on each limiting edge", (
     const fraction = Math.max(0.679 / height, 1.085 / (height * aspect));
     assert.ok(Math.abs(fraction - 0.76) < 1e-9);
   }
+});
+
+test("all five panels start above the floor and rise continuously", () => {
+  for (let i = 0; i < 5; i++) {
+    let previous = 0;
+    for (let p = 0; p <= 1; p += 0.01) {
+      const height = ribbonPose(p, chapterProgress(i)).height;
+      assert.ok(height >= 1.05);
+      assert.ok(height > previous);
+      previous = height;
+    }
+  }
+});
+
+test("panel size stays bounded as the camera gets close, including curled edges", () => {
+  for (const aspect of [0.46, 1, 1.78])
+    for (const progress of [0, 0.4, 0.7, 0.83]) {
+      for (const depth of [0.2, 0.5, 1, 2, 4, 8]) {
+        const radius = panelScale(depth, aspect, progress) * 1.8;
+        const projected =
+          radius /
+          (Math.sqrt(depth * depth - radius * radius) *
+            Math.tan((20 * Math.PI) / 180) *
+            Math.min(1, aspect));
+        assert.ok(projected <= 0.640001);
+      }
+      assert.ok(
+        panelScale(1, aspect, progress) < panelScale(4, aspect, progress),
+      );
+    }
 });

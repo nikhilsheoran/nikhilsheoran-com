@@ -474,27 +474,6 @@
   background: #080909;
   padding: 10px 14px;
 }
-.clothAction {
-  pointer-events: none;
-  display: grid;
-  place-items: center;
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
-  border: 1px solid #ffffffb0;
-  background: #1119;
-  color: white;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 24px #0002;
-}
-.clothArrow {
-  pointer-events: none;
-  color: white;
-  padding: 6px;
-  background: #101a;
-  border-radius: 50%;
-  transform: translate(2px, -2px);
-}
 .wordmark span,
 .year,
 .caption p,
@@ -569,35 +548,12 @@
     text-shadow: 0 1px 18px #20352966;
   }
 }
-.clothAction {
-  animation: clothActionReveal 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+.journey[data-dragging="true"],
+.journey[data-dragging="true"] * {
+  cursor: grabbing !important;
+  user-select: none;
 }
-.clothArrow {
-  animation: clothArrowReveal 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-@keyframes clothActionReveal {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.82);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@keyframes clothArrowReveal {
-  from {
-    opacity: 0;
-    transform: translate(-5px, 5px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(2px, -2px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .clothAction,
-  .clothArrow {
-    animation: none;
-  }
+.canvasLayer canvas {
+  cursor: var(--journey-cursor, grab);
 }

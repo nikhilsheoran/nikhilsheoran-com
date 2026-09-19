@@ -55,10 +55,35 @@ export function journeyPose(progress: number, aspect: number, fov = 40) {
 export function ribbonPose(progress: number, chapterAt: number) {
   const offset = chapterAt - progress;
   return {
-    angle: orbitAngle(progress) + offset * 8.8 + 0.23,
-    height: 2.3 + progress * 1.1 - offset * 9,
+    angle:
+      orbitAngle(progress) +
+      offset * 8.8 +
+      0.23 * (1 - smoothStep((progress - 0.4) / 0.4)),
+    centerZ: SCREEN_POSITION[2] * smoothStep(progress),
+    // A smooth floor keeps future panels above the ground from the first frame.
+    height:
+      1.05 +
+      Math.log1p(Math.exp((2.3 + progress * 1.1 - offset * 9 - 1.05) * 2)) / 2,
     radius: 3 - smoothStep(progress) * 1.4,
   };
+}
+
+/** Limit apparent size, including a margin for the deformed edges. */
+export function panelScale(
+  depth: number,
+  aspect: number,
+  progress: number,
+  fov = 40,
+) {
+  const fraction = 0.64 - smoothStep((progress - 0.62) / 0.22) * 0.14;
+  const natural = (aspect < 0.8 ? 0.8 : 1) * (1 - smoothStep(progress) * 0.28);
+  // A bounding sphere includes curled edges and rotated corners, including their
+  // perspective enlargement as the near edge approaches the camera.
+  const slope =
+    Math.tan((fov * Math.PI) / 360) * Math.min(1, aspect) * fraction;
+  const bounded =
+    (Math.max(0.02, depth) * slope) / Math.sqrt(1 + slope * slope) / 1.8;
+  return Math.min(natural, bounded);
 }
 
 /** Project a rectangle onto four screen-space corners (TL, TR, BR, BL). */

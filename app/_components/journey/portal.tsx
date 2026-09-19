@@ -34,6 +34,8 @@ export interface JourneyRuntime {
   desktop: boolean;
   frameReady: boolean;
   velocity: number;
+  dragging: boolean;
+  suppressClickUntil: number;
   focusDistance: number;
   cameraPosition: [number, number, number];
 }
@@ -101,6 +103,8 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     desktop: false,
     frameReady: false,
     velocity: 0,
+    dragging: false,
+    suppressClickUntil: 0,
     focusDistance: 8,
     cameraPosition: [-5.9, 2.65, -5.8],
   });
@@ -130,7 +134,14 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const enter = useCallback(
     (slug?: string) => {
       const state = runtimeRef.current;
-      if (state.entering || state.returning || state.desktop) return;
+      if (
+        state.entering ||
+        state.returning ||
+        state.desktop ||
+        state.dragging ||
+        performance.now() < state.suppressClickUntil
+      )
+        return;
       if (slug) {
         pendingNoteRef.current = slug;
         iframeRef.current?.contentWindow?.postMessage(
@@ -224,7 +235,17 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   useEffect(() => {
     const node = surfaceRef.current;
     if (!node || desktop) return;
-    let touchY: number | null = null;
+    const inputState = runtimeRef.current;
+    let drag: {
+      id: number;
+      x: number;
+      y: number;
+      start: number;
+      axis: "x" | "y" | null;
+      last: number;
+      time: number;
+      velocity: number;
+    } | null = null;
     const advance = (delta: number) => {
       const state = runtimeRef.current;
       if (state.entering || state.returning) return;
@@ -241,18 +262,79 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             : 1;
       advance(Math.max(-0.045, Math.min(0.045, (event.deltaY * units) / 7800)));
     };
-    const start = (event: TouchEvent) => {
-      touchY = event.touches[0]?.clientY ?? null;
-    };
-    const move = (event: TouchEvent) => {
+    const down = (event: PointerEvent) => {
+      const state = runtimeRef.current;
       if (
-        touchY === null ||
-        (event.target as Element).closest("button,input,a")
+        !event.isPrimary ||
+        event.button !== 0 ||
+        state.entering ||
+        state.returning ||
+        (event.target as Element).closest("button,input,a,iframe")
       )
         return;
-      const y = event.touches[0]?.clientY ?? touchY;
-      advance((touchY - y) / 2300);
-      touchY = y;
+      drag = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        start: state.progress,
+        axis: null,
+        last: state.progress,
+        time: event.timeStamp,
+        velocity: 0,
+      };
+      state.target = state.progress;
+    };
+    const move = (event: PointerEvent) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      const dx = event.clientX - drag.x,
+        dy = event.clientY - drag.y;
+      if (!drag.axis && Math.hypot(dx, dy) < 6) return;
+      if (!drag.axis) {
+        drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+        node.setPointerCapture(event.pointerId);
+        runtimeRef.current.dragging = true;
+        node.dataset.dragging = "true";
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const travel = drag.axis === "x" ? dx : dy;
+      const span =
+        (drag.axis === "x" ? node.clientWidth : node.clientHeight) * 2.7;
+      const next = Math.max(0, Math.min(1, drag.start - travel / span));
+      const elapsed = Math.max(0.008, (event.timeStamp - drag.time) / 1000);
+      drag.velocity =
+        drag.velocity * 0.35 + ((next - drag.last) / elapsed) * 0.65;
+      drag.last = next;
+      drag.time = event.timeStamp;
+      runtimeRef.current.target = next;
+      runtimeRef.current.progress = next;
+      runtimeRef.current.suppressClickUntil = performance.now() + 250;
+    };
+    const finish = (event: PointerEvent) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      if (drag.axis) {
+        event.stopPropagation();
+        const state = runtimeRef.current;
+        const momentum =
+          state.reducedMotion ||
+          event.type !== "pointerup" ||
+          event.timeStamp - drag.time > 100
+            ? 0
+            : Math.max(-0.07, Math.min(0.07, drag.velocity * 0.12));
+        state.target = Math.max(0, Math.min(1, state.progress + momentum));
+        state.dragging = false;
+        state.suppressClickUntil = performance.now() + 250;
+        delete node.dataset.dragging;
+        if (node.hasPointerCapture(event.pointerId))
+          node.releasePointerCapture(event.pointerId);
+      }
+      drag = null;
+    };
+    const click = (event: MouseEvent) => {
+      if (performance.now() < runtimeRef.current.suppressClickUntil) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
     };
     const key = (event: KeyboardEvent) => {
       if ((event.target as Element).closest("input,button,a,textarea")) return;
@@ -281,13 +363,23 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       }
     };
     node.addEventListener("wheel", wheel, { passive: false });
-    node.addEventListener("touchstart", start, { passive: true });
-    node.addEventListener("touchmove", move, { passive: true });
+    node.addEventListener("pointerdown", down, true);
+    node.addEventListener("pointermove", move, true);
+    node.addEventListener("pointerup", finish, true);
+    node.addEventListener("pointercancel", finish, true);
+    node.addEventListener("lostpointercapture", finish, true);
+    node.addEventListener("click", click, true);
     window.addEventListener("keydown", key);
     return () => {
       node.removeEventListener("wheel", wheel);
-      node.removeEventListener("touchstart", start);
-      node.removeEventListener("touchmove", move);
+      node.removeEventListener("pointerdown", down, true);
+      node.removeEventListener("pointermove", move, true);
+      node.removeEventListener("pointerup", finish, true);
+      node.removeEventListener("pointercancel", finish, true);
+      node.removeEventListener("lostpointercapture", finish, true);
+      node.removeEventListener("click", click, true);
+      inputState.dragging = false;
+      delete node.dataset.dragging;
       window.removeEventListener("keydown", key);
     };
   }, [desktop]);
@@ -496,8 +588,8 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           {showHelp && (
             <aside className={styles.help}>
               <p>
-                Scroll or swipe along the spiral. Hover over the fabric to
-                reveal its color. Hover or tap the Mac to use its screen.
+                Scroll or drag the scene along the spiral. Hover over the fabric
+                to reveal its color. Hover or tap the Mac to use its screen.
               </p>
               <p>
                 Use the years or slider to navigate. Move outside the screen or

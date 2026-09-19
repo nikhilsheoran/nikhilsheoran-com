@@ -82,6 +82,34 @@ export async function createPageTexture(chapter: Chapter, index: number) {
   return texture;
 }
 
+/** Transparent printed ink, sampled in the same UV space and lighting as the photograph. */
+export async function createActionTexture(kind: Chapter["kind"]) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1400;
+  canvas.height = 900;
+  const ctx = canvas.getContext("2d")!;
+  const [icon, arrow] = await Promise.all([
+    loadImage(`/journey/action-${kind === "youtube" ? "play" : "x"}.svg`),
+    loadImage("/journey/action-external.svg"),
+  ]);
+  ctx.fillStyle = "#08140fb3";
+  ctx.strokeStyle = "#ffffffd9";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(700, 430, 66, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  if (icon) ctx.drawImage(icon, 668, 398, 64, 64);
+  ctx.beginPath();
+  ctx.arc(1305, 92, 35, 0, Math.PI * 2);
+  ctx.fill();
+  if (arrow) ctx.drawImage(arrow, 1282, 69, 46, 46);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
+}
+
 /** Lightweight on-device screen preview. Entry hands off to the real DesktopShell. */
 export async function createScreenTexture() {
   const canvas = document.createElement("canvas");

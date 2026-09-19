@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RoundedBox, useTexture } from "@react-three/drei";
+import { RoundedBox, useTexture, useGLTF } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { LAPTOP_POSITION, SCREEN_TILT } from "@/lib/journey/story";
@@ -318,7 +318,17 @@ export function Laptop({
   const [screen, setScreen] = useState<THREE.Texture | null>(null);
   const [logo, setLogo] = useState<THREE.Texture | null>(null);
   const hoverStarted = useRef<number | null>(null);
-  const glow = useRef<THREE.MeshStandardMaterial>(null);
+  const gltf = useGLTF("/journey/macbook-air-2017.glb");
+  const model = useMemo(() => {
+    const clone = gltf.scene.clone(true);
+    clone.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.castShadow = true;
+        object.receiveShadow = true;
+      }
+    });
+    return clone;
+  }, [gltf.scene]);
   const screenMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
   const isTouch = useRef(false);
   useEffect(() => {
@@ -340,19 +350,15 @@ export function Laptop({
       logoTexture.dispose();
     };
   }, []);
-  useFrame(({ clock }, delta) => {
+  useFrame(({ clock }) => {
+    if (runtimeRef.current.dragging) hoverStarted.current = null;
     if (screenMaterialRef.current) {
       screenMaterialRef.current.opacity = runtimeRef.current.frameReady ? 0 : 1;
     }
-    if (glow.current)
-      glow.current.emissiveIntensity = THREE.MathUtils.damp(
-        glow.current.emissiveIntensity,
-        hoverStarted.current !== null ? 0.4 : 0.05,
-        7,
-        delta,
-      );
     if (
       !runtimeRef.current.entering &&
+      !runtimeRef.current.dragging &&
+      performance.now() > runtimeRef.current.suppressClickUntil &&
       hoverStarted.current !== null &&
       clock.elapsedTime - hoverStarted.current > 0.35
     ) {
@@ -377,57 +383,8 @@ export function Laptop({
         runtimeRef={runtimeRef}
         touchRef={isTouch}
       />
-      <RoundedBox args={[1.2, 0.045, 0.79]} radius={0.025} castShadow>
-        <meshStandardMaterial
-          ref={glow}
-          color="#c4c9ca"
-          metalness={0.82}
-          roughness={0.24}
-          emissive="#93a995"
-          emissiveIntensity={0.05}
-        />
-      </RoundedBox>
-      <RoundedBox
-        args={[0.98, 0.005, 0.34]}
-        radius={0.012}
-        position={[0, 0.026, -0.09]}
-      >
-        <meshStandardMaterial
-          color="#373b3c"
-          metalness={0.1}
-          roughness={0.65}
-        />
-      </RoundedBox>
-      {Array.from({ length: 5 }, (_, row) =>
-        Array.from({ length: 13 }, (_, col) => (
-          <mesh
-            key={`${row}-${col}`}
-            position={[-0.452 + col * 0.075, 0.032, -0.224 + row * 0.065]}
-          >
-            <boxGeometry args={[0.063, 0.008, 0.049]} />
-            <meshStandardMaterial color="#5b5e5e" roughness={0.7} />
-          </mesh>
-        )),
-      )}
-      <RoundedBox
-        args={[0.41, 0.006, 0.235]}
-        radius={0.012}
-        position={[0, 0.027, 0.22]}
-      >
-        <meshStandardMaterial
-          color="#a5adae"
-          metalness={0.7}
-          roughness={0.38}
-        />
-      </RoundedBox>
+      <primitive object={model} />
       <group position={[0, 0.38, -0.395]} rotation={[SCREEN_TILT, 0, 0]}>
-        <RoundedBox args={[1.2, 0.79, 0.035]} radius={0.025} castShadow>
-          <meshStandardMaterial
-            color="#d7dadb"
-            metalness={0.8}
-            roughness={0.24}
-          />
-        </RoundedBox>
         <mesh position={[0, 0.018, 0.019]}>
           <planeGeometry args={[1.085, 0.679]} />
           <meshBasicMaterial
@@ -439,10 +396,6 @@ export function Laptop({
             blending={THREE.NoBlending}
             transparent
           />
-        </mesh>
-        <mesh position={[0, 0.366, 0.022]}>
-          <circleGeometry args={[0.008, 16]} />
-          <meshBasicMaterial color="#303835" />
         </mesh>
         {logo && (
           <mesh position={[0, 0.025, -0.021]} rotation={[0, Math.PI, 0]}>
