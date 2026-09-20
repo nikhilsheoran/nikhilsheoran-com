@@ -1,5 +1,6 @@
 import {
   chapterProgress,
+  chapters,
   SCREEN_POSITION,
   SCREEN_TILT,
   SCREEN_WIDTH,
@@ -108,9 +109,16 @@ export function panelPresence(progress: number, index: number) {
   const arriving = index < 3 ? 1 : smoothStep((progress - start) / 0.065);
   const leaving = 1 - smoothStep((progress - (end - 0.085)) / 0.085);
   const handoff = 1 - smoothStep((progress - 0.765) / (PANEL_END - 0.765));
-  const proximity =
-    1 - smoothStep(Math.abs(progress - chapterProgress(index)) / 0.23);
-  return arriving * leaving * handoff * (0.2 + proximity * 0.8);
+  // Onion-skin falloff: opaque at the reading position, faint one chapter
+  // away, and only a trace two chapters away. No shared opacity floor.
+  const focus = Math.max(
+    chapterProgress(0),
+    Math.min(chapterProgress(chapters.length - 1), progress),
+  );
+  const spacing = chapterProgress(1) - chapterProgress(0);
+  const distance = Math.abs(focus - chapterProgress(index)) / spacing;
+  const opacity = Math.exp(-1.3 * Math.pow(distance, 1.6));
+  return arriving * leaving * handoff * opacity;
 }
 
 /** The original reading trajectory, on a tighter and much shallower helix. */
