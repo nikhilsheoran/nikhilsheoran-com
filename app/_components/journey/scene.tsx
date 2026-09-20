@@ -1,10 +1,10 @@
 "use client";
 
 /* eslint-disable react-hooks/immutability -- The animation loop updates mutable Three.js scene objects. */
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, type RefObject } from "react";
 import Link from "next/link";
 import { Environment } from "@react-three/drei";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, events, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { chapters } from "@/lib/journey/story";
 import {
@@ -13,6 +13,7 @@ import {
   smootherStep,
   transitionPosition,
   advanceSpring,
+  PANEL_END,
 } from "@/lib/journey/path";
 import { Apartment, Desk, Laptop } from "./objects";
 import { Cloth } from "./cloth";
@@ -121,12 +122,11 @@ function CameraRig({
       camera.position.fromArray(pose.position);
       motion.target.fromArray(pose.target);
       camera.lookAt(motion.target);
-      if (state.progress < 0.88) state.snapArmed = true;
+      if (state.progress < 0.8) state.snapArmed = true;
       if (
         state.snapArmed &&
-        state.target > 0.995 &&
-        state.progress > 0.995 &&
-        Math.abs(state.velocity) < 0.03 &&
+        state.target >= PANEL_END &&
+        state.progress >= PANEL_END - 0.0005 &&
         !state.dragging
       )
         onEnter();
@@ -200,9 +200,11 @@ function World(props: SceneProps) {
         shadow-camera-right={4}
         shadow-camera-top={4}
         shadow-camera-bottom={-4}
-        shadow-normalBias={0.035}
-        shadow-bias={-0.00015}
-        shadow-radius={12}
+        shadow-camera-near={0.5}
+        shadow-camera-far={18}
+        shadow-normalBias={0.0015}
+        shadow-bias={-0.00002}
+        shadow-radius={2}
       />
       <directionalLight
         position={[1, 4, -4]}
@@ -231,6 +233,23 @@ function World(props: SceneProps) {
 export function JourneyScene(props: SceneProps) {
   return (
     <Canvas
+      eventSource={props.surfaceRef as RefObject<HTMLDivElement>}
+      events={(root) => ({
+        ...events(root),
+        compute: (event, state) => {
+          state.pointer.set(
+            (event.clientX / state.size.width) * 2 - 1,
+            -(event.clientY / state.size.height) * 2 + 1,
+          );
+          if (
+            (event.target as Element)?.closest(
+              "button,a,input,iframe,[data-journey-ui]",
+            )
+          )
+            return;
+          state.raycaster.setFromCamera(state.pointer, state.camera);
+        },
+      })}
       frameloop="always"
       camera={{ position: [-5.9, 2.65, -5.8], fov: 40, near: 0.04, far: 120 }}
       dpr={[1, 2]}

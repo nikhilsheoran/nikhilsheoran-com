@@ -37,13 +37,69 @@ export function ScreenProjection({
   const previous = useMemo(() => new THREE.Matrix4(), []);
   const current = useMemo(() => new THREE.Matrix4(), []);
   const lastRef = useRef({ width: 0, height: 0, ready: false });
-  useFrame(({ camera, size }) => {
+  const interaction = useMemo(() => {
+    const origin = new THREE.Vector3(...SCREEN_POSITION);
+    const normal = new THREE.Vector3(
+      0,
+      -Math.sin(SCREEN_TILT),
+      Math.cos(SCREEN_TILT),
+    );
+    return {
+      origin,
+      normal,
+      direction: new THREE.Vector3(),
+      hit: new THREE.Vector3(),
+      plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal, origin),
+      raycaster: new THREE.Raycaster(),
+      panels: [] as THREE.Object3D[],
+    };
+  }, []);
+  useFrame(({ camera, size, pointer, scene }) => {
     const last = lastRef.current;
     const element = screenRef.current,
       canvas = canvasRef.current,
       state = runtimeRef.current;
     if (!element || !canvas) return;
     camera.updateMatrixWorld();
+    const front =
+      interaction.direction
+        .copy(camera.position)
+        .sub(interaction.origin)
+        .dot(interaction.normal) > 0.01;
+    // The canvas draws in front but receives input from the surrounding surface.
+    // Let the real iframe receive clicks through the screen opening at every distance.
+    interaction.raycaster.setFromCamera(pointer, camera);
+    const hit = interaction.raycaster.ray.intersectPlane(
+      interaction.plane,
+      interaction.hit,
+    );
+    let obscured = false;
+    const onScreen =
+      hit &&
+      Math.abs(hit.x - interaction.origin.x) <= SCREEN_WIDTH / 2 &&
+      Math.abs(
+        (hit.y - interaction.origin.y) * Math.cos(SCREEN_TILT) +
+          (hit.z - interaction.origin.z) * Math.sin(SCREEN_TILT),
+      ) <=
+        SCREEN_HEIGHT / 2;
+    if (
+      front &&
+      onScreen &&
+      Math.abs(pointer.x) <= 1 &&
+      Math.abs(pointer.y) <= 1
+    ) {
+      interaction.panels.splice(0);
+      scene.traverse((object) => {
+        if (object.name === "journey-panel" && object.visible)
+          interaction.panels.push(object);
+      });
+      const screenDistance = camera.position.distanceTo(interaction.hit);
+      obscured = interaction.raycaster
+        .intersectObjects(interaction.panels, true)
+        .some((item) => item.distance < screenDistance);
+    }
+    element.style.pointerEvents =
+      front && state.frameReady && !obscured ? "auto" : "none";
     current.multiplyMatrices(
       camera.projectionMatrix,
       camera.matrixWorldInverse,
@@ -69,7 +125,7 @@ export function ScreenProjection({
     element.style.height = "900px";
     element.style.transform = `matrix3d(${quadMatrix(points, 1440, 900).join(",")})`;
     element.style.zIndex = "1";
-    element.style.visibility = state.frameReady ? "visible" : "hidden";
+    element.style.visibility = state.frameReady && front ? "visible" : "hidden";
     element.style.setProperty(
       "--screen-glare",
       String(

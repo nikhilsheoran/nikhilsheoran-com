@@ -13,12 +13,13 @@ import {
 } from "@/lib/journey/story";
 import { createScreenTexture } from "./textures";
 import { useStaticModel } from "./static-model";
+import { LAPTOP_HOVER_END } from "@/lib/journey/path";
 import styles from "./journey.module.css";
 import type { SceneProps } from "./portal";
 
 /** Blender-authored furniture, kept separate from the apartment and laptop. */
 export function Apartment() {
-  const model = useStaticModel("/journey/nyc-apartment.glb");
+  const model = useStaticModel("/journey/nyc-apartment.glb?v=desk-finish-2");
   return <primitive object={model} />;
 }
 
@@ -37,7 +38,9 @@ export function Laptop({
 }: Pick<SceneProps, "onEnter" | "runtimeRef">) {
   const [screen, setScreen] = useState<THREE.Texture | null>(null);
   const [hovered, setHovered] = useState(false);
-  const model = useStaticModel("/journey/macbook-air-calibrated.glb");
+  const model = useStaticModel(
+    "/journey/macbook-air-calibrated.glb?v=pink-logo-2",
+  );
   const screenMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
   useEffect(() => {
     let cancelled = false;
@@ -57,61 +60,101 @@ export function Laptop({
   const highlight = useMemo(() => {
     // Build an owned instance: mutating the cached model here breaks Strict Mode.
     const object = model.clone(true);
-    const materials: THREE.MeshStandardMaterial[] = [];
     const strength = new THREE.Uniform(0);
-    object.traverse((mesh) => {
+    const thickness = new THREE.Uniform(0.002);
+    const material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(2.4, 2.4, 2.4),
+      side: THREE.BackSide,
+      transparent: true,
+      depthWrite: false,
+    });
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uSelection = strength;
+      shader.uniforms.uOutlineWidth = thickness;
+      shader.vertexShader =
+        `uniform float uOutlineWidth;\n${shader.vertexShader}`.replace(
+          "#include <begin_vertex>",
+          "#include <begin_vertex>\ntransformed += normal * uOutlineWidth;",
+        );
+      shader.fragmentShader =
+        `uniform float uSelection;\n${shader.fragmentShader}`.replace(
+          "#include <opaque_fragment>",
+          "diffuseColor.a *= uSelection * .4;\n#include <opaque_fragment>",
+        );
+    };
+    material.customProgramCacheKey = () => "laptop-selection-outline-v3";
+    const outline = model.clone(true);
+    outline.traverse((mesh) => {
       if (!(mesh instanceof THREE.Mesh)) return;
-      const material = (mesh.material as THREE.MeshStandardMaterial).clone();
       mesh.material = material;
-      // A single bounds mesh handles selection instead of ray-testing every key.
+      mesh.castShadow = mesh.receiveShadow = false;
       mesh.raycast = () => {};
-      material.onBeforeCompile = (shader) => {
-        shader.uniforms.uSelection = strength;
-        shader.fragmentShader =
-          `uniform float uSelection;\n${shader.fragmentShader}`.replace(
-            "#include <emissivemap_fragment>",
-            "#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(uSelection);",
-          );
-      };
-      material.customProgramCacheKey = () => "laptop-selection-v1";
-      materials.push(material);
+    });
+    object.traverse((mesh) => {
+      if (mesh instanceof THREE.Mesh) mesh.raycast = () => {};
     });
     const bounds = new THREE.Box3().setFromObject(object);
     const center = bounds.getCenter(new THREE.Vector3());
+    const worldCenter = center
+      .clone()
+      .add(new THREE.Vector3(...LAPTOP_POSITION));
     const size = bounds.getSize(new THREE.Vector3()).addScalar(0.015);
-    return { object, materials, strength, center, size };
+    return {
+      object,
+      outline,
+      material,
+      strength,
+      thickness,
+      center,
+      worldCenter,
+      size,
+    };
   }, [model]);
   useEffect(
     () => () => {
-      for (const material of highlight.materials) material.dispose();
+      highlight.material.dispose();
       document.body.style.removeProperty("--journey-cursor");
     },
     [highlight],
   );
-  useFrame((_, delta) => {
+  useFrame(({ camera, size }, delta) => {
     if (screenMaterialRef.current) {
       screenMaterialRef.current.opacity = runtimeRef.current.frameReady ? 0 : 1;
     }
+    // eslint-disable-next-line react-hooks/immutability -- Keep the outline near one screen pixel across viewing distances.
+    highlight.thickness.value = Math.min(
+      0.006,
+      Math.max(
+        0.0012,
+        (camera.position.distanceTo(highlight.worldCenter) * 0.9) / size.height,
+      ),
+    );
     const active =
       hovered &&
+      runtimeRef.current.progress < LAPTOP_HOVER_END &&
+      !runtimeRef.current.screenActive &&
       !runtimeRef.current.dragging &&
       !runtimeRef.current.entering &&
       !runtimeRef.current.returning &&
       !runtimeRef.current.desktop;
     if (
       hovered &&
-      (runtimeRef.current.entering ||
+      (runtimeRef.current.progress >= LAPTOP_HOVER_END ||
+        runtimeRef.current.screenActive ||
+        runtimeRef.current.entering ||
         runtimeRef.current.returning ||
         runtimeRef.current.desktop)
     )
       setHovered(false);
-    // eslint-disable-next-line react-hooks/immutability -- Three.js uniforms are mutable GPU inputs, updated outside React rendering.
+
     highlight.strength.value = THREE.MathUtils.damp(
       highlight.strength.value,
-      active ? 1.8 : 0,
+      active ? 1 : 0,
       12,
       Math.min(delta, 0.05),
     );
+
+    highlight.outline.visible = highlight.strength.value > 0.001;
   });
   return (
     <group
@@ -141,6 +184,7 @@ export function Laptop({
         </Html>
       )}
       <primitive object={highlight.object} />
+      <primitive object={highlight.outline} />
       <group position={SCREEN_LOCAL_POSITION} rotation={[SCREEN_TILT, 0, 0]}>
         <mesh>
           <planeGeometry args={[SCREEN_WIDTH, SCREEN_HEIGHT]} />
@@ -179,7 +223,9 @@ function HoverRegion({
           !state.entering &&
           !state.returning &&
           !state.desktop &&
-          !state.dragging
+          !state.dragging &&
+          !state.screenActive &&
+          state.progress < LAPTOP_HOVER_END
         ) {
           onHover(true);
           document.body.style.setProperty("--journey-cursor", "pointer");

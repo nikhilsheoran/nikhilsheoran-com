@@ -37,11 +37,13 @@ export interface JourneyRuntime {
   focusDistance: number;
   cameraPosition: [number, number, number];
   snapArmed: boolean;
+  screenActive: boolean;
 }
 export interface SceneProps {
   runtimeRef: RefObject<JourneyRuntime>;
   screenRef: RefObject<HTMLDivElement | null>;
   canvasRef: RefObject<HTMLDivElement | null>;
+  surfaceRef: RefObject<HTMLDivElement | null>;
   paused: boolean;
   onEnter: (note?: string) => void;
   onArrive: () => void;
@@ -107,6 +109,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     suppressClickUntil: 0,
     focusDistance: 8,
     snapArmed: true,
+    screenActive: false,
     cameraPosition: [-5.9, 2.65, -5.8],
   });
   const desktop = mode === "desktop";
@@ -202,6 +205,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         draggingRef.current = event.data.active === true;
       }
       if (event.data?.type === "journey:inside") {
+        runtimeRef.current.screenActive = true;
         outsideRef.current = false;
         setExitHint(false);
       }
@@ -215,6 +219,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     if (desktop) iframeRef.current?.focus();
   }, [desktop]);
   const leaveScreen = useCallback(() => {
+    runtimeRef.current.screenActive = false;
     outsideRef.current = true;
     if (runtimeRef.current.desktop) setExitHint(true);
   }, []);
@@ -424,9 +429,8 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         <div
           ref={screenRef}
           className={styles.liveScreen}
-          inert={!desktop}
-          aria-hidden={!desktop}
           onPointerEnter={() => {
+            runtimeRef.current.screenActive = true;
             outsideRef.current = false;
             setExitHint(false);
           }}
@@ -437,7 +441,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             src="/desktop"
             title="Nikhil’s Mac"
             className={styles.iframe}
-            tabIndex={desktop ? 0 : -1}
+            tabIndex={0}
           />
         </div>
         <div ref={canvasRef} className={styles.canvasLayer}>
@@ -446,6 +450,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               runtimeRef={runtimeRef}
               screenRef={screenRef}
               canvasRef={canvasRef}
+              surfaceRef={surfaceRef}
               paused={false}
               onEnter={enter}
               onArrive={arrive}
@@ -456,6 +461,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           </SceneBoundary>
         </div>
         <div
+          data-journey-ui
           className={`${styles.ui} ${uiHidden ? styles.faded : ""}`}
           inert={uiHidden}
           aria-hidden={uiHidden}

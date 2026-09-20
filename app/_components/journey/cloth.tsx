@@ -179,9 +179,16 @@ export function Cloth({
       pose.height,
       pose.centerZ + Math.cos(pose.angle) * pose.radius,
     );
-    // Camera-facing printed fabric; deformation supplies depth without turning text edge-on.
-    group.quaternion.copy(camera.quaternion);
-    group.rotateZ(Math.sin(index * 1.8) * 0.025);
+    // Retain the radial orientation; only correct it by up to seven degrees.
+    const cameraAngle = Math.atan2(
+      camera.position.x - pose.centerX,
+      camera.position.z - pose.centerZ,
+    );
+    group.rotation.set(
+      -0.1,
+      pose.angle + Math.sin(cameraAngle - pose.angle) * 0.12,
+      Math.sin(index * 1.8) * 0.04,
+    );
     viewPosition.copy(group.position).applyMatrix4(camera.matrixWorldInverse);
     const targetScale = panelScale(
       -viewPosition.z,
@@ -220,7 +227,7 @@ export function Cloth({
   });
   if (!loaded) return null;
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} name="journey-panel">
       <mesh
         material={material}
         raycast={visibleRaycast}

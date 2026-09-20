@@ -343,6 +343,7 @@
   position: absolute;
   inset: 0;
   z-index: 2;
+  pointer-events: none;
 }
 .liveScreen {
   position: absolute;
@@ -351,7 +352,7 @@
   z-index: 1;
   transform-origin: 0 0;
   visibility: hidden;
-  pointer-events: none;
+  pointer-events: auto;
   background: #1c2826;
   will-change: transform;
 }

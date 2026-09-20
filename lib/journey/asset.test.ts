@@ -42,6 +42,11 @@ test("exported laptop retains physical dimensions and an emissive logo", () => {
   );
   assert.ok(logo.emissiveTexture, "logo emission must survive glTF export");
   assert.ok(
+    logo.emissiveFactor[0] > logo.emissiveFactor[2] &&
+      logo.emissiveFactor[2] > logo.emissiveFactor[1],
+    "logo tint must remain pink after export",
+  );
+  assert.ok(
     logo.extensions.KHR_materials_emissive_strength.emissiveStrength > 1,
   );
 });

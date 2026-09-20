@@ -68,20 +68,20 @@ test("screen projection maps all four corners without stretching the iframe's co
   }
 });
 
-test("chapters form a vertical helix and rise as scroll advances", () => {
+test("panels form a shallow helix and pass in the opposite direction across the camera view", () => {
   const poses = Array.from({ length: 5 }, (_, i) =>
     ribbonPose(0.4, chapterProgress(i)),
   );
   assert.ok(new Set(poses.map((p) => p.height)).size === 5);
   assert.ok(
     Math.max(...poses.map((p) => p.height)) -
-      Math.min(...poses.map((p) => p.height)) >
-      3,
+      Math.min(...poses.map((p) => p.height)) <
+      0.6,
   );
   const earlier = ribbonPose(0.3, chapterProgress(2)),
     later = ribbonPose(0.5, chapterProgress(2));
-  assert.ok(later.height > earlier.height);
-  assert.notEqual(later.angle, earlier.angle);
+  assert.ok(later.angle - orbitAngle(0.5) < earlier.angle - orbitAngle(0.3));
+  assert.ok(orbitAngle(0.5) > orbitAngle(0.3));
   assert.ok(orbitAngle(0.84) - orbitAngle(0) > Math.PI * 2);
 });
 
@@ -127,14 +127,13 @@ test("focused display fits with a 12% hover-out margin on each limiting edge", (
   }
 });
 
-test("all five panels start above the floor and rise continuously", () => {
+test("panels stay above the desk while crossing a shallow vertical band", () => {
   for (let i = 0; i < 5; i++) {
-    let previous = 0;
     for (let p = 0; p <= 1; p += 0.01) {
       const height = ribbonPose(p, chapterProgress(i)).height;
-      assert.ok(height >= 1.05);
-      assert.ok(height > previous);
-      previous = height;
+      assert.ok(height >= 1.6);
+      const activeHeight = ribbonPose(p, p).height;
+      assert.ok(Math.abs(height - activeHeight) < 0.8);
     }
   }
 });
@@ -149,7 +148,7 @@ test("panel size stays bounded as the camera gets close, including curled edges"
           (Math.sqrt(depth * depth - radius * radius) *
             Math.tan((20 * Math.PI) / 180) *
             Math.min(1, aspect));
-        assert.ok(projected <= 0.640001);
+        assert.ok(projected <= 0.920001);
       }
       assert.ok(
         panelScale(1, aspect, progress) < panelScale(4, aspect, progress),
@@ -217,6 +216,9 @@ test("camera and panels share one fixed vertical axis throughout the journey", (
       const cloth = ribbonPose(p, p, aspect);
       assert.equal(cloth.centerX, HELIX_AXIS[0]);
       assert.equal(cloth.centerZ, HELIX_AXIS[1]);
+      assert.ok(
+        cloth.radius <= 2.2 && cloth.radius <= camera.radius * 0.440001,
+      );
       assert.ok(
         Math.abs(
           Math.hypot(

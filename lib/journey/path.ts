@@ -20,6 +20,8 @@ export function smootherStep(value: number) {
 export const HELIX_TURNS = 1.4;
 export const HELIX_START = -Math.PI * 2 * HELIX_TURNS;
 export const HELIX_AXIS = [SCREEN_POSITION[0], SCREEN_POSITION[2]] as const;
+export const PANEL_END = 0.85;
+export const LAPTOP_HOVER_END = 0.78;
 
 export function screenFillDistance(aspect: number, fovDegrees: number) {
   const halfFov = Math.tan((fovDegrees * Math.PI) / 360);
@@ -95,13 +97,13 @@ export function panelPresence(progress: number, index: number) {
       : chapterProgress(index) + 0.19;
   const arriving = index < 3 ? 1 : smoothStep((progress - start) / 0.065);
   const leaving = 1 - smoothStep((progress - (end - 0.085)) / 0.085);
-  const handoff = 1 - smoothStep((progress - 0.765) / 0.085);
+  const handoff = 1 - smoothStep((progress - 0.765) / (PANEL_END - 0.765));
   const proximity =
     1 - smoothStep(Math.abs(progress - chapterProgress(index)) / 0.23);
   return arriving * leaving * handoff * (0.2 + proximity * 0.8);
 }
 
-/** Pages rise around the camera's axis; the active page lies on its sight line. */
+/** The original reading trajectory, on a tighter and much shallower helix. */
 export function ribbonPose(
   progress: number,
   chapterAt: number,
@@ -110,15 +112,23 @@ export function ribbonPose(
 ) {
   const camera = journeyPose(progress, aspect, fov);
   const offset = chapterAt - progress;
-  const radius = camera.radius * 0.52;
+  const readingOffset = offset - 0.023 * Math.tanh(offset / 0.035);
+  const envelope = 2.2 - smoothStep(progress) * 0.85;
+  const clearance = camera.radius * 0.44;
+  // Smoothly combine the compact orbit with lens clearance, without a clamp kink.
+  const radius =
+    clearance / Math.pow(1 + Math.pow(clearance / envelope, 8), 1 / 8);
+  const radialFraction = radius / camera.radius;
   const readingHeight =
-    camera.target[1] + (camera.position[1] - camera.target[1]) * 0.52;
-  const rawHeight = readingHeight - offset * 6.5;
+    camera.target[1] + (camera.position[1] - camera.target[1]) * radialFraction;
   return {
-    angle: orbitAngle(progress) + offset * 3.8,
+    angle:
+      orbitAngle(progress) +
+      readingOffset * 8.8 +
+      smoothStep((progress - 0.765) / 0.085) * 0.35,
     centerX: HELIX_AXIS[0],
     centerZ: HELIX_AXIS[1],
-    height: 1.05 + Math.log1p(Math.exp((rawHeight - 1.05) * 5)) / 5,
+    height: readingHeight - offset * 0.9,
     radius,
   };
 }
@@ -130,8 +140,9 @@ export function panelScale(
   progress: number,
   fov = 40,
 ) {
-  const fraction = 0.64 - smoothStep((progress - 0.62) / 0.22) * 0.14;
-  const natural = (aspect < 0.8 ? 0.8 : 1) * (1 - smoothStep(progress) * 0.28);
+  const fraction = 0.92 - smoothStep((progress - 0.62) / 0.22) * 0.14;
+  const natural =
+    (aspect < 0.8 ? 0.9 : 1.2) * (1 - smoothStep(progress) * 0.18);
   // A bounding sphere includes curled edges and rotated corners, including their
   // perspective enlargement as the near edge approaches the camera.
   const slope =

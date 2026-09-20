@@ -32,3 +32,8 @@ Files were downloaded from the asset URLs returned by https://api.polyhaven.com/
 
 - The seated character is no longer loaded or rendered by the website. Its two collections are hidden in the editable Blender apartment scene; the earlier assets are retained for history.
 - Camera and fabric panels now share one fixed helix axis. The camera path ends at the interactive display pose, with continuous spring-driven scroll and reversible eased click transitions. Static room shadows are cached, and the stationary 3D backdrop stops rendering while the Mac is in use.
+
+## September 20 shallow helix and desk finishes
+
+- Panels retain the earlier reading trajectory on a tighter, shallow helix, passing against the camera's rotation with radial orientation and a maximum seven-degree correction toward it. Larger bounded artwork keeps nearby chapters readable. The screen remains interactive from a distance; the final panel fade triggers the camera approach.
+- `scripts/refine-desk-finish.py` restores all six cube faces to solved colors, removes remaining wooden floor trim, and uses a plain off-white mineral floor. It also increases and tints the Apple emission pink. `scripts/finalize-desk-assets.py` preserves that tint in glTF after Blender export without changing the source emission mask or geometry.
