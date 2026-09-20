@@ -212,12 +212,12 @@ function World(props: SceneProps) {
         color="#fff5e8"
         castShadow
         shadow-mapSize={[4096, 4096]}
-        shadow-camera-left={-4}
-        shadow-camera-right={4}
-        shadow-camera-top={4}
-        shadow-camera-bottom={-4}
+        shadow-camera-left={-11}
+        shadow-camera-right={11}
+        shadow-camera-top={11}
+        shadow-camera-bottom={-11}
         shadow-camera-near={0.5}
-        shadow-camera-far={18}
+        shadow-camera-far={30}
         shadow-normalBias={0.0015}
         shadow-bias={-0.00002}
         shadow-radius={2}
@@ -226,6 +226,27 @@ function World(props: SceneProps) {
         position={[1, 4, -4]}
         intensity={0.35}
         color="#eef3ff"
+      />
+      <pointLight
+        position={[-6.966, 1.48, 4]}
+        color="#ffd09b"
+        intensity={3}
+        distance={4}
+        decay={2}
+      />
+      <pointLight
+        position={[-6.966, 4.58, 1.075]}
+        color="#ffe1b8"
+        intensity={5}
+        distance={6}
+        decay={2}
+      />
+      <pointLight
+        position={[7.48, 3.55, 0.3]}
+        color="#ffdcaa"
+        intensity={2}
+        distance={4}
+        decay={2}
       />
       <Apartment />
       <Desk />

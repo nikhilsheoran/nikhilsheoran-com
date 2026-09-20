@@ -19,7 +19,7 @@ import type { SceneProps } from "./portal";
 
 /** Blender-authored furniture, kept separate from the apartment and laptop. */
 export function Apartment() {
-  const model = useStaticModel("/journey/nyc-apartment.glb?v=desk-finish-2");
+  const model = useStaticModel("/journey/nyc-apartment.glb?v=designed-studio-2");
   return <primitive object={model} />;
 }
 

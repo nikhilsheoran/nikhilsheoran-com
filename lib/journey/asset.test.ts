@@ -3,6 +3,60 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { Matrix4, Quaternion, Vector3 } from "three";
 
+test("the furnished room retains contact shading and surface maps within its runtime budget", () => {
+  const bytes = readFileSync(
+    new URL("../../public/journey/nyc-apartment.glb", import.meta.url),
+  );
+  const data = JSON.parse(
+    bytes.toString("utf8", 20, 20 + bytes.readUInt32LE(12)),
+  );
+  const primitives = data.meshes.flatMap(
+    (mesh: {
+      primitives: {
+        attributes: Record<string, number>;
+        indices: number;
+        material: number;
+      }[];
+    }) => mesh.primitives,
+  );
+  assert.ok(
+    bytes.length < 8_000_000,
+    "the room must stay below the 8 MB transfer budget",
+  );
+  assert.ok(
+    primitives.length <= 64,
+    "static furnishings must be batched by material",
+  );
+  const contactSurfaces = primitives.filter((primitive: { material: number }) =>
+    /floor|upholstery|boucle|limestone/.test(
+      data.materials[primitive.material].name,
+    ),
+  );
+  assert.ok(contactSurfaces.length >= 4, "main room surfaces must be present");
+  assert.ok(
+    contactSurfaces.every(
+      (primitive: { attributes: Record<string, number> }) =>
+        primitive.attributes.COLOR_0 !== undefined,
+    ),
+    "baked contact shading must survive export and optimization",
+  );
+  const triangles = primitives.reduce(
+    (total: number, primitive: { indices: number }) =>
+      total + data.accessors[primitive.indices].count / 3,
+    0,
+  );
+  assert.ok(
+    triangles < 400_000,
+    "bevels and foliage must be simplified for real-time use",
+  );
+  assert.ok(
+    data.materials.filter(
+      (material: { normalTexture?: unknown }) => material.normalTexture,
+    ).length >= 6,
+    "fabric, plaster, wood and stone detail must use portable texture maps",
+  );
+});
+
 test("exported laptop retains physical dimensions and an emissive logo", () => {
   const bytes = readFileSync(
     new URL("../../public/journey/macbook-air-calibrated.glb", import.meta.url),

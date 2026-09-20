@@ -14,10 +14,10 @@ export function useStaticModel(url: string) {
     scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return;
       const geometry = object.geometry.clone().applyMatrix4(object.matrixWorld);
-      // These exports have one material per primitive, no skinning or vertex colors.
+      // Keep the room's baked contact shading and any secondary texture UVs.
       const material = object.material as THREE.MeshStandardMaterial;
       for (const name of Object.keys(geometry.attributes)) {
-        if (!["position", "normal", "uv"].includes(name))
+        if (!["position", "normal", "uv", "uv1", "color"].includes(name))
           geometry.deleteAttribute(name);
       }
       if (!geometry.getAttribute("uv")) {

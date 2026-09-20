@@ -204,3 +204,39 @@ positions and bounded panel size. Browser QA exercises sustained forward wheel
 input through arrival, additional wheel momentum while focused, reverse scroll,
 explicit focus and the Back button. The live DOM-screen projection was unchanged
 on the frame that switched to desktop mode.
+
+## Furnished studio — 2026-09-21
+
+The current editable room is `assets/blender/nikhil-designed-studio.blend`,
+modeled through the live Blender MCP connection. Collection 09 adds a complete
+rear wall and entry, recessed lounge wall, coves, window seating, upholstered
+sofa with piping and draped throw, stone nesting tables, reading chair, book
+storage, slatted media console, turntable, speakers, film camera, clock,
+ceramics, original framed prints, a coffee shelf and branching plants. The room
+footprint is 14% tighter in plan; the desk, rug, calibrated laptop and camera
+rail retain their established coordinates. The person stays omitted.
+
+Fabric, plaster, stone and wood detail uses packed normal/roughness maps that
+survive glTF export. A ten-ray vertex bake adds restrained contact shading,
+including shadows from the separately exported desk and laptop. Runtime static
+batching retains `COLOR_0`. The window shadow now covers the furnished room,
+and three inexpensive warm practical lights complement the daylight.
+
+The final meshopt asset is 6,273,440 bytes, approximately 268k triangles and 50
+material draws. A tight-error gltfpack pass removes redundant geometry and
+quantizes normals, UVs and contact colors while keeping floating point positions
+for runtime transform baking. Editable Blender geometry remains unsimplified.
+See `scripts/room/README.md` for the reproducible export workflow.
+
+Geometry QA sampled 603 points on the actual camera rail at 16:9, 4:3 and 9:16.
+The closest distance to new room geometry was 29.3 cm. Browser review covered
+the opening, middle and final chapter, the automatic Mac focus and return to
+the desk. Asset regression checks enforce transfer/triangle/draw budgets and
+retention of the surface maps and contact colors. This is a detailed real-time
+interior; the browser does not reproduce Cycles global illumination exactly.
+
+Validation: 15 scene tests pass; TypeScript and the production build pass. ESLint
+reports only the existing seven warnings. A local 120-frame browser sample with
+the furnished room measured 9.1 ms median and 17.4 ms at the 95th percentile,
+with no intervals over 34 ms; this is a local sample, not a cross-device guarantee.
+The Cycles overview is saved as `assets/blender/designed-studio-preview.png`.
