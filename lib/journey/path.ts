@@ -137,7 +137,7 @@ export function ribbonPose(
     angle:
       orbitAngle(progress) +
       readingOffset *
-        ((Math.PI * 2) / (3.5 * (chapterProgress(1) - chapterProgress(0)))) +
+        ((Math.PI * 2) / (3.15 * (chapterProgress(1) - chapterProgress(0)))) +
       smootherStep((progress - 0.765) / 0.085) * 0.65,
     centerX: HELIX_AXIS[0],
     centerZ: HELIX_AXIS[1],
@@ -146,7 +146,7 @@ export function ribbonPose(
   };
 }
 
-/** Limit apparent size, including a margin for the deformed edges. */
+/** Small physical sheets grow through perspective; only lens clearance limits their size. */
 export function panelScale(
   depth: number,
   aspect: number,
@@ -154,15 +154,17 @@ export function panelScale(
   fov = 40,
 ) {
   const fraction = 0.92 - smoothStep((progress - 0.62) / 0.22) * 0.14;
-  const natural =
-    (aspect < 0.8 ? 0.9 : 1.2) * (1 - smoothStep(progress) * 0.18);
+  const natural = aspect < 0.8 ? 0.44 : 0.58;
   // A bounding sphere includes curled edges and rotated corners, including their
   // perspective enlargement as the near edge approaches the camera.
   const slope =
     Math.tan((fov * Math.PI) / 360) * Math.min(1, aspect) * fraction;
   const bounded =
     (Math.max(0.02, depth) * slope) / Math.sqrt(1 + slope * slope) / 1.8;
-  return Math.min(natural, bounded);
+  // A smooth safety bound avoids a visible change of scale velocity near the lens.
+  // In the reading orbit the physical size is almost constant, so distance does
+  // the enlarging instead of continually resizing each sheet to fill the frame.
+  return natural / Math.pow(1 + Math.pow(natural / bounded, 8), 1 / 8);
 }
 
 /** Project a rectangle onto four screen-space corners (TL, TR, BR, BL). */

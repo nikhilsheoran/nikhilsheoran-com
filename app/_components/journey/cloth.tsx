@@ -23,13 +23,19 @@ const vertexShader = `
     vUv = uv;
     vec3 p = position;
     float x = uv.x, y = uv.y;
-    // A thin bowed sheet: directional shear follows scroll momentum and settles
-    // flat at rest. No perpetual multi-frequency flag waves or displaced UVs.
+    // Broad, soft folds and loose edges read as fabric without distorting the
+    // printed image with small, fast ripples. Scroll momentum pulls the sheet.
     float momentum = uVelocity * (1. - uHover * .35);
+    float edgeFreedom = .3 + .7 * pow(abs(x - .5) * 2., 1.5);
+    float wind = uTime * .5;
+    float fold = sin(x * 7.4 + y * 1.4 - wind) * .065;
+    float billow = sin(x * 2.8 - y * 3.6 + wind * .7) * .055;
+    float curl = pow(abs(x - .5) * 2., 3.) * sin(y * 4.2 + wind * .6) * .085;
     p.x += momentum * (.48 * (y - .5) - .14 * sin(y * 3.14159));
     p.z += (cos((x - .5) * 2.) - 1.) * .12;
-    p.z += momentum * sin(x * 3.14159) * .055;
-    p.z += sin(x * 3.1 + y * 2.2 + uTime * .35) * .006;
+    p.z += ((fold + billow) * edgeFreedom + curl) * (1. - uHover * .25);
+    p.z += momentum * sin(x * 3.14159) * .075;
+    p.y -= sin(x * 3.14159) * (.025 + .012 * sin(wind + y * 2.));
     float touch = exp(-dot((uv-uTouch)*vec2(1.55,1.),(uv-uTouch)*vec2(1.55,1.))*20.);
     p.z -= touch * .045 * uHover;
     vec4 view = modelViewMatrix * vec4(p,1.);
@@ -66,9 +72,10 @@ const fragmentShader = `
     if(!gl_FrontFacing) n=-n;
     vec3 light = normalize(vec3(-.4,.7,1.));
     float diffuse = abs(dot(n,light));
-    // Mostly photographic, matte ink. Low-contrast shading keeps the artwork
-    // readable instead of making it look metallic or like a noisy woven grid.
-    color *= .94 + diffuse * .08;
+    // Soft diffuse folds with a broad textile sheen, never a hard specular glint.
+    float sheen = pow(1. - abs(dot(n, normalize(-vView))), 3.);
+    color *= .88 + diffuse * .16;
+    color += vec3(.035, .033, .029) * sheen;
     float fog = smoothstep(6.,17.,-vView.z);
     color = mix(color,vec3(.63,.63,.59),fog*.8);
     float edge = smoothstep(0.,.004,min(min(vUv.x,1.-vUv.x),min(vUv.y,1.-vUv.y)));
