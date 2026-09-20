@@ -19,24 +19,19 @@ const vertexShader = `
   uniform vec2 uPointer, uTouch;
   varying vec2 vUv;
   varying vec3 vView;
-  varying float vFold;
   void main() {
     vUv = uv;
     vec3 p = position;
     float x = uv.x, y = uv.y;
-    float freeEdge = .3 + .7 * pow(abs(x-.5)*2., 1.3);
-    float billow = sin(x*4.4 + y*1.2 - uTime*.55) * .11;
-    float ripple = sin(x*11. - y*3.5 - uTime*1.15) * .047;
-    float diagonal = sin(x*6. + y*5. + uTime*.7) * .055;
-    float curl = pow(abs(x-.5)*2., 3.) * .10 * sin(y*2.9 + uTime*.3);
-    float settle = 1. - uHover*.48;
-    p.z += ((billow+ripple+diagonal)*freeEdge + curl) * settle;
-    p.z += sin(x*3.14159) * uVelocity * .17;
-    p.y += sin(x*5.2-uTime*.7)*.06*freeEdge;
-    p.x += sin(y*3.14159)*.06*sin(uTime*.45+x*2.);
+    // A thin bowed sheet: directional shear follows scroll momentum and settles
+    // flat at rest. No perpetual multi-frequency flag waves or displaced UVs.
+    float momentum = uVelocity * (1. - uHover * .35);
+    p.x += momentum * (.48 * (y - .5) - .14 * sin(y * 3.14159));
+    p.z += (cos((x - .5) * 2.) - 1.) * .12;
+    p.z += momentum * sin(x * 3.14159) * .055;
+    p.z += sin(x * 3.1 + y * 2.2 + uTime * .35) * .006;
     float touch = exp(-dot((uv-uTouch)*vec2(1.55,1.),(uv-uTouch)*vec2(1.55,1.))*20.);
-    p.z -= touch * .085 * uHover;
-    vFold = billow;
+    p.z -= touch * .045 * uHover;
     vec4 view = modelViewMatrix * vec4(p,1.);
     vView = view.xyz;
     gl_Position = projectionMatrix * view;
@@ -48,13 +43,12 @@ const fragmentShader = `
   uniform vec2 uPointer;
   varying vec2 vUv;
   varying vec3 vView;
-  varying float vFold;
   void main() {
     vec2 coord = gl_FrontFacing ? vUv : vec2(1.-vUv.x,vUv.y);
     vec2 delta = (vUv-uPointer)*vec2(1.55,1.);
     float d = length(delta);
     float front = uRevealTime * 5.;
-    // Prefilter distant printed surfaces; depth-of-field then softens their silhouette.
+    // Mipmapped photographs with a restrained blur for the neighbouring sheets.
     vec2 blur = vec2(uDefocus * .009);
     vec3 ink = texture2D(uMap, coord).rgb * .28;
     ink += texture2D(uMap, coord + vec2(blur.x,0.)).rgb * .18;
@@ -63,7 +57,8 @@ const fragmentShader = `
     ink += texture2D(uMap, coord - vec2(0.,blur.y)).rgb * .18;
     float gray = dot(ink,vec3(.2126,.7152,.0722));
     float reveal = (1.-smoothstep(front-.18,front+.12,d))*uHover;
-    vec3 color = mix(vec3(gray),ink,reveal);
+    vec3 monochrome = mix(vec3(gray * .95), vec3(.26,.275,.25), .12);
+    vec3 color = mix(monochrome, mix(ink, monochrome, .06), reveal);
     // Printed controls deform, occlude, blur and receive light with the cloth itself.
     vec4 action = texture2D(uActionMap, coord + vec2(0., (1.-uHover)*.012));
     color = mix(color, action.rgb, action.a * smoothstep(.12,.8,uHover));
@@ -71,10 +66,9 @@ const fragmentShader = `
     if(!gl_FrontFacing) n=-n;
     vec3 light = normalize(vec3(-.4,.7,1.));
     float diffuse = abs(dot(n,light));
-    float grazing = pow(1.-abs(dot(n,normalize(-vView))),3.);
-    float weave = sin(vUv.x*1900.)*sin(vUv.y*1300.);
-    color *= .69 + diffuse*.36 + weave*.014;
-    color += grazing*.05 + vFold*.025;
+    // Mostly photographic, matte ink. Low-contrast shading keeps the artwork
+    // readable instead of making it look metallic or like a noisy woven grid.
+    color *= .94 + diffuse * .08;
     float fog = smoothstep(6.,17.,-vView.z);
     color = mix(color,vec3(.63,.63,.59),fog*.8);
     float edge = smoothstep(0.,.004,min(min(vUv.x,1.-vUv.x),min(vUv.y,1.-vUv.y)));
@@ -187,7 +181,7 @@ export function Cloth({
     group.rotation.set(
       -0.1,
       pose.angle + Math.sin(cameraAngle - pose.angle) * 0.12,
-      Math.sin(index * 1.8) * 0.04,
+      -Math.min(0.38, Math.abs(state.progress - chapterProgress(index)) * 2.9),
     );
     viewPosition.copy(group.position).applyMatrix4(camera.matrixWorldInverse);
     const targetScale = panelScale(
@@ -212,8 +206,10 @@ export function Cloth({
         : material.uniforms.uRevealTime.value + Math.min(delta, 0.05);
     material.uniforms.uVelocity.value = THREE.MathUtils.damp(
       material.uniforms.uVelocity.value,
-      THREE.MathUtils.clamp(state.velocity, -0.6, 0.6),
-      5,
+      state.reducedMotion
+        ? 0
+        : THREE.MathUtils.clamp(state.velocity * 3, -1, 1),
+      9,
       delta,
     );
     material.uniforms.uHover.value = THREE.MathUtils.damp(

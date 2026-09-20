@@ -21,6 +21,7 @@ export const HELIX_TURNS = 1.4;
 export const HELIX_START = -Math.PI * 2 * HELIX_TURNS;
 export const HELIX_AXIS = [SCREEN_POSITION[0], SCREEN_POSITION[2]] as const;
 export const PANEL_END = 0.85;
+export const SCREEN_SNAP_START = 0.8;
 export const LAPTOP_HOVER_END = 0.78;
 
 export function screenFillDistance(aspect: number, fovDegrees: number) {
@@ -45,13 +46,22 @@ export function screenPose(aspect: number, fov = 40) {
   };
 }
 
+/** Keep the reading orbit intact, then ease onto the screen before the panels end.
+ * The same curve drives orbit, zoom and aim; focus introduces no second animation.
+ */
+function cameraPhase(progress: number) {
+  const handoff = smootherStep((progress - 0.74) / (PANEL_END - 0.74));
+  const orbit = smootherStep(progress);
+  return orbit + (1 - orbit) * handoff;
+}
+
 export function orbitAngle(progress: number) {
-  return HELIX_START * (1 - smootherStep(progress));
+  return HELIX_START * (1 - cameraPhase(progress));
 }
 
 /** One fixed vertical axis, one zoom curve, and no collision-driven detours. */
 export function journeyPose(progress: number, aspect: number, fov = 40) {
-  const t = smootherStep(progress);
+  const t = cameraPhase(progress);
   const end = screenPose(aspect, fov).position;
   const endRadius = end[2] - HELIX_AXIS[1];
   const radius = endRadius + (7.2 - endRadius) * (1 - t);
@@ -112,8 +122,10 @@ export function ribbonPose(
 ) {
   const camera = journeyPose(progress, aspect, fov);
   const offset = chapterAt - progress;
-  const readingOffset = offset - 0.023 * Math.tanh(offset / 0.035);
-  const envelope = 2.2 - smoothStep(progress) * 0.85;
+  const readingOffset = offset - 0.016 * Math.tanh(offset / 0.04);
+  // Upcoming sheets sit slightly farther out; passed sheets recede inward.
+  const envelope =
+    2.05 - smoothStep(progress) * 0.7 + 0.15 * Math.tanh(offset / 0.15);
   const clearance = camera.radius * 0.44;
   // Smoothly combine the compact orbit with lens clearance, without a clamp kink.
   const radius =
@@ -124,8 +136,9 @@ export function ribbonPose(
   return {
     angle:
       orbitAngle(progress) +
-      readingOffset * 8.8 +
-      smoothStep((progress - 0.765) / 0.085) * 0.35,
+      readingOffset *
+        ((Math.PI * 2) / (3.5 * (chapterProgress(1) - chapterProgress(0)))) +
+      smootherStep((progress - 0.765) / 0.085) * 0.65,
     centerX: HELIX_AXIS[0],
     centerZ: HELIX_AXIS[1],
     height: readingHeight - offset * 0.9,

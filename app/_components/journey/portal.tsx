@@ -21,6 +21,7 @@ import { DesktopShell } from "@/app/_components/desktop-shell";
 import type { NotesData } from "@/lib/mock-desktop-data";
 import { activeChapter, chapters, chapterProgress } from "@/lib/journey/story";
 import styles from "./journey.module.css";
+import { PANEL_END } from "@/lib/journey/path";
 
 export interface JourneyRuntime {
   progress: number;
@@ -37,6 +38,7 @@ export interface JourneyRuntime {
   focusDistance: number;
   cameraPosition: [number, number, number];
   snapArmed: boolean;
+  autoFocusing: boolean;
   screenActive: boolean;
 }
 export interface SceneProps {
@@ -109,6 +111,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     suppressClickUntil: 0,
     focusDistance: 8,
     snapArmed: true,
+    autoFocusing: false,
     screenActive: false,
     cameraPosition: [-5.9, 2.65, -5.8],
   });
@@ -129,6 +132,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const arrive = useCallback(() => {
     const state = runtimeRef.current;
     state.entering = false;
+    state.autoFocusing = false;
     state.returning = false;
     outsideRef.current = false;
     setExitHint(false);
@@ -176,10 +180,19 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     const state = runtimeRef.current;
     if (state.returning) return;
     state.snapArmed = false;
-    state.target = Math.min(state.progress, 0.78);
+    state.autoFocusing = false;
+    state.target = Math.min(state.progress, 0.72);
     setExitHint(false);
     setFallback(false);
     if (!state.desktop && !state.entering) return;
+    if (state.desktop && state.progress >= PANEL_END - 0.0005) {
+      // Automatic focus returns along the very same rail, carrying scroll velocity.
+      state.desktop = false;
+      state.entry = 0;
+      setMode("orbit");
+      rangeRef.current?.focus({ preventScroll: true });
+      return;
+    }
     state.desktop = false;
     state.entering = false;
     state.returning = true;
@@ -240,13 +253,20 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     const advance = (delta: number) => {
       const state = runtimeRef.current;
       if (state.returning) {
-        state.target = Math.max(0, Math.min(1, state.target + delta));
+        // Ignore the tail of the forward gesture during an explicit return.
+        if (delta < 0) state.target = Math.max(0, state.target + delta);
         return;
       }
       if (state.desktop || state.entering) {
-        state.target = Math.max(0, state.progress - 0.06);
-        returnToScene();
+        // Trackpads keep emitting wheel events after arrival. Only a deliberate
+        // reverse scroll outside the live screen should leave the desktop.
+        if (delta < 0) returnToScene();
         return;
+      }
+      if (state.autoFocusing && delta < 0) {
+        state.autoFocusing = false;
+        state.snapArmed = false;
+        state.target = state.progress;
       }
       state.target = Math.max(0, Math.min(1, state.target + delta));
     };
@@ -270,6 +290,10 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         (event.target as Element).closest("button,input,a,iframe")
       )
         return;
+      if (state.autoFocusing) {
+        state.autoFocusing = false;
+        state.snapArmed = false;
+      }
       drag = {
         id: event.pointerId,
         x: event.clientX,
@@ -366,6 +390,8 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       }
       if (event.key === "Home") {
         event.preventDefault();
+        if (runtimeRef.current.desktop || runtimeRef.current.entering)
+          returnToScene();
         runtimeRef.current.target = 0;
       }
       if (event.key === "End") {
@@ -397,7 +423,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const progressChanged = useCallback((progress: number) => {
     if (rangeRef.current)
       rangeRef.current.value = String(Math.round(progress * 1000));
-    setNearScreen(progress > 0.84);
+    setNearScreen(progress > 0.795);
     const next = activeChapter(progress);
     if (lastChapterRef.current !== next) {
       lastChapterRef.current = next;

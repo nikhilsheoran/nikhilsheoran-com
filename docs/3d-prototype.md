@@ -168,3 +168,39 @@ Laptop hover now provides a material highlight and paper tooltip; entry requires
 Panels peel away and fade between 76.5% and 85%, before the camera overtakes them. Their projected size remains bounded and now damps toward that bound. Existing path tests cover maximum visibility, projected bounds, screen framing and continuity.
 
 The human uses Blender Studio's anatomical base, normalized to 181 cm before posing, with local photo landmarks and a facial UV crop. Hair, neck/face integration, sleeve edges and garment topology still need specialist sculpting/retopology and visual likeness review. This is not scan-level identity or body-composition accuracy. Raw references are ignored by git and were not uploaded to an external generator. `scripts/build-seated-likeness.py` expects the local `FACE` landmark dictionary and local normalized reference image; `scripts/refine-seated-likeness.py` is the subsequent face/shoe refinement.
+
+## Continuous screen approach and reference-driven sheets — 2026-09-20
+
+The current scene omits the person. The floor is off-white, the cube is solved,
+and the Apple inlay has soft pink emission. The latest web assets retain the
+Blender scene as their editable source.
+
+Automatic focus is now the endpoint of `journeyPose`, reached at `PANEL_END`
+(85%). Starting after the final reading pose (74%), one shared curve settles
+position, orbit angle and aim together. At 80% the existing scroll spring finishes
+the approach automatically, so moving the pointer over the live iframe cannot
+strand the camera just short of focus. Changing from orbit to desktop introduces
+no additional camera animation. Reverse scrolling or dragging interrupts the
+settle. Forward wheel events after arrival are ignored outside the screen;
+reverse scrolling and the Back button return along the rail. Explicit early
+laptop clicks still use an approach from the current displayed camera pose.
+
+The previous automatic handoff reset scroll velocity and started a second timed
+zoom. Its wheel handler also interpreted the remaining events of the same forward
+gesture as an exit. Both behaviors have been removed from automatic focus.
+
+Studied [The Year of Greta](https://theyearofgreta.com/) live and its public
+`static/1580145979468/js/main.bundle.js`. Its sheets use shallow curvature,
+velocity-dependent shear, a radial sequence with about 3.5 sheets per turn,
+distance-dependent roll, and tinted grayscale photography. They do not use a
+visible woven texture or continuously flapping fabric. Our implementation follows
+those principles with original shader code, this site's images, a compact shallow
+helix around the laptop, and the requested point-origin hover color reveal.
+No Greta images, videos, fonts or source modules are bundled into the project.
+
+Validation includes projected screen continuity at the automatic handoff,
+monotonic camera approach, the three-panel visibility cap, readable chapter
+positions and bounded panel size. Browser QA exercises sustained forward wheel
+input through arrival, additional wheel momentum while focused, reverse scroll,
+explicit focus and the Back button. The live DOM-screen projection was unchanged
+on the frame that switched to desktop mode.

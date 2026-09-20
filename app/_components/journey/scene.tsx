@@ -14,6 +14,7 @@ import {
   transitionPosition,
   advanceSpring,
   PANEL_END,
+  SCREEN_SNAP_START,
 } from "@/lib/journey/path";
 import { Apartment, Desk, Laptop } from "./objects";
 import { Cloth } from "./cloth";
@@ -24,7 +25,6 @@ import type { SceneProps } from "./portal";
 function CameraRig({
   runtimeRef,
   onArrive,
-  onEnter,
   onProgress,
   onReady,
   onReturnComplete,
@@ -62,7 +62,7 @@ function CameraRig({
           ? "desktop"
           : "orbit";
     if ((mode === "entering" || mode === "returning") && motion.mode !== mode) {
-      // Snapshot the displayed pose once, including auto-entry and interrupted entry.
+      // Only explicit laptop clicks need a separate approach from an arbitrary angle.
       motion.from.copy(camera.position);
       motion.startRotation.copy(camera.quaternion);
       motion.startEntry = state.entry;
@@ -107,6 +107,17 @@ function CameraRig({
       motion.target.fromArray(pose.target);
       camera.lookAt(motion.target);
     } else {
+      // Finish the last few centimetres even if the pointer enters the live
+      // iframe and its own scrolling takes over. Reverse input can interrupt.
+      if (
+        state.snapArmed &&
+        state.target >= SCREEN_SNAP_START &&
+        state.progress >= SCREEN_SNAP_START - 0.005 &&
+        !state.dragging
+      ) {
+        state.autoFocusing = true;
+        state.target = Math.max(PANEL_END, state.target);
+      }
       const next = advanceSpring(
         state.progress,
         state.velocity,
@@ -122,14 +133,19 @@ function CameraRig({
       camera.position.fromArray(pose.position);
       motion.target.fromArray(pose.target);
       camera.lookAt(motion.target);
-      if (state.progress < 0.8) state.snapArmed = true;
+      if (state.progress < 0.76) state.snapArmed = true;
       if (
         state.snapArmed &&
         state.target >= PANEL_END &&
         state.progress >= PANEL_END - 0.0005 &&
         !state.dragging
-      )
-        onEnter();
+      ) {
+        // We are already at the screen pose. Only interaction/UI state changes.
+        state.progress = PANEL_END;
+        state.target = PANEL_END;
+        state.velocity = 0;
+        onArrive();
+      }
     }
     camera.updateMatrixWorld();
     camera.position.toArray(state.cameraPosition);

@@ -14,6 +14,7 @@ import {
   HELIX_AXIS,
   panelScale,
   panelPresence,
+  PANEL_END,
 } from "./path";
 import {
   chapterProgress,
@@ -274,4 +275,37 @@ test("scroll spring is frame-rate independent and reverses without resetting its
   assert.ok(Math.max(...results) - Math.min(...results) < 1e-9);
   const step = advanceSpring(0.5, 0.2, 0.1, 1 / 120);
   assert.ok(Math.abs(step.value - 0.5) < 0.002);
+});
+
+test("automatic focus meets the screen with no position or angular jump before the panels end", () => {
+  for (const aspect of [0.46, 1, 1.78, 2.4]) {
+    const end = screenPose(aspect);
+    for (const p of [PANEL_END, 0.9, 1]) {
+      assert.deepEqual(journeyPose(p, aspect).position, end.position);
+      assert.deepEqual(journeyPose(p, aspect).target, end.target);
+    }
+    const camera = new PerspectiveCamera(40, aspect, 0.04, 60);
+    const corner = new Vector3(
+      SCREEN_POSITION[0] + SCREEN_WIDTH / 2,
+      SCREEN_POSITION[1],
+      SCREEN_POSITION[2],
+    );
+    const projections = [PANEL_END - 0.0005, PANEL_END].map((p) => {
+      const pose = journeyPose(p, aspect);
+      camera.position.fromArray(pose.position);
+      camera.lookAt(new Vector3(...pose.target));
+      camera.updateMatrixWorld();
+      return corner.clone().project(camera);
+    });
+    // At the state handoff, less than a hundredth of a pixel at 4K.
+    assert.ok(projections[0].distanceTo(projections[1]) * 3840 < 0.01);
+    // The reading orbit joins the finishing curve without a velocity discontinuity.
+    const h = 0.00001;
+    const poses = [0.74 - h, 0.74, 0.74 + h].map(
+      (p) => new Vector3(...journeyPose(p, aspect).position),
+    );
+    const before = poses[1].clone().sub(poses[0]).divideScalar(h);
+    const after = poses[2].clone().sub(poses[1]).divideScalar(h);
+    assert.ok(before.distanceTo(after) < 0.02);
+  }
 });

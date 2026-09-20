@@ -70,11 +70,6 @@ export async function createPageTexture(chapter: Chapter, index: number) {
   ctx.fillText(chapter.year + "   /   " + chapter.name, 65, 698);
   ctx.font = "500 70px -apple-system, sans-serif";
   wrap(ctx, chapter.title, 60, 790, 1250, 76);
-  // Deterministic, extremely fine print grain; the shader supplies the changing folds/light.
-  for (let y = 0; y < 900; y += 3) {
-    ctx.fillStyle = y % 6 ? "#ffffff05" : "#00000005";
-    ctx.fillRect(0, y, 1400, 1);
-  }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 8;
