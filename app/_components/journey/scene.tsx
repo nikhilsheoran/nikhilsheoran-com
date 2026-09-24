@@ -1,8 +1,8 @@
 "use client";
 
 /* eslint-disable react-hooks/immutability -- The animation loop updates mutable Three.js scene objects. */
-import { Suspense, useEffect, useRef, type RefObject } from "react";
-import { Environment } from "@react-three/drei";
+import { Suspense, useEffect, useRef, useState, type RefObject } from "react";
+import { Environment, PerformanceMonitor } from "@react-three/drei";
 import { Canvas, events, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { works } from "@/lib/journey/works";
@@ -126,6 +126,8 @@ function World(props: SceneProps) {
 }
 
 export function JourneyScene(props: SceneProps) {
+  // Start sharp; step the pixel ratio down (and back up) with measured frame rate.
+  const [dpr, setDpr] = useState(2);
   return (
     <Canvas
       eventSource={props.surfaceRef as RefObject<HTMLDivElement>}
@@ -147,7 +149,7 @@ export function JourneyScene(props: SceneProps) {
       })}
       frameloop="always"
       camera={{ position: [-4.2, 3.3, -6.3], fov: 40, near: 0.04, far: 120 }}
-      dpr={[1, 2]}
+      dpr={dpr}
       shadows={{ type: THREE.PCFShadowMap }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
@@ -155,6 +157,13 @@ export function JourneyScene(props: SceneProps) {
         gl.toneMappingExposure = 1.0;
       }}
     >
+      <PerformanceMonitor
+        bounds={() => [50, 110]}
+        flipflops={3}
+        onChange={({ factor }) =>
+          setDpr(Math.min(window.devicePixelRatio, 1 + factor))
+        }
+      />
       <Suspense fallback={null}>
         <World {...props} />
       </Suspense>

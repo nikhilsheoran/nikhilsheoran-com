@@ -29,6 +29,8 @@ export function EmbeddedDesktop({ notesData }: { notesData: NotesData }) {
       }
     };
     const key = (event: KeyboardEvent) => {
+      // Only that a key was pressed (for the click sound), never which key.
+      if (!event.repeat) send("journey:key");
       if (event.key === "Escape")
         window.parent.postMessage(
           { type: "journey:return" },

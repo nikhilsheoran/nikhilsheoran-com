@@ -424,6 +424,41 @@
   }
 }
 
+/* Sound stays reachable everywhere, including at the Mac. */
+.soundButton {
+  position: absolute;
+  z-index: 110;
+  top: 32px;
+  right: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #fff5;
+  border-radius: 1px 3px 2px 1px;
+  background: var(--paper);
+  box-shadow:
+    0 2px 2px #302a1e17,
+    2px 7px 13px #302a1e25;
+  color: #30372f;
+  font: inherit;
+  font-size: 11px;
+  transform: rotate(0.8deg);
+  cursor: pointer !important;
+  transition: transform 0.2s;
+}
+.soundButton:hover {
+  transform: rotate(-1deg) translateY(-1px);
+}
+.soundButton[aria-pressed="true"] {
+  color: #1d3526;
+}
+.journey[data-mode="focused"] .soundButton {
+  top: auto;
+  bottom: 28px;
+  right: 172px;
+}
+
 /* ── Loader ─────────────────────────────────────────────────────────── */
 .loader {
   position: absolute;
@@ -530,6 +565,17 @@
   .returnButton {
     right: 14px;
     bottom: 18px;
+  }
+  .soundButton {
+    top: 22px;
+    right: 22px;
+  }
+  .soundButton span {
+    display: none;
+  }
+  .journey[data-mode="focused"] .soundButton {
+    bottom: 18px;
+    right: 150px;
   }
 }
 

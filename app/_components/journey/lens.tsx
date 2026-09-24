@@ -50,6 +50,7 @@ const fragment = `
 /** Restrained HDR bloom and short camera shutter; no full-scene defocus. */
 export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
   const { gl, size } = useThree();
+  const pixelRatio = useThree((state) => state.viewport.dpr);
   const pipeline = useMemo(() => {
     const target = new THREE.WebGLRenderTarget(1, 1, {
       type: THREE.HalfFloatType,
@@ -88,7 +89,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
   }, []);
   useEffect(() => {
     const dpr = Math.min(
-      gl.getPixelRatio(),
+      pixelRatio,
       2,
       3840 / size.width,
       2160 / size.height,
@@ -102,7 +103,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
       size.height * dpr,
     );
     pipeline.initialized = false;
-  }, [size, gl, pipeline]);
+  }, [size, pixelRatio, pipeline]);
   useEffect(
     () => () => {
       pipeline.target.dispose();

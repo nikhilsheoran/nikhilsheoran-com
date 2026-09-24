@@ -10,6 +10,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import dynamic from "next/dynamic";
+import { SpeakerHighIcon, SpeakerSlashIcon } from "@phosphor-icons/react";
 import { DesktopShell } from "@/app/_components/desktop-shell";
 import type { NotesData } from "@/lib/mock-desktop-data";
 import { focus, leave, seek, type Mode } from "@/lib/journey/machine";
@@ -19,6 +20,7 @@ import { createRuntime, type FrameReport } from "./runtime";
 import { useJourneyInput } from "./use-journey-input";
 import { Overlay } from "./overlay";
 import { Loader } from "./loader";
+import { RoomSound } from "./sound";
 import styles from "./journey.module.css";
 
 const Scene = dynamic(() => import("./scene").then((m) => m.JourneyScene), {
@@ -53,6 +55,8 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const screenRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const rangeRef = useRef<HTMLInputElement>(null);
+  const soundRef = useRef<RoomSound | null>(null);
+  const lastChapterRef = useRef(INTRO);
 
   const [mode, setMode] = useState<Mode>("orbit");
   const [chapter, setChapter] = useState(INTRO);
@@ -61,6 +65,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [webglFailed, setWebglFailed] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
   const tuning = useSyncExternalStore(
     noSubscription,
     () =>
@@ -83,7 +88,10 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     };
     sync();
     media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
+    return () => {
+      media.removeEventListener("change", sync);
+      soundRef.current?.dispose();
+    };
   }, []);
 
   const onFrame = useCallback(({ mode: next, progress }: FrameReport) => {
@@ -93,7 +101,14 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       rangeRef.current.value = String(Math.round(progress * 1000));
     setMode(next);
     setNearScreen(progress >= runtime.beats.handoffStart);
-    setChapter(activeChapter(progress, runtime.beats));
+    const nextChapter = activeChapter(progress, runtime.beats);
+    if (nextChapter !== lastChapterRef.current) {
+      if (nextChapter >= 0) soundRef.current?.pass();
+      lastChapterRef.current = nextChapter;
+    }
+    setChapter(nextChapter);
+    // The window wall is at +z; the city gets louder as the camera nears it.
+    soundRef.current?.setWindowProximity((runtime.cameraPosition[2] - 1) / 5);
     if (next !== "focused") setExitHint(false);
   }, []);
 
@@ -125,6 +140,9 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         case "journey:inside":
           runtime.pointerOnScreen = true;
           setExitHint(false);
+          break;
+        case "journey:key":
+          soundRef.current?.key();
           break;
         case "journey:return":
           if (runtime.motion.mode === "focused") backToDesk();
@@ -229,6 +247,20 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             />
           </div>
         )}
+        <button
+          className={styles.soundButton}
+          aria-pressed={soundOn}
+          aria-label={soundOn ? "Turn sound off" : "Turn sound on"}
+          onClick={() => {
+            const sound = (soundRef.current ??= new RoomSound());
+            if (soundOn) sound.stop();
+            else void sound.start();
+            setSoundOn(!soundOn);
+          }}
+        >
+          {soundOn ? <SpeakerHighIcon size={16} /> : <SpeakerSlashIcon size={16} />}
+          <span>{soundOn ? "Sound on" : "Sound off"}</span>
+        </button>
         {tuning && <Tuner />}
       </div>
     </>
