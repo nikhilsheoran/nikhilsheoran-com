@@ -39,3 +39,9 @@ next-env.d.ts
 
 # Private likeness references stay local
 /assets/references/
+
+# Local-only working files (Blender history, likeness work)
+/assets/_local/
+# Blender sources are rebuilt from scripts/ and kept local; exports in public/ are committed
+/assets/blender/*.blend
+/assets/blender/*.blend1
