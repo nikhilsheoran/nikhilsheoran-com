@@ -34,7 +34,14 @@ export interface FrameReport {
   progress: number;
 }
 
+/** Preview switches read from the URL: `?baked`, `?statue`. */
+export interface SceneFlags {
+  baked: boolean;
+  statue: boolean;
+}
+
 export interface SceneProps {
+  flags: SceneFlags;
   runtimeRef: RefObject<JourneyRuntime>;
   screenRef: RefObject<HTMLDivElement | null>;
   canvasRef: RefObject<HTMLDivElement | null>;

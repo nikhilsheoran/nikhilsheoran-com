@@ -37,3 +37,19 @@ Files were downloaded from the asset URLs returned by https://api.polyhaven.com/
 
 - Panels retain the earlier reading trajectory on a tighter, shallow helix, passing against the camera's rotation with radial orientation and a maximum seven-degree correction toward it. Larger bounded artwork keeps nearby chapters readable. The screen remains interactive from a distance; the final panel fade triggers the camera approach.
 - `scripts/refine-desk-finish.py` restores all six cube faces to solved colors, removes remaining wooden floor trim, and uses a plain off-white mineral floor. It also increases and tints the Apple emission pink. `scripts/finalize-desk-assets.py` preserves that tint in glTF after Blender export without changing the source emission mask or geometry.
+
+## September 25 baked studio (`studio-baked.glb`)
+
+Lighting, shadows and bounce light are baked with Blender Cycles into the texture atlases of `studio-baked.glb` (generator: `scripts/room/upgrade.py`, `scripts/room/bake.py`). CC0 assets from Poly Haven, https://polyhaven.com/license , downloaded 2026-09-25 through https://api.polyhaven.com (`scripts/room/fetch_polyhaven.py`). Their textures are baked into the atlases; the original files are not redistributed.
+
+- Sky lighting: Qwantani Late Afternoon (Pure Sky), Greg Zaal (photography) and Jarod Guest (processing). https://polyhaven.com/a/qwantani_late_afternoon_puresky
+- Mid Century Lounge Chair, Kuutti Siitonen. https://polyhaven.com/a/mid_century_lounge_chair
+- Potted Plant 01, Rico Cilliers. https://polyhaven.com/a/potted_plant_01
+- Potted Plant 02, Rico Cilliers. https://polyhaven.com/a/potted_plant_02
+- Calathea Orbifolia 01, Rob Tuytel and Rico Cilliers. https://polyhaven.com/a/calathea_orbifolia_01
+- Ceramic Vase 01, 03 and 04, James Ray Cock. https://polyhaven.com/a/ceramic_vase_01 , https://polyhaven.com/a/ceramic_vase_03 , https://polyhaven.com/a/ceramic_vase_04
+- Silver Oak Veneer 01 (desk), Jenelle van Heerden. https://polyhaven.com/a/silver_oak_veneer_01
+- Curly Teddy Natural (sofa boucle), colormass and Rico Cilliers. https://polyhaven.com/a/curly_teddy_natural
+- Polar Fleece (rug), colormass and Rico Cilliers. https://polyhaven.com/a/polar_fleece
+
+The window view in `studio-baked.glb` is the AI-generated Manhattan-inspired plate credited above (`manhattan-view.png`), mirrored at its far edges and extended with a sky gradient into a panorama. The BITS Pilani mark on the notebook is the official asset credited above. All other room geometry is original Blender work.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Html } from "@react-three/drei";
+import { Html, useGLTF } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/lib/journey/anchors";
 import { createScreenTexture } from "./textures";
 import { useStaticModel } from "./static-model";
+import baked from "@/public/journey/studio-baked.json";
 import styles from "./journey.module.css";
 import type { JourneyRuntime, SceneProps } from "./runtime";
 
@@ -29,6 +30,50 @@ export function Desk() {
       <primitive object={model} />
     </group>
   );
+}
+
+/**
+ * The Cycles-baked studio (scripts/room/bake.py). Its textures already hold
+ * albedo × light, scaled down by K for highlight headroom, so every surface is
+ * drawn unlit with its colour scaled back up by exposureScale.
+ */
+export function BakedStudio() {
+  const { scene } = useGLTF("/journey/studio-baked.glb");
+  const model = useMemo(() => {
+    const root = scene.clone(true);
+    root.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return;
+      const source = object.material as THREE.MeshStandardMaterial;
+      object.material = new THREE.MeshBasicMaterial({
+        map: source.map ?? source.emissiveMap,
+        color: new THREE.Color().setScalar(baked.exposureScale),
+        alphaTest: source.alphaTest,
+        side: source.side,
+      });
+      object.castShadow = object.receiveShadow = false;
+    });
+    return root;
+  }, [scene]);
+  return <primitive object={model} />;
+}
+
+/** The unbaked statue, for previewing it under live light. */
+export function Statue() {
+  const { scene } = useGLTF("/journey/statue.glb");
+  const model = useMemo(() => {
+    const root = scene.clone(true);
+    root.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.material = new THREE.MeshStandardMaterial({
+          color: "#cfcbc4",
+          roughness: 0.78,
+        });
+        object.castShadow = object.receiveShadow = true;
+      }
+    });
+    return root;
+  }, [scene]);
+  return <primitive object={model} />;
 }
 
 /** Hover and click invite the direct approach only while orbiting, before the descent. */

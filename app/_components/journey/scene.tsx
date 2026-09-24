@@ -10,7 +10,7 @@ import { tuning } from "@/lib/journey/tuning";
 import { beats } from "@/lib/journey/timeline";
 import { step, type Mode, type Motion } from "@/lib/journey/machine";
 import { approachPose, railPose, viewFov } from "@/lib/journey/path";
-import { Apartment, Desk, Laptop } from "./objects";
+import { Apartment, BakedStudio, Desk, Laptop, Statue } from "./objects";
 import { Cloth } from "./cloth";
 import { Lens } from "./lens";
 import { ScreenProjection } from "./screen";
@@ -107,8 +107,15 @@ function World(props: SceneProps) {
     <>
       <color attach="background" args={["#c9c9c2"]} />
       <Lighting />
-      <Apartment />
-      <Desk />
+      {props.flags.baked ? (
+        <BakedStudio />
+      ) : (
+        <>
+          <Apartment />
+          <Desk />
+          {props.flags.statue && <Statue />}
+        </>
+      )}
       <Laptop onFocus={props.onFocus} runtimeRef={props.runtimeRef} />
       {works.map((work, index) => (
         <Cloth

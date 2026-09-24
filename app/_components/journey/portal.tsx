@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -66,12 +67,19 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const [webglFailed, setWebglFailed] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
-  const tuning = useSyncExternalStore(
+  const search = useSyncExternalStore(
     noSubscription,
-    () =>
-      process.env.NODE_ENV !== "production" &&
-      new URLSearchParams(window.location.search).has("tune"),
-    () => false,
+    () => window.location.search,
+    () => "",
+  );
+  const params = new URLSearchParams(search);
+  const tuning = process.env.NODE_ENV !== "production" && params.has("tune");
+  const flags = useMemo(
+    () => ({
+      baked: new URLSearchParams(search).has("baked"),
+      statue: new URLSearchParams(search).has("statue"),
+    }),
+    [search],
   );
 
   const focused = mode === "focused";
@@ -208,6 +216,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
               screenRef={screenRef}
               canvasRef={canvasRef}
               surfaceRef={surfaceRef}
+              flags={flags}
               onFocus={focusScreen}
               onFrame={onFrame}
             />

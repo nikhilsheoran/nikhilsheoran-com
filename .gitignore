@@ -45,3 +45,5 @@ next-env.d.ts
 # Blender sources are rebuilt from scripts/ and kept local; exports in public/ are committed
 /assets/blender/*.blend
 /assets/blender/*.blend1
+/assets/blender/review-*.png
+__pycache__/
