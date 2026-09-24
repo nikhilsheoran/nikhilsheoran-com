@@ -54,7 +54,7 @@ export const DEFAULT_TUNING = {
     /** Physical width of a panel. */
     width: 1.55,
     /** Largest share of the frame width a passing panel may cover. */
-    maxViewFraction: 0.55,
+    maxViewFraction: 0.42,
     /** Onion-skin falloff: higher = neighbours fainter. */
     onion: 1.35,
   },

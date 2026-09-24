@@ -191,6 +191,9 @@ export function Laptop({
             color={screen ? "white" : "#728376"}
             toneMapped={false}
             blending={THREE.NoBlending}
+            // Once the live desktop is ready this becomes a hole: rgb must reach
+            // zero with alpha, or the compositor adds the placeholder over it.
+            premultipliedAlpha
             transparent
           />
         </mesh>
