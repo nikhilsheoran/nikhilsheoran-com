@@ -4,12 +4,14 @@ import {
   PlayIcon,
   XLogoIcon,
   ArrowUpRightIcon,
+  GlobeSimpleIcon,
 } from "@phosphor-icons/react/ssr";
 import { writeFileSync } from "node:fs";
 for (const [name, Icon, weight] of [
   ["play", PlayIcon, "fill"],
   ["x", XLogoIcon, "regular"],
   ["external", ArrowUpRightIcon, "bold"],
+  ["globe", GlobeSimpleIcon, "regular"],
 ] as const) {
   writeFileSync(
     `public/journey/action-${name}.svg`,

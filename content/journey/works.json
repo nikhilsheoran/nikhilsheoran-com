@@ -1,0 +1,108 @@
+[
+  {
+    "slug": "first-video",
+    "year": "2022",
+    "date": "2022-02",
+    "kind": "youtube",
+    "url": "https://www.youtube.com/watch?v=krWeNv1GvSY",
+    "image": "/journey/works/first-video.jpg",
+    "title": "First video",
+    "subtitle": "Started a new YouTube channel after binge-watching Mike Shake. This was video one.",
+    "source": "YouTube thumbnail",
+    "videoTitle": "How I Learned to Spin A Ball on Finger (Hindi)"
+  },
+  {
+    "slug": "first-dollar",
+    "year": "2022",
+    "date": "2022-12",
+    "kind": "x",
+    "url": "https://x.com/_nikhilsheoran/status/1604491342482214913",
+    "image": "/journey/works/first-dollar.jpg",
+    "title": "First dollar",
+    "subtitle": "Edited a video for a senior's channel. Got paid ₹600. I was 16.",
+    "source": "tweet card",
+    "tweetText": "Today, for the first time in my life, I earned money and it’s the best feeling. 🥳\n\nI am 16 btw. 😄"
+  },
+  {
+    "slug": "hostel-life",
+    "year": "2023",
+    "date": "2023-02",
+    "kind": "youtube",
+    "url": "https://www.youtube.com/watch?v=sNO5pibczTI",
+    "image": "/journey/works/hostel-life.jpg",
+    "title": "Making videos",
+    "subtitle": "Used to really enjoy making videos. Might return to it someday.",
+    "source": "YouTube thumbnail",
+    "videoTitle": "BITS Goa Hostel life | My experience | Nikhil Sheoran"
+  },
+  {
+    "slug": "media-groww",
+    "year": "2023",
+    "date": "2023-04",
+    "kind": "web",
+    "url": "https://web.archive.org/web/20250227163248/https://mediagroww.com/",
+    "captureUrl": "https://web.archive.org/web/20250227163248id_/https://mediagroww.com/",
+    "frameLabel": "mediagroww.com",
+    "image": "/journey/works/media-groww.jpg",
+    "title": "Media Groww",
+    "subtitle": "Started a video editing service for creators with Jeet.",
+    "source": "homepage screenshot (Wayback Machine, Feb 2025)"
+  },
+  {
+    "slug": "fastcut",
+    "year": "2023",
+    "date": null,
+    "kind": "web",
+    "url": "https://fastcutai.co",
+    "image": "/journey/works/fastcut.jpg",
+    "title": "FastCut",
+    "subtitle": "Built an AI video editor with Harsh. 13k+ users across 38 countries, no funding.",
+    "source": "homepage screenshot"
+  },
+  {
+    "slug": "goa-police-hackathon",
+    "year": "2024",
+    "date": "2024-10",
+    "kind": "x",
+    "url": "https://x.com/_nikhilsheoran/status/1849360705084121385",
+    "image": "/journey/works/goa-police-hackathon.jpg",
+    "title": "Goa Police hackathon",
+    "subtitle": "Won the Goa Police hackathon and got to demo our project to the DGP.",
+    "source": "tweet card",
+    "tweetText": "Woah so I showcased our hackathon project to DGP Goa today.\n\nThis hackathon thing is interesting."
+  },
+  {
+    "slug": "spotthescam",
+    "year": "2025",
+    "date": "2025-03",
+    "kind": "web",
+    "url": "https://spotthescam.in",
+    "image": "/journey/works/spotthescam.jpg",
+    "title": "SpotTheScam",
+    "subtitle": "The hackathon project became a real tool, built with BITS Pilani and launched by Goa's chief minister.",
+    "source": "homepage screenshot"
+  },
+  {
+    "slug": "first-job",
+    "year": "2025",
+    "date": "2025-08",
+    "kind": "x",
+    "url": "https://x.com/_nikhilsheoran/status/1954943060749799496",
+    "image": "/journey/works/first-job.jpg",
+    "title": "First job",
+    "subtitle": "Joined Ponder as a founding engineer. It didn't work out, but it was a start.",
+    "source": "tweet card",
+    "tweetText": "Time to reintroduce myself here:\n\n> 19, ece@BITS goa\n> fullstack web dev\n> love tech & video editing\n> built a startup around that, failed\n> got a 50LPA remote job soon after\n> didn’t work out, had to part ways\n> moved to blr recently\n\nFiguring out what’s next, hit me up if you…"
+  },
+  {
+    "slug": "backdoor",
+    "year": "2026",
+    "date": null,
+    "kind": "web",
+    "url": "https://backdoorai.app",
+    "image": "/journey/works/backdoor.jpg",
+    "title": "Backdoor",
+    "subtitle": "Building an AI agent that helps people land interviews at early-stage startups, with Sarvagya.",
+    "source": "homepage screenshot"
+  }
+]

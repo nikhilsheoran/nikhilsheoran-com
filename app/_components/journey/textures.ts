@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { Chapter } from "@/lib/journey/story";
+import type { Work } from "@/lib/journey/works";
 
 function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
@@ -29,83 +29,54 @@ function cover(
   ctx.restore();
 }
 
-function wrap(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number,
-) {
-  let line = "";
-  for (const word of text.split(" ")) {
-    if (ctx.measureText(`${line}${word} `).width > maxWidth && line) {
-      ctx.fillText(line.trim(), x, y);
-      y += lineHeight;
-      line = "";
-    }
-    line += `${word} `;
-  }
-  ctx.fillText(line.trim(), x, y);
-  return y + lineHeight;
-}
-
-/** Full-bleed photographic fabric. Labels are printed into the surface, not framed cards. */
-export async function createPageTexture(chapter: Chapter, index: number) {
+/** The work's artwork, cover-fitted to the sheet's 16:10 print area. No printed text. */
+export async function createArtworkTexture(work: Work) {
   const canvas = document.createElement("canvas");
-  canvas.width = 1400;
-  canvas.height = 900;
+  canvas.width = 1600;
+  canvas.height = 1000;
   const ctx = canvas.getContext("2d")!;
-  const image = await loadImage(chapter.image);
-  ctx.fillStyle = chapter.accent;
-  ctx.fillRect(0, 0, 1400, 900);
-  if (image) cover(ctx, image, 0, 0, 1400, 900);
-  const shade = ctx.createLinearGradient(0, 280, 0, 900);
-  shade.addColorStop(0, "#0a151900");
-  shade.addColorStop(1, "#071516d9");
-  ctx.fillStyle = shade;
-  ctx.fillRect(0, 0, 1400, 900);
-  ctx.fillStyle = "#f0f1e8";
-  ctx.font = "500 24px -apple-system, sans-serif";
-  ctx.fillText(chapter.year + "   /   " + chapter.name, 65, 698);
-  ctx.font = "500 70px -apple-system, sans-serif";
-  wrap(ctx, chapter.title, 60, 790, 1250, 76);
+  ctx.fillStyle = "#3c4540";
+  ctx.fillRect(0, 0, 1600, 1000);
+  const image = await loadImage(work.image);
+  if (image) cover(ctx, image, 0, 0, 1600, 1000);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 8;
-  texture.name = `chapter-fabric-${index}`;
+  texture.name = `work-${work.slug}`;
   return texture;
 }
 
-/** Transparent printed ink, sampled in the same UV space and lighting as the photograph. */
-export async function createActionTexture(kind: Chapter["kind"]) {
+const ACTION_ICON = { youtube: "play", x: "x", web: "globe" } as const;
+
+/** Transparent printed ink, sampled in the same UV space and lighting as the artwork. */
+export async function createActionTexture(kind: Work["kind"]) {
   const canvas = document.createElement("canvas");
-  canvas.width = 1400;
-  canvas.height = 900;
+  canvas.width = 1600;
+  canvas.height = 1000;
   const ctx = canvas.getContext("2d")!;
   const [icon, arrow] = await Promise.all([
-    loadImage(`/journey/action-${kind === "youtube" ? "play" : "x"}.svg`),
+    loadImage(`/journey/action-${ACTION_ICON[kind]}.svg`),
     loadImage("/journey/action-external.svg"),
   ]);
   ctx.fillStyle = "#08140fb3";
   ctx.strokeStyle = "#ffffffd9";
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(700, 430, 66, 0, Math.PI * 2);
+  ctx.arc(800, 500, 74, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
-  if (icon) ctx.drawImage(icon, 668, 398, 64, 64);
+  if (icon) ctx.drawImage(icon, 764, 464, 72, 72);
   ctx.beginPath();
-  ctx.arc(1305, 92, 35, 0, Math.PI * 2);
+  ctx.arc(1494, 104, 40, 0, Math.PI * 2);
   ctx.fill();
-  if (arrow) ctx.drawImage(arrow, 1282, 69, 46, 46);
+  if (arrow) ctx.drawImage(arrow, 1468, 78, 52, 52);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 8;
   return texture;
 }
 
-/** Lightweight on-device screen preview. Entry hands off to the real DesktopShell. */
+/** Shown on the laptop only until the live desktop iframe reports ready. */
 export async function createScreenTexture() {
   const canvas = document.createElement("canvas");
   canvas.width = 1280;
@@ -135,12 +106,6 @@ export async function createScreenTexture() {
     17,
     20,
   );
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#ffffffe0";
-  ctx.font = "500 52px -apple-system, sans-serif";
-  ctx.fillText("Make yourself at home.", 640, 370);
-  ctx.font = "23px -apple-system, sans-serif";
-  ctx.fillText("Nikhil’s Mac", 640, 418);
   ctx.fillStyle = "#ffffff70";
   ctx.beginPath();
   ctx.roundRect(420, 700, 440, 82, 24);

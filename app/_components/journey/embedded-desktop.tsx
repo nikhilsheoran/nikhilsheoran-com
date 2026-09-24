@@ -14,6 +14,12 @@ export function EmbeddedDesktop({ notesData }: { notesData: NotesData }) {
         event.source !== window.parent
       )
         return;
+      // The parent asks whenever its listener is ready; answer every time.
+      if (event.data?.type === "journey:hello")
+        window.parent.postMessage(
+          { type: "journey:ready" },
+          window.location.origin,
+        );
       if (
         event.data?.type === "journey:open-note" &&
         typeof event.data.slug === "string" &&

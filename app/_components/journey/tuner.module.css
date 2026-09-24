@@ -1,0 +1,72 @@
+.tuner {
+  position: absolute;
+  z-index: 200;
+  top: 12px;
+  right: 12px;
+  width: 300px;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #101512e6;
+  color: #e9eee9;
+  font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  backdrop-filter: blur(12px);
+  cursor: default;
+}
+.tuner header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tuner button {
+  font: inherit;
+  color: inherit;
+  background: #ffffff14;
+  border: 1px solid #ffffff2a;
+  border-radius: 5px;
+  padding: 4px 9px;
+  cursor: pointer;
+}
+.tuner button:hover {
+  background: #ffffff26;
+}
+.actions {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+.tuner fieldset {
+  border: 0;
+  border-top: 1px solid #ffffff1f;
+  margin: 10px 0 0;
+  padding: 8px 0 0;
+}
+.tuner legend {
+  color: #9fb8a8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-right: 6px;
+}
+.tuner label {
+  display: grid;
+  grid-template-columns: 112px 1fr 44px;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+.tuner label[data-changed="true"] span {
+  color: #f2c96b;
+}
+.tuner input {
+  width: 100%;
+  accent-color: #9fd3b4;
+}
+.tuner output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.note {
+  margin: 12px 0 2px;
+  color: #aab5ad;
+}

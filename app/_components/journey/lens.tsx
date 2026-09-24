@@ -4,7 +4,7 @@
 import { useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import type { SceneProps } from "./portal";
+import type { SceneProps } from "./runtime";
 
 const fragment = `
   uniform sampler2D tColor,tDepth;
@@ -120,8 +120,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
       camera.matrixWorldInverse,
     );
     if (
-      state.desktop &&
-      state.entry === 1 &&
+      state.motion.mode === "focused" &&
       pipeline.initialized &&
       pipeline.vp.equals(pipeline.previous)
     )
@@ -133,9 +132,10 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
     uniforms.uInverseVP.value.copy(pipeline.vp).invert();
     uniforms.uPreviousVP.value.copy(pipeline.previous);
     // Normalize shutter time against frame rate and remove temporal effects for reduced motion.
-    uniforms.uMotion.value = state.reducedMotion
-      ? 0
-      : Math.min(0.18, 0.003 / Math.max(delta, 0.008)) * (1 - state.entry);
+    uniforms.uMotion.value =
+      state.motion.reducedMotion || state.motion.mode === "focused"
+        ? 0
+        : Math.min(0.18, 0.003 / Math.max(delta, 0.008));
     const toneMapping = gl.toneMapping;
     gl.toneMapping = THREE.NoToneMapping;
     gl.setRenderTarget(pipeline.target);

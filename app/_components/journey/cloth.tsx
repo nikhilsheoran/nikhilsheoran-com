@@ -4,24 +4,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { chapterProgress, type Chapter } from "@/lib/journey/story";
-import {
-  ribbonPose,
-  smoothStep,
-  panelScale,
-  panelPresence,
-} from "@/lib/journey/path";
-import { createPageTexture, createActionTexture } from "./textures";
-import type { SceneProps } from "./portal";
+import { tuning } from "@/lib/journey/tuning";
+import { panelPose, panelScale, smoothStep } from "@/lib/journey/path";
+import type { Work } from "@/lib/journey/works";
+import { createActionTexture, createArtworkTexture } from "./textures";
+import type { SceneProps } from "./runtime";
 
 const vertexShader = `
-  uniform float uTime, uHover, uVelocity, uRevealTime;
+  uniform float uTime, uHover, uVelocity, uRevealTime, uAmp;
   uniform vec2 uPointer, uTouch;
   varying vec2 vUv;
   varying vec3 vView;
   void main() {
     vUv = uv;
     vec3 p = position;
+    vec3 rest = position;
     float x = uv.x, y = uv.y;
     // Broad, soft folds and loose edges read as fabric without distorting the
     // printed image with small, fast ripples. Scroll momentum pulls the sheet.
@@ -38,6 +35,8 @@ const vertexShader = `
     p.y -= sin(x * 3.14159) * (.025 + .012 * sin(wind + y * 2.));
     float touch = exp(-dot((uv-uTouch)*vec2(1.55,1.),(uv-uTouch)*vec2(1.55,1.))*20.);
     p.z -= touch * .045 * uHover;
+    // Fold amplitudes were authored for a 2.8-unit sheet; keep them proportional.
+    p = rest + (p - rest) * uAmp;
     vec4 view = modelViewMatrix * vec4(p,1.);
     vView = view.xyz;
     gl_Position = projectionMatrix * view;
@@ -94,11 +93,13 @@ function visibleRaycast(
     THREE.Mesh.prototype.raycast.call(this, raycaster, intersections);
 }
 
+const ASPECT = 1000 / 1600;
+
 export function Cloth({
-  item,
+  work,
   index,
   runtimeRef,
-}: { item: Chapter; index: number } & Pick<SceneProps, "runtimeRef">) {
+}: { work: Work; index: number } & Pick<SceneProps, "runtimeRef">) {
   const [loaded, setLoaded] = useState(false);
   const groupRef = useRef<THREE.Group>(null);
   const hoveredRef = useRef(false);
@@ -119,6 +120,7 @@ export function Cloth({
           uVelocity: { value: 0 },
           uOpacity: { value: 0 },
           uDefocus: { value: 0 },
+          uAmp: { value: tuning.panels.width / 2.8 },
           uPointer: { value: new THREE.Vector2(0.5, 0.5) },
           uTouch: { value: new THREE.Vector2(0.5, 0.5) },
         },
@@ -128,23 +130,22 @@ export function Cloth({
   useEffect(() => {
     let cancelled = false;
     let textures: THREE.Texture[] = [];
-    Promise.all([
-      createPageTexture(item, index),
-      createActionTexture(item.kind),
-    ]).then(([t, action]) => {
-      textures = [t, action];
-      if (cancelled) textures.forEach((texture) => texture.dispose());
-      else {
-        material.uniforms.uMap.value = t;
-        material.uniforms.uActionMap.value = action;
-        setLoaded(true);
-      }
-    });
+    Promise.all([createArtworkTexture(work), createActionTexture(work.kind)]).then(
+      ([art, action]) => {
+        textures = [art, action];
+        if (cancelled) textures.forEach((texture) => texture.dispose());
+        else {
+          material.uniforms.uMap.value = art;
+          material.uniforms.uActionMap.value = action;
+          setLoaded(true);
+        }
+      },
+    );
     return () => {
       cancelled = true;
       textures.forEach((texture) => texture.dispose());
     };
-  }, [item, index, material]);
+  }, [work, material]);
   useEffect(
     () => () => {
       material.dispose();
@@ -152,116 +153,111 @@ export function Cloth({
     },
     [material],
   );
-  const viewPosition = useMemo(() => new THREE.Vector3(), []);
+  const toCamera = useMemo(() => new THREE.Vector3(), []);
   const touchTarget = useRef(new THREE.Vector2(0.5, 0.5));
   useFrame(({ clock, size, camera }, delta) => {
-    const state = runtimeRef.current;
-    const pose = ribbonPose(
-      state.progress,
-      chapterProgress(index),
-      size.width / size.height,
-      (camera as THREE.PerspectiveCamera).fov,
-    );
     const group = groupRef.current;
     if (!group) return;
-    const entryFade = 1 - smoothStep(state.entry / 0.45);
-    const ending = panelPresence(state.progress, index);
-    material.uniforms.uOpacity.value = ending * entryFade;
-    group.visible =
-      material.uniforms.uOpacity.value > 0.015 && pose.height > -0.4;
-    if (!group.visible && hoveredRef.current) {
-      hoveredRef.current = false;
-      document.body.style.removeProperty("--journey-cursor");
+    const runtime = runtimeRef.current;
+    const motion = runtime.motion;
+    const pose = panelPose(
+      index,
+      motion.progress,
+      runtime.beats,
+      tuning,
+      runtime.cameraPosition,
+    );
+    // A direct laptop approach clears the panels out of its way.
+    const approachFade =
+      motion.approachFrom === null ? 1 : 1 - smoothStep(motion.approach / 0.35);
+    const focusFade = motion.mode === "focused" ? 0 : 1;
+    const opacity = pose.opacity * approachFade * focusFade;
+    material.uniforms.uOpacity.value = opacity;
+    material.uniforms.uAmp.value = tuning.panels.width / 2.8;
+    group.visible = opacity > 0.012;
+    if (!group.visible) {
+      if (hoveredRef.current) {
+        hoveredRef.current = false;
+        document.body.style.removeProperty("--journey-cursor");
+      }
+      return;
     }
-    if (!group.visible) return;
-    const t = state.reducedMotion ? index * 2 : clock.elapsedTime;
-    group.position.set(
-      pose.centerX + Math.sin(pose.angle) * pose.radius,
-      pose.height,
-      pose.centerZ + Math.cos(pose.angle) * pose.radius,
+    group.position.fromArray(pose.position);
+    group.rotation.set(...pose.rotation);
+    const distance = toCamera.copy(group.position).sub(camera.position).length();
+    group.scale.setScalar(
+      panelScale(
+        distance,
+        size.width / size.height,
+        (camera as THREE.PerspectiveCamera).fov,
+        tuning.panels.width,
+        tuning.panels.maxViewFraction,
+      ),
     );
-    // Retain the radial orientation; only correct it by up to seven degrees.
-    const cameraAngle = Math.atan2(
-      camera.position.x - pose.centerX,
-      camera.position.z - pose.centerZ,
-    );
-    group.rotation.set(
-      -0.1,
-      pose.angle + Math.sin(cameraAngle - pose.angle) * 0.12,
-      -Math.min(0.38, Math.abs(state.progress - chapterProgress(index)) * 2.9),
-    );
-    viewPosition.copy(group.position).applyMatrix4(camera.matrixWorldInverse);
-    const targetScale = panelScale(
-      -viewPosition.z,
-      size.width / size.height,
-      state.progress,
-      (camera as THREE.PerspectiveCamera).fov,
-    );
-    group.scale.setScalar(targetScale);
     material.uniforms.uDefocus.value =
-      smoothStep(
-        (Math.abs(state.progress - chapterProgress(index)) - 0.055) / 0.18,
-      ) * (hoveredRef.current ? 0.2 : 1);
+      smoothStep((Math.abs(pose.phase) - 0.35) / 0.8) *
+      (hoveredRef.current ? 0.2 : 1);
     material.uniforms.uTouch.value.lerp(
       touchTarget.current,
       1 - Math.exp(-14 * delta),
     );
-    material.uniforms.uTime.value = t + index * 3.1;
+    material.uniforms.uTime.value =
+      (motion.reducedMotion ? 0 : clock.elapsedTime) + index * 3.1;
     if (hoveredRef.current)
-      material.uniforms.uRevealTime.value = state.reducedMotion
+      material.uniforms.uRevealTime.value = motion.reducedMotion
         ? 3
         : material.uniforms.uRevealTime.value + Math.min(delta, 0.05);
     material.uniforms.uVelocity.value = THREE.MathUtils.damp(
       material.uniforms.uVelocity.value,
-      state.reducedMotion
+      motion.reducedMotion
         ? 0
-        : THREE.MathUtils.clamp(state.velocity * 3, -1, 1),
+        : THREE.MathUtils.clamp(motion.velocity * 3, -1, 1),
       9,
       delta,
     );
     material.uniforms.uHover.value = THREE.MathUtils.damp(
       material.uniforms.uHover.value,
-      hoveredRef.current && !state.dragging ? 1 : 0,
-      state.reducedMotion ? 1000 : 18,
+      hoveredRef.current && !motion.dragging ? 1 : 0,
+      motion.reducedMotion ? 1000 : 18,
       delta,
     );
-    if (hoveredRef.current && group.visible)
-      state.focusDistance = -viewPosition.z;
   });
   if (!loaded) return null;
+  const width = tuning.panels.width;
   return (
     <group ref={groupRef} name="journey-panel">
       <mesh
         material={material}
         raycast={visibleRaycast}
-        onPointerOver={(e) => {
-          e.stopPropagation();
+        onPointerOver={(event) => {
+          event.stopPropagation();
           hoveredRef.current = true;
           document.body.style.setProperty("--journey-cursor", "pointer");
           material.uniforms.uRevealTime.value = 0;
-          if (e.uv) {
-            material.uniforms.uPointer.value.copy(e.uv);
-            touchTarget.current.copy(e.uv);
+          if (event.uv) {
+            material.uniforms.uPointer.value.copy(event.uv);
+            touchTarget.current.copy(event.uv);
           }
         }}
-        onPointerMove={(e) => {
-          if (e.uv) touchTarget.current.copy(e.uv);
+        onPointerMove={(event) => {
+          if (event.uv) touchTarget.current.copy(event.uv);
         }}
         onPointerOut={() => {
           hoveredRef.current = false;
           document.body.style.removeProperty("--journey-cursor");
         }}
-        onClick={(e) => {
-          e.stopPropagation();
+        onClick={(event) => {
+          event.stopPropagation();
+          const runtime = runtimeRef.current;
           if (
-            runtimeRef.current.dragging ||
-            performance.now() < runtimeRef.current.suppressClickUntil
+            runtime.motion.dragging ||
+            performance.now() < runtime.suppressClickUntil
           )
             return;
-          window.open(item.url, "_blank", "noopener,noreferrer");
+          window.open(work.url, "_blank", "noopener,noreferrer");
         }}
       >
-        <planeGeometry args={[2.8, 1.8, 48, 32]} />
+        <planeGeometry args={[width, width * ASPECT, 48, 32]} />
       </mesh>
     </group>
   );

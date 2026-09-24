@@ -10,12 +10,11 @@ import {
   SCREEN_WIDTH,
   SCREEN_HEIGHT,
   SCREEN_LOCAL_POSITION,
-} from "@/lib/journey/story";
+} from "@/lib/journey/anchors";
 import { createScreenTexture } from "./textures";
 import { useStaticModel } from "./static-model";
-import { LAPTOP_HOVER_END } from "@/lib/journey/path";
 import styles from "./journey.module.css";
-import type { SceneProps } from "./portal";
+import type { JourneyRuntime, SceneProps } from "./runtime";
 
 /** Blender-authored furniture, kept separate from the apartment and laptop. */
 export function Apartment() {
@@ -32,10 +31,21 @@ export function Desk() {
   );
 }
 
+/** Hover and click invite the direct approach only while orbiting, before the descent. */
+function laptopInviting(runtime: JourneyRuntime) {
+  const motion = runtime.motion;
+  return (
+    motion.mode === "orbit" &&
+    !motion.dragging &&
+    !runtime.pointerOnScreen &&
+    motion.progress < runtime.beats.handoffStart
+  );
+}
+
 export function Laptop({
-  onEnter,
+  onFocus,
   runtimeRef,
-}: Pick<SceneProps, "onEnter" | "runtimeRef">) {
+}: Pick<SceneProps, "onFocus" | "runtimeRef">) {
   const [screen, setScreen] = useState<THREE.Texture | null>(null);
   const [hovered, setHovered] = useState(false);
   const model = useStaticModel(
@@ -129,23 +139,9 @@ export function Laptop({
         (camera.position.distanceTo(highlight.worldCenter) * 0.9) / size.height,
       ),
     );
-    const active =
-      hovered &&
-      runtimeRef.current.progress < LAPTOP_HOVER_END &&
-      !runtimeRef.current.screenActive &&
-      !runtimeRef.current.dragging &&
-      !runtimeRef.current.entering &&
-      !runtimeRef.current.returning &&
-      !runtimeRef.current.desktop;
-    if (
-      hovered &&
-      (runtimeRef.current.progress >= LAPTOP_HOVER_END ||
-        runtimeRef.current.screenActive ||
-        runtimeRef.current.entering ||
-        runtimeRef.current.returning ||
-        runtimeRef.current.desktop)
-    )
-      setHovered(false);
+    const inviting = laptopInviting(runtimeRef.current);
+    const active = hovered && inviting;
+    if (hovered && !inviting) setHovered(false);
 
     highlight.strength.value = THREE.MathUtils.damp(
       highlight.strength.value,
@@ -162,7 +158,7 @@ export function Laptop({
       onClick={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
         setHovered(false);
-        if (!runtimeRef.current.entering) onEnter();
+        onFocus();
       }}
     >
       {/* Separate invisible interaction volume avoids gaps between keys and screen. */}
@@ -218,15 +214,7 @@ function HoverRegion({
       position={center}
       onPointerOver={(event) => {
         event.stopPropagation();
-        const state = runtimeRef.current;
-        if (
-          !state.entering &&
-          !state.returning &&
-          !state.desktop &&
-          !state.dragging &&
-          !state.screenActive &&
-          state.progress < LAPTOP_HOVER_END
-        ) {
+        if (laptopInviting(runtimeRef.current)) {
           onHover(true);
           document.body.style.setProperty("--journey-cursor", "pointer");
         }

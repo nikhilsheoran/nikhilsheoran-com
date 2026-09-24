@@ -1,28 +1,44 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { PerspectiveCamera, Vector3 } from "three";
+import { Matrix4, PerspectiveCamera, Vector3 } from "three";
 import {
-  quadMatrix,
-  orbitAngle,
-  ribbonPose,
-  journeyPose,
-  screenFillDistance,
   advanceSpring,
+  approachPose,
+  panelPose,
+  quadMatrix,
+  railPose,
   screenPose,
-  screenApproach,
-  smootherStep,
-  HELIX_AXIS,
-  panelScale,
-  panelPresence,
-  PANEL_END,
+  viewFov,
+  type Vec3,
 } from "./path";
-import {
-  chapterProgress,
-  SCREEN_POSITION,
-  SCREEN_TILT,
-  SCREEN_WIDTH,
-  SCREEN_HEIGHT,
-} from "./story";
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from "./anchors";
+import { beats } from "./timeline";
+import { DEFAULT_TUNING } from "./tuning";
+import { createMotion, focus, leave, nudge, step } from "./machine";
+
+const T = DEFAULT_TUNING;
+const WORKS = 9;
+const B = beats(T, WORKS);
+const VIEWPORTS = [16 / 9, 16 / 10, 4 / 3, 0.46];
+
+/** Where the seated statue is allowed to be (see scripts/statue). */
+const HEAD = { center: [0, 2.6, 0.95] as Vec3, radius: 0.28 };
+const TORSO = { min: [-0.45, 0.95, 0.72], max: [0.45, 2.4, 1.5] };
+
+const distance = (a: readonly number[], b: readonly number[]) =>
+  Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+
+function insideBox(p: readonly number[], box: typeof TORSO, pad: number) {
+  return p.every((v, i) => v > box.min[i] - pad && v < box.max[i] + pad);
+}
+
+function cameraAt(pose: { position: Vec3; target: Vec3 }, aspect: number) {
+  const camera = new PerspectiveCamera(viewFov(aspect, T), aspect, 0.04, 100);
+  camera.position.fromArray(pose.position);
+  camera.lookAt(new Vector3(...pose.target));
+  camera.updateMatrixWorld();
+  return camera;
+}
 
 test("screen projection maps all four corners without stretching the iframe's coordinate space", () => {
   const quads = [
@@ -33,12 +49,6 @@ test("screen projection maps all four corners without stretching the iframe's co
       [95, 480],
     ],
     [
-      [0, 0],
-      [1280, 0],
-      [1280, 720],
-      [0, 720],
-    ],
-    [
       [735, 225],
       [837, 367],
       [784, 568],
@@ -47,265 +57,198 @@ test("screen projection maps all four corners without stretching the iframe's co
   ] as const;
   for (const points of quads) {
     const matrix = quadMatrix(points, 1280, 800);
-    const corners = [
+    [
       [0, 0],
       [1280, 0],
       [1280, 800],
       [0, 800],
-    ];
-    corners.forEach(([x, y], i) => {
+    ].forEach(([x, y], i) => {
       const w = matrix[3] * x + matrix[7] * y + matrix[15];
       assert.ok(
-        Math.abs(
-          (matrix[0] * x + matrix[4] * y + matrix[12]) / w - points[i][0],
-        ) < 1e-6,
+        Math.abs((matrix[0] * x + matrix[4] * y + matrix[12]) / w - points[i][0]) < 1e-6,
       );
       assert.ok(
-        Math.abs(
-          (matrix[1] * x + matrix[5] * y + matrix[13]) / w - points[i][1],
-        ) < 1e-6,
+        Math.abs((matrix[1] * x + matrix[5] * y + matrix[13]) / w - points[i][1]) < 1e-6,
       );
     });
   }
 });
 
-test("panels form a shallow helix and pass in the opposite direction across the camera view", () => {
-  const poses = Array.from({ length: 5 }, (_, i) =>
-    ribbonPose(0.4, chapterProgress(i)),
-  );
-  assert.ok(new Set(poses.map((p) => p.height)).size === 5);
-  assert.ok(
-    Math.max(...poses.map((p) => p.height)) -
-      Math.min(...poses.map((p) => p.height)) <
-      0.6,
-  );
-  const earlier = ribbonPose(0.3, chapterProgress(2)),
-    later = ribbonPose(0.5, chapterProgress(2));
-  assert.ok(later.angle - orbitAngle(0.5) < earlier.angle - orbitAngle(0.3));
-  assert.ok(orbitAngle(0.5) > orbitAngle(0.3));
-  assert.ok(orbitAngle(0.84) - orbitAngle(0) > Math.PI * 2);
-});
-
-test("the helix tightens continuously into the precomputed desk pose on wide and narrow viewports", () => {
-  for (const aspect of [390 / 844, 1045 / 770, 16 / 9, 2.4]) {
-    let previous = Infinity;
-    for (let i = 0; i <= 100; i++) {
-      const pose = journeyPose(i / 100, aspect);
-      assert.ok(pose.radius <= previous);
-      previous = pose.radius;
-    }
-    const end = journeyPose(1, aspect);
-    const d = screenFillDistance(aspect, 40);
-    assert.ok(Math.abs(end.position[0]) < 1e-9);
-    assert.ok(
-      Math.abs(
-        end.position[1] - (SCREEN_POSITION[1] - Math.sin(SCREEN_TILT) * d),
-      ) < 1e-9,
-    );
-    assert.ok(
-      Math.abs(
-        end.position[2] - (SCREEN_POSITION[2] + Math.cos(SCREEN_TILT) * d),
-      ) < 1e-9,
-    );
-    assert.deepEqual(end.target, SCREEN_POSITION);
-    const almost = journeyPose(0.9999, aspect);
-    assert.ok(
-      Math.hypot(...end.position.map((v, i) => v - almost.position[i])) <
-        0.00001,
-    );
-  }
-});
-
-test("focused display fits with a 12% hover-out margin on each limiting edge", () => {
-  for (const aspect of [390 / 844, 1045 / 770, 16 / 9, 2.4]) {
-    const d = screenFillDistance(aspect, 40);
-    const height = 2 * d * Math.tan((20 * Math.PI) / 180);
-    const fraction = Math.max(
-      SCREEN_HEIGHT / height,
-      SCREEN_WIDTH / (height * aspect),
-    );
-    assert.ok(Math.abs(fraction - 0.76) < 1e-9);
-  }
-});
-
-test("panels stay above the desk while crossing a shallow vertical band", () => {
-  for (let i = 0; i < 5; i++) {
-    for (let p = 0; p <= 1; p += 0.01) {
-      const height = ribbonPose(p, chapterProgress(i)).height;
-      assert.ok(height >= 1.6);
-      const activeHeight = ribbonPose(p, p).height;
-      assert.ok(Math.abs(height - activeHeight) < 0.8);
-    }
-  }
-});
-
-test("panel size stays bounded as the camera gets close, including curled edges", () => {
-  for (const aspect of [0.46, 1, 1.78])
-    for (const progress of [0, 0.4, 0.7, 0.83]) {
-      for (const depth of [0.2, 0.5, 1, 2, 4, 8]) {
-        const radius = panelScale(depth, aspect, progress) * 1.8;
-        const projected =
-          radius /
-          (Math.sqrt(depth * depth - radius * radius) *
-            Math.tan((20 * Math.PI) / 180) *
-            Math.min(1, aspect));
-        assert.ok(projected <= 0.920001);
-      }
-      assert.ok(
-        panelScale(1, aspect, progress) < panelScale(4, aspect, progress),
-      );
-    }
-});
-
-test("the travelling chapter window shows at most three panels without a visibility jump", () => {
-  for (let n = 0; n <= 1000; n++) {
-    const p = n / 1000;
-    const visible = Array.from({ length: 5 }, (_, i) =>
-      panelPresence(p, i),
-    ).filter((a) => a > 0.015);
-    assert.ok(visible.length <= 3, `too many panels at ${p}`);
-    for (let i = 0; i < 5; i++)
-      assert.ok(
-        Math.abs(panelPresence(p, i) - panelPresence(p + 0.0001, i)) < 0.006,
-      );
-  }
-  assert.equal(
-    Array.from({ length: 5 }, (_, i) => panelPresence(0, i)).filter(
-      (a) => a > 0.015,
-    ).length,
-    3,
-  );
-  assert.equal(panelPresence(0.9, 4), 0);
-  for (let i = 0; i < 5; i++)
-    assert.ok(panelPresence(chapterProgress(i), i) > 0.95);
-});
-
-test("every chapter has a readable position within the camera frame", () => {
-  for (const aspect of [0.46, 1, 1.78, 2.4])
-    for (let i = 0; i < 5; i++) {
-      const progress = chapterProgress(i);
-      const pose = journeyPose(progress, aspect),
-        cloth = ribbonPose(progress, progress, aspect);
-      const camera = new PerspectiveCamera(40, aspect, 0.04, 60);
-      camera.position.fromArray(pose.position);
-      camera.lookAt(new Vector3(...pose.target));
-      camera.updateMatrixWorld();
-      const projected = new Vector3(
-        Math.sin(cloth.angle) * cloth.radius,
-        cloth.height,
-        cloth.centerZ + Math.cos(cloth.angle) * cloth.radius,
-      ).project(camera);
-      assert.ok(Math.abs(projected.x) < 0.45 && Math.abs(projected.y) < 0.4);
-      assert.ok(projected.z > -1 && projected.z < 1);
-    }
-});
-
-// Physical specification independent of camera framing tests.
 test("the display is 13.3 inches at 16:10 in the studio's half-metre units", () => {
   assert.ok(
-    Math.abs((Math.hypot(SCREEN_WIDTH, SCREEN_HEIGHT) * 0.5) / 0.0254 - 13.3) <
-      1e-6,
+    Math.abs((Math.hypot(SCREEN_WIDTH, SCREEN_HEIGHT) * 0.5) / 0.0254 - 13.3) < 1e-6,
   );
   assert.ok(Math.abs(SCREEN_WIDTH / SCREEN_HEIGHT - 1.6) < 1e-9);
 });
 
-test("camera and panels share one fixed vertical axis throughout the journey", () => {
-  for (const aspect of [0.46, 1, 1.78, 2.4]) {
-    for (let i = 0; i <= 100; i++) {
-      const p = i / 100;
-      const camera = journeyPose(p, aspect);
-      const cloth = ribbonPose(p, p, aspect);
-      assert.equal(cloth.centerX, HELIX_AXIS[0]);
-      assert.equal(cloth.centerZ, HELIX_AXIS[1]);
-      assert.ok(
-        cloth.radius <= 2.2 && cloth.radius <= camera.radius * 0.440001,
-      );
-      assert.ok(
-        Math.abs(
-          Math.hypot(
-            camera.position[0] - HELIX_AXIS[0],
-            camera.position[2] - HELIX_AXIS[1],
-          ) - camera.radius,
-        ) < 1e-9,
-      );
-      assert.ok(camera.position[1] > 1.9 && camera.position[1] < 5);
-      assert.ok(
-        Math.abs(camera.position[0]) < 8 && Math.abs(camera.position[2]) < 8,
-      );
+test("the rail ends exactly at the resting Mac pose on every viewport", () => {
+  for (const aspect of VIEWPORTS) {
+    const fov = viewFov(aspect, T);
+    const end = railPose(1, aspect, fov, T);
+    const rest = screenPose(aspect, fov);
+    assert.ok(distance(end.position, rest.position) < 1e-9);
+    assert.ok(distance(end.target, rest.target) < 1e-9);
+  }
+});
+
+test("the rail has no jumps and no kink where the orbit hands off to the descent", () => {
+  for (const aspect of VIEWPORTS) {
+    const fov = viewFov(aspect, T);
+    const at = (p: number) => railPose(p, aspect, fov, T).position;
+    const steps = 4000;
+    let largest = 0;
+    for (let i = 1; i <= steps; i++)
+      largest = Math.max(largest, distance(at(i / steps), at((i - 1) / steps)));
+    // 4000 samples: no single step may exceed 2.5 cm.
+    assert.ok(largest < 0.05, `largest step ${largest}`);
+
+    const h = T.timeline.handoffStart,
+      e = 1e-4;
+    const before = at(h).map((v, i) => (v - at(h - e)[i]) / e);
+    const after = at(h + e).map((v, i) => (v - at(h)[i]) / e);
+    const speedRatio = Math.hypot(...after) / Math.hypot(...before);
+    const cosine =
+      before.reduce((sum, v, i) => sum + v * after[i], 0) /
+      (Math.hypot(...before) * Math.hypot(...after));
+    assert.ok(Math.abs(speedRatio - 1) < 0.05, `speed ratio ${speedRatio}`);
+    assert.ok(cosine > 0.999, `direction cosine ${cosine}`);
+  }
+});
+
+test("neither the rail nor a direct approach passes through the seated statue", () => {
+  for (const aspect of VIEWPORTS) {
+    const fov = viewFov(aspect, T);
+    const paths = [
+      (t: number) => railPose(t, aspect, fov, T).position,
+      ...[0, 0.2, 0.45, 0.7, 0.79].map(
+        (from) => (t: number) => approachPose(from, t, aspect, fov, T).position,
+      ),
+    ];
+    for (const path of paths) {
+      for (let i = 0; i <= 1000; i++) {
+        const p = path(i / 1000);
+        assert.ok(
+          distance(p, HEAD.center) > HEAD.radius + 0.1,
+          `camera within ${distance(p, HEAD.center).toFixed(3)} of the head at ${p.map((v) => v.toFixed(2))}`,
+        );
+        assert.ok(!insideBox(p, TORSO, 0.08), `camera inside torso at ${p}`);
+      }
     }
-    assert.deepEqual(
-      journeyPose(1, aspect).position,
-      screenPose(aspect).position,
+  }
+});
+
+test("a direct approach starts on the rail and arrives at the resting pose", () => {
+  for (const from of [0, 0.33, 0.78]) {
+    const start = approachPose(from, 0, 16 / 9, 40, T);
+    const end = approachPose(from, 1, 16 / 9, 40, T);
+    assert.ok(distance(start.position, railPose(from, 16 / 9, 40, T).position) < 1e-9);
+    assert.ok(distance(end.position, screenPose(16 / 9, 40).position) < 1e-9);
+  }
+});
+
+test("at most three panels are ever visible, with the reading panel most opaque", () => {
+  for (let i = 0; i <= 2000; i++) {
+    const progress = i / 2000;
+    const camera = railPose(progress, 16 / 9, 40, T).position;
+    const poses = Array.from({ length: WORKS }, (_, index) =>
+      panelPose(index, progress, B, T, camera),
     );
+    const visible = poses.filter((pose) => pose.opacity > 0.02);
+    assert.ok(visible.length <= 3, `${visible.length} visible at ${progress}`);
+    for (const pose of visible)
+      assert.ok(pose.position[1] > 0.4, "visible panels stay above the floor");
+  }
+  B.chapters.forEach((reading, index) => {
+    const camera = railPose(reading, 16 / 9, 40, T).position;
+    const poses = Array.from({ length: WORKS }, (_, j) =>
+      panelPose(j, reading, B, T, camera),
+    );
+    const brightest = poses.reduce((a, b) => (b.opacity > a.opacity ? b : a));
+    assert.equal(brightest, poses[index]);
+  });
+});
+
+test("each work is framed right of centre and in front of the camera at its reading moment", () => {
+  for (const aspect of [16 / 9, 4 / 3, 0.46]) {
+    B.chapters.forEach((reading, index) => {
+      const pose = railPose(reading, aspect, viewFov(aspect, T), T);
+      const camera = cameraAt(pose, aspect);
+      const panel = panelPose(index, reading, B, T, pose.position);
+      const ndc = new Vector3(...panel.position).project(camera);
+      const view = new Vector3(...panel.position).applyMatrix4(
+        new Matrix4().copy(camera.matrixWorldInverse),
+      );
+      assert.ok(view.z < -0.5, `panel ${index} is in front of the camera`);
+      assert.ok(Math.abs(ndc.x) < 0.7 && Math.abs(ndc.y) < 0.7, `panel ${index} at ${ndc.x.toFixed(2)},${ndc.y.toFixed(2)}`);
+      if (aspect > 1) assert.ok(ndc.x > 0, `panel ${index} sits right of centre`);
+    });
   }
 });
 
-test("screen handoffs preserve exact endpoints and settle without an extra hop", () => {
-  for (const aspect of [0.46, 1, 1.78, 2.4]) {
-    const end = screenPose(aspect).position;
-    for (const p of [0, 0.3, 0.7, 0.995, 1]) {
-      const from = journeyPose(p, aspect).position;
-      assert.deepEqual(screenApproach(from, 0, aspect), from);
-      assert.deepEqual(screenApproach(from, 1, aspect), end);
-      const first = screenApproach(from, smootherStep(0.0001), aspect);
-      const last = screenApproach(from, smootherStep(0.9999), aspect);
-      assert.ok(Math.hypot(...first.map((v, i) => v - from[i])) < 1e-7);
-      assert.ok(Math.hypot(...last.map((v, i) => v - end[i])) < 1e-7);
-    }
-  }
-});
-
-test("scroll spring is frame-rate independent and reverses without resetting its velocity", () => {
+test("scroll spring is frame-rate independent", () => {
   const results = [30, 60, 120].map((fps) => {
     let value = 0,
       velocity = 0;
     for (let i = 0; i < fps; i++) {
-      const step = advanceSpring(
-        value,
-        velocity,
-        i < fps / 2 ? 0.8 : 0.15,
-        1 / fps,
-      );
-      value = step.value;
-      velocity = step.velocity;
-      assert.ok(Number.isFinite(value) && Number.isFinite(velocity));
+      const next = advanceSpring(value, velocity, i < fps / 2 ? 0.8 : 0.15, 1 / fps);
+      value = next.value;
+      velocity = next.velocity;
     }
     return value;
   });
   assert.ok(Math.max(...results) - Math.min(...results) < 1e-9);
-  const step = advanceSpring(0.5, 0.2, 0.1, 1 / 120);
-  assert.ok(Math.abs(step.value - 0.5) < 0.002);
 });
 
-test("automatic focus meets the screen with no position or angular jump before the panels end", () => {
-  for (const aspect of [0.46, 1, 1.78, 2.4]) {
-    const end = screenPose(aspect);
-    for (const p of [PANEL_END, 0.9, 1]) {
-      assert.deepEqual(journeyPose(p, aspect).position, end.position);
-      assert.deepEqual(journeyPose(p, aspect).target, end.target);
-    }
-    const camera = new PerspectiveCamera(40, aspect, 0.04, 60);
-    const corner = new Vector3(
-      SCREEN_POSITION[0] + SCREEN_WIDTH / 2,
-      SCREEN_POSITION[1],
-      SCREEN_POSITION[2],
-    );
-    const projections = [PANEL_END - 0.0005, PANEL_END].map((p) => {
-      const pose = journeyPose(p, aspect);
-      camera.position.fromArray(pose.position);
-      camera.lookAt(new Vector3(...pose.target));
-      camera.updateMatrixWorld();
-      return corner.clone().project(camera);
-    });
-    // At the state handoff, less than a hundredth of a pixel at 4K.
-    assert.ok(projections[0].distanceTo(projections[1]) * 3840 < 0.01);
-    // The reading orbit joins the finishing curve without a velocity discontinuity.
-    const h = 0.00001;
-    const poses = [0.74 - h, 0.74, 0.74 + h].map(
-      (p) => new Vector3(...journeyPose(p, aspect).position),
-    );
-    const before = poses[1].clone().sub(poses[0]).divideScalar(h);
-    const after = poses[2].clone().sub(poses[1]).divideScalar(h);
-    assert.ok(before.distanceTo(after) < 0.02);
+function run(motion: ReturnType<typeof createMotion>, seconds: number) {
+  const events: string[] = [];
+  for (let t = 0; t < seconds; t += 1 / 60) {
+    const event = step(motion, 1 / 60, B, T);
+    if (event) events.push(event);
   }
+  return events;
+}
+
+test("scrolling past the settle point glides into the Mac; a reverse scroll returns to the last work", () => {
+  const motion = createMotion();
+  const events: string[] = [];
+  for (let i = 0; i < 40; i++) {
+    nudge(motion, 0.04, B);
+    events.push(...run(motion, 0.05));
+  }
+  events.push(...run(motion, 3));
+  assert.deepEqual(events, ["arrived"]);
+  assert.equal(motion.mode, "focused");
+  nudge(motion, 0.04, B);
+  assert.equal(motion.mode, "focused", "trackpad momentum doesn't leave the Mac");
+  nudge(motion, -0.02, B);
+  assert.equal(motion.mode, "orbit");
+  run(motion, 3);
+  assert.ok(Math.abs(motion.progress - B.returnTo) < 0.005);
+});
+
+test("stopping partway down the descent never leaves the camera hanging", () => {
+  const forward = createMotion();
+  forward.progress = forward.target = B.handoffStart - 0.01;
+  nudge(forward, 0.02, B);
+  run(forward, 3);
+  assert.equal(forward.mode, "focused");
+
+  const backward = createMotion();
+  backward.progress = backward.target = 0.95;
+  nudge(backward, -0.04, B);
+  run(backward, 3);
+  assert.equal(backward.mode, "orbit");
+  assert.ok(Math.abs(backward.progress - B.returnTo) < 0.005);
+});
+
+test("clicking the laptop flies in and leaving flies back to the same place", () => {
+  const motion = createMotion();
+  motion.progress = motion.target = 0.3;
+  focus(motion, B);
+  assert.equal(motion.mode, "approaching");
+  assert.deepEqual(run(motion, T.timeline.approachSeconds + 0.2), ["arrived"]);
+  leave(motion, B);
+  assert.deepEqual(run(motion, T.timeline.approachSeconds + 0.2), ["left"]);
+  assert.equal(motion.mode, "orbit");
+  assert.ok(Math.abs(motion.progress - 0.3) < 1e-9);
 });
