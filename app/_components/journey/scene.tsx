@@ -6,6 +6,7 @@ import { Environment, PerformanceMonitor } from "@react-three/drei";
 import { Canvas, events, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { works } from "@/lib/journey/works";
+import { LAPTOP_POSITION } from "@/lib/journey/anchors";
 import { tuning } from "@/lib/journey/tuning";
 import { beats } from "@/lib/journey/timeline";
 import { step, type Mode, type Motion } from "@/lib/journey/machine";
@@ -65,9 +66,11 @@ function CameraRig({
   return null;
 }
 
-function Lighting() {
+/** The pre-bake look: real-time lights and a 4K shadow map over the old room. */
+function LiveLighting() {
   const { gl } = useThree();
   useEffect(() => {
+    gl.shadowMap.enabled = true;
     gl.shadowMap.autoUpdate = false;
     gl.shadowMap.needsUpdate = true;
     return () => {
@@ -102,20 +105,42 @@ function Lighting() {
   );
 }
 
+/**
+ * Baked mode: the room carries its own light, so nothing here lights it. The
+ * laptop (the only PBR object) reflects a one-time cube snapshot of the baked
+ * room taken from where the laptop sits, plus a soft key from the window side.
+ */
+function BakedLighting() {
+  return (
+    <>
+      <Environment frames={1} resolution={256} environmentIntensity={0.9}>
+        <group position={LAPTOP_POSITION.map((v) => -v) as [number, number, number]}>
+          <BakedStudio />
+        </group>
+      </Environment>
+      <directionalLight position={[-2, 6, 8]} intensity={0.6} color="#fff3e2" />
+    </>
+  );
+}
+
 function World(props: SceneProps) {
+  const live = props.flags.live;
   return (
     <>
       <color attach="background" args={["#c9c9c2"]} />
-      <Lighting />
-      {props.flags.baked ? (
-        <BakedStudio />
-      ) : (
+      {live ? (
         <>
+          <LiveLighting />
           <Apartment />
           <Desk />
-          {props.flags.statue && <Statue />}
+        </>
+      ) : (
+        <>
+          <BakedLighting />
+          <BakedStudio />
         </>
       )}
+      {props.flags.statue && <Statue />}
       <Laptop onFocus={props.onFocus} runtimeRef={props.runtimeRef} />
       {works.map((work, index) => (
         <Cloth
@@ -157,7 +182,7 @@ export function JourneyScene(props: SceneProps) {
       frameloop="always"
       camera={{ position: [-4.2, 3.3, -6.3], fov: 40, near: 0.04, far: 120 }}
       dpr={dpr}
-      shadows={{ type: THREE.PCFShadowMap }}
+      shadows={props.flags.live ? { type: THREE.PCFShadowMap } : false}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.AgXToneMapping;

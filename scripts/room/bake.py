@@ -275,6 +275,30 @@ def orient_normals(me, g):
     d = np.einsum('ij,ij->i', cen - c[None], nrm) * area
     if d.sum() < -0.25 * np.abs(d).sum():
         me.flip_normals()
+    orient_lathe_walls(me)
+
+
+def orient_lathe_walls(me):
+    """Vessels (mugs, cups, pots) can be modelled inside out while their caps skew
+    the whole-object balance above, so they escape the flip and Cycles bakes the
+    wall from inside (black). If the outermost round wall faces the axis, the
+    whole consistently wound mesh is inverted: flip it."""
+    bm = bmesh.new(); bm.from_mesh(me); bm.faces.ensure_lookup_table()
+    faces = [f for f in bm.faces if abs(f.normal.z) < 0.5]
+    if len(faces) < 16:
+        bm.free(); return
+    cen = np.array([f.calc_center_median()[:2] for f in faces])
+    nrm = np.array([f.normal[:2] for f in faces])
+    area = np.array([f.calc_area() for f in faces])
+    bm.free()
+    axis = (cen * area[:, None]).sum(0) / max(area.sum(), 1e-9)
+    radial = cen - axis[None]
+    r = np.linalg.norm(radial, axis=1)
+    outer = r > 0.97 * r.max()
+    round_ring = r[outer].std() / max(r[outer].mean(), 1e-9) < 0.05
+    inward = (radial * nrm).sum(1) < 0
+    if outer.sum() >= 16 and round_ring and inward[outer].mean() > 0.9:
+        me.flip_normals()
 
 
 def build_group(g, objs):

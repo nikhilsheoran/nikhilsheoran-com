@@ -76,7 +76,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const tuning = process.env.NODE_ENV !== "production" && params.has("tune");
   const flags = useMemo(
     () => ({
-      baked: new URLSearchParams(search).has("baked"),
+      live: new URLSearchParams(search).has("live"),
       statue: new URLSearchParams(search).has("statue"),
     }),
     [search],

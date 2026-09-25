@@ -34,9 +34,9 @@ export interface FrameReport {
   progress: number;
 }
 
-/** Preview switches read from the URL: `?baked`, `?statue`. */
+/** Preview switches read from the URL: `?live` (pre-bake real-time room), `?statue`. */
 export interface SceneFlags {
-  baked: boolean;
+  live: boolean;
   statue: boolean;
 }
 
