@@ -44,7 +44,7 @@ const vertexShader = `
 `;
 const fragmentShader = `
   uniform sampler2D uMap, uActionMap;
-  uniform float uHover, uOpacity, uRevealTime, uDefocus;
+  uniform float uHover, uOpacity, uRevealTime, uDefocus, uHazeNear, uHazeFar;
   uniform vec2 uPointer;
   varying vec2 vUv;
   varying vec3 vView;
@@ -75,10 +75,12 @@ const fragmentShader = `
     float sheen = pow(1. - abs(dot(n, normalize(-vView))), 3.);
     color *= .88 + diffuse * .16;
     color += vec3(.035, .033, .029) * sheen;
-    float fog = smoothstep(6.,17.,-vView.z);
-    color = mix(color,vec3(.63,.63,.59),fog*.8);
+    // Atmospheric depth, like Greta: distant sheets dissolve into the room's
+    // warm daylight haze instead of turning transparent.
+    float haze = smoothstep(uHazeNear, uHazeFar, -vView.z);
+    color = mix(color, vec3(.86,.84,.8), haze * .78);
     float edge = smoothstep(0.,.004,min(min(vUv.x,1.-vUv.x),min(vUv.y,1.-vUv.y)));
-    gl_FragColor = vec4(color,uOpacity*edge);
+    gl_FragColor = vec4(color,uOpacity*edge*(1. - haze * .35));
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
@@ -120,7 +122,9 @@ export function Cloth({
           uVelocity: { value: 0 },
           uOpacity: { value: 0 },
           uDefocus: { value: 0 },
-          uAmp: { value: tuning.panels.width / 2.8 },
+          uHazeNear: { value: tuning.panels.hazeNear },
+          uHazeFar: { value: tuning.panels.hazeFar },
+          uAmp: { value: (tuning.panels.width / 2.8) * tuning.panels.folds },
           uPointer: { value: new THREE.Vector2(0.5, 0.5) },
           uTouch: { value: new THREE.Vector2(0.5, 0.5) },
         },
@@ -187,7 +191,9 @@ export function Cloth({
     const focusFade = motion.mode === "focused" ? 0 : 1;
     const opacity = pose.opacity * approachFade * focusFade;
     material.uniforms.uOpacity.value = opacity;
-    material.uniforms.uAmp.value = tuning.panels.width / 2.8;
+    material.uniforms.uAmp.value = (tuning.panels.width / 2.8) * tuning.panels.folds;
+    material.uniforms.uHazeNear.value = tuning.panels.hazeNear;
+    material.uniforms.uHazeFar.value = tuning.panels.hazeFar;
     group.visible = opacity > 0.012;
     if (!group.visible) {
       body.ready = false;

@@ -9,16 +9,19 @@ export interface DeskLink {
   url: string;
   position: [number, number, number];
   size: [number, number, number];
+  cornerRadius: number;
   rotationY: number;
 }
 
 export const deskLinks: DeskLink[] = [
   {
     id: "rubiks-cube",
-    label: "Watch the reel",
+    label: "My fastest solve",
     url: "https://www.instagram.com/reel/CiwBxhUKbYQ/",
-    position: [-0.722, 1.662, -0.138],
-    size: [0.116, 0.114, 0.116],
-    rotationY: 0.07,
+    // Measured from the cubies in assets/blender/studio.blend.
+    position: [-0.7224, 1.662, -0.1376],
+    size: [0.0963, 0.112, 0.0963],
+    cornerRadius: 0.006,
+    rotationY: 0.31,
   },
 ];

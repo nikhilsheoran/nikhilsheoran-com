@@ -232,10 +232,12 @@ export interface PanelPose {
 }
 
 /**
- * Panels ride their own helix around the shared axis, turning against the
- * camera and rising as the story advances. The only coupling to the camera is
- * where each panel sits at its own reading moment: slightly right of centre,
- * on the line of sight.
+ * Greta's vortex: every work hangs in one slow spiral around the desk, turning
+ * against the camera and rising as the story advances. Far from its moment a
+ * work drifts on its own wider orbit, fogged into the room; as its moment
+ * arrives it swoops in to a reading spot just right of centre, facing the
+ * camera, and then drifts back out. Depth comes from haze (in the shader),
+ * not transparency, so several works share the air without ghosting.
  */
 export function panelPose(
   index: number,
@@ -259,24 +261,26 @@ export function panelPose(
     (view.radius - readingRadius * Math.cos(offset)) / view.radius;
   const readingHeight = lerp(view.position[1], view.target[1], depth);
 
+  // 0 at the reading moment, 1 once the work is back out in the vortex.
+  const away = smoothStep((Math.abs(phase) - 0.25) / 1.1);
+  const orbit =
+    p.orbitRadius * (1 + p.orbitSpread * Math.sin(index * 2.399));
   const angle = view.angle + offset - p.counterSpin * phase;
-  // Each sheet keeps its own slightly different orbit, so they never read as
-  // cars on one circular track. The deviation vanishes at the reading moment.
-  const away = Math.min(1, Math.abs(phase));
-  const radius =
-    panelRadius(progress, tuning) + p.orbitSpread * Math.sin(index * 2.399) * away;
+  const radius = lerp(panelRadius(progress, tuning), orbit, away);
   const position: Vec3 = [
     AXIS[0] + Math.sin(angle) * radius,
-    readingHeight + p.rise * phase + p.orbitSpread * 0.6 * Math.cos(index * 1.7) * away,
+    readingHeight +
+      p.rise * phase +
+      away * p.orbitSpread * 2.2 * Math.cos(index * 1.7),
     AXIS[1] + Math.cos(angle) * radius,
   ];
   const facing = Math.atan2(camera[0] - position[0], camera[2] - position[2]);
   const yaw = angle + p.faceCamera * wrapAngle(facing - angle);
-  const roll = -Math.max(-0.4, Math.min(0.4, phase * p.passRoll));
+  const roll = -Math.max(-0.3, Math.min(0.3, phase * p.passRoll));
 
+  // Present for a few chapters either side; the shader's haze does the rest.
   const distance = Math.abs(phase);
-  const onion = Math.exp(-p.onion * Math.pow(distance, 1.6));
-  const window = 1 - smoothStep((distance - 1) / 0.5);
+  const window = 1 - smoothStep((distance - p.visibleChapters + 0.5) / 0.6);
   const handoff =
     1 -
     smoothStep(
@@ -286,7 +290,7 @@ export function panelPose(
     position,
     rotation: [-0.05, yaw, roll],
     phase,
-    opacity: onion * window * handoff,
+    opacity: window * handoff,
   };
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Html, useGLTF } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
   LAPTOP_POSITION,
   SCREEN_TILT,
@@ -77,6 +78,42 @@ export function Statue() {
   return <primitive object={model} />;
 }
 
+/**
+ * The selection outline shared by the laptop and desk links: back faces pushed
+ * out along their normals by about one screen pixel, drawn as a soft white rim.
+ */
+function createOutline(cacheKey: string) {
+  const strength = new THREE.Uniform(0);
+  const thickness = new THREE.Uniform(0.002);
+  const material = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(2.4, 2.4, 2.4),
+    side: THREE.BackSide,
+    transparent: true,
+    depthWrite: false,
+  });
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uSelection = strength;
+    shader.uniforms.uOutlineWidth = thickness;
+    shader.vertexShader =
+      `uniform float uOutlineWidth;\n${shader.vertexShader}`.replace(
+        "#include <begin_vertex>",
+        "#include <begin_vertex>\ntransformed += normal * uOutlineWidth;",
+      );
+    shader.fragmentShader =
+      `uniform float uSelection;\n${shader.fragmentShader}`.replace(
+        "#include <opaque_fragment>",
+        "diffuseColor.a *= uSelection * .4;\n#include <opaque_fragment>",
+      );
+  };
+  material.customProgramCacheKey = () => cacheKey;
+  return { material, strength, thickness };
+}
+
+/** About one screen pixel at this distance, in world units. */
+function pixelWidth(distance: number, viewportHeight: number) {
+  return Math.min(0.006, Math.max(0.0012, (distance * 0.9) / viewportHeight));
+}
+
 /** Hover and click invite the direct approach only while orbiting, before the descent. */
 function laptopInviting(runtime: JourneyRuntime) {
   const motion = runtime.motion;
@@ -116,29 +153,9 @@ export function Laptop({
   const highlight = useMemo(() => {
     // Build an owned instance: mutating the cached model here breaks Strict Mode.
     const object = model.clone(true);
-    const strength = new THREE.Uniform(0);
-    const thickness = new THREE.Uniform(0.002);
-    const material = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(2.4, 2.4, 2.4),
-      side: THREE.BackSide,
-      transparent: true,
-      depthWrite: false,
-    });
-    material.onBeforeCompile = (shader) => {
-      shader.uniforms.uSelection = strength;
-      shader.uniforms.uOutlineWidth = thickness;
-      shader.vertexShader =
-        `uniform float uOutlineWidth;\n${shader.vertexShader}`.replace(
-          "#include <begin_vertex>",
-          "#include <begin_vertex>\ntransformed += normal * uOutlineWidth;",
-        );
-      shader.fragmentShader =
-        `uniform float uSelection;\n${shader.fragmentShader}`.replace(
-          "#include <opaque_fragment>",
-          "diffuseColor.a *= uSelection * .4;\n#include <opaque_fragment>",
-        );
-    };
-    material.customProgramCacheKey = () => "laptop-selection-outline-v3";
+    const { material, strength, thickness } = createOutline(
+      "laptop-selection-outline-v3",
+    );
     const outline = model.clone(true);
     outline.traverse((mesh) => {
       if (!(mesh instanceof THREE.Mesh)) return;
@@ -178,12 +195,9 @@ export function Laptop({
       screenMaterialRef.current.opacity = runtimeRef.current.frameReady ? 0 : 1;
     }
     // eslint-disable-next-line react-hooks/immutability -- Keep the outline near one screen pixel across viewing distances.
-    highlight.thickness.value = Math.min(
-      0.006,
-      Math.max(
-        0.0012,
-        (camera.position.distanceTo(highlight.worldCenter) * 0.9) / size.height,
-      ),
+    highlight.thickness.value = pixelWidth(
+      camera.position.distanceTo(highlight.worldCenter),
+      size.height,
     );
     const inviting = laptopInviting(runtimeRef.current);
     const active = hovered && inviting;
@@ -289,35 +303,29 @@ export function DeskLink({
 }: { link: DeskLinkData } & Pick<SceneProps, "runtimeRef">) {
   const [hovered, setHovered] = useState(false);
   const glow = useMemo(() => {
-    const strength = new THREE.Uniform(0);
-    const material = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(2.4, 2.4, 2.4),
-      side: THREE.BackSide,
-      transparent: true,
-      depthWrite: false,
-    });
-    material.onBeforeCompile = (shader) => {
-      shader.uniforms.uSelection = strength;
-      shader.fragmentShader = `uniform float uSelection;\n${shader.fragmentShader}`.replace(
-        "#include <opaque_fragment>",
-        "diffuseColor.a *= uSelection * .4;\n#include <opaque_fragment>",
-      );
-    };
-    material.customProgramCacheKey = () => "desk-link-outline-v1";
-    return { material, strength };
-  }, []);
+    const outline = createOutline("desk-link-outline-v2");
+    // A rounded box hugs a Rubik's cube's silhouette; smooth normals keep the
+    // extruded rim even at the corners.
+    const geometry = new RoundedBoxGeometry(...link.size, 4, link.cornerRadius);
+    return { ...outline, geometry, center: new THREE.Vector3(...link.position) };
+  }, [link]);
   const outlineRef = useRef<THREE.Mesh>(null);
   useEffect(
     () => () => {
       glow.material.dispose();
+      glow.geometry.dispose();
       document.body.style.removeProperty("--journey-cursor");
     },
     [glow],
   );
-  useFrame((_, delta) => {
+  useFrame(({ camera, size }, delta) => {
+    // eslint-disable-next-line react-hooks/immutability -- Uniform animated in the render loop.
+    glow.thickness.value = pixelWidth(
+      camera.position.distanceTo(glow.center),
+      size.height,
+    );
     const inviting = laptopInviting(runtimeRef.current);
     if (hovered && !inviting) setHovered(false);
-    // eslint-disable-next-line react-hooks/immutability -- Uniform animated in the render loop.
     glow.strength.value = THREE.MathUtils.damp(
       glow.strength.value,
       hovered && inviting ? 1 : 0,
@@ -355,9 +363,13 @@ export function DeskLink({
         <boxGeometry args={link.size.map((v) => v * 1.25) as [number, number, number]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-      <mesh ref={outlineRef} material={glow.material} visible={false} raycast={() => {}}>
-        <boxGeometry args={link.size.map((v) => v * 1.07) as [number, number, number]} />
-      </mesh>
+      <mesh
+        ref={outlineRef}
+        geometry={glow.geometry}
+        material={glow.material}
+        visible={false}
+        raycast={() => {}}
+      />
       {hovered && (
         <Html
           center

@@ -164,7 +164,7 @@ test("a direct approach starts on the rail and arrives at the resting pose", () 
   }
 });
 
-test("at most three panels are ever visible, with the reading panel most opaque", () => {
+test("the vortex holds a handful of works at once and the reading one is nearest", () => {
   for (let i = 0; i <= 2000; i++) {
     const progress = i / 2000;
     const camera = railPose(progress, 16 / 9, 40, T).position;
@@ -172,7 +172,7 @@ test("at most three panels are ever visible, with the reading panel most opaque"
       panelPose(index, progress, B, T, camera),
     );
     const visible = poses.filter((pose) => pose.opacity > 0.02);
-    assert.ok(visible.length <= 3, `${visible.length} visible at ${progress}`);
+    assert.ok(visible.length <= 7, `${visible.length} visible at ${progress}`);
     for (const pose of visible)
       assert.ok(pose.position[1] > 0.4, "visible panels stay above the floor");
   }
@@ -181,8 +181,12 @@ test("at most three panels are ever visible, with the reading panel most opaque"
     const poses = Array.from({ length: WORKS }, (_, j) =>
       panelPose(j, reading, B, T, camera),
     );
-    const brightest = poses.reduce((a, b) => (b.opacity > a.opacity ? b : a));
-    assert.equal(brightest, poses[index]);
+    const nearest = poses
+      .filter((pose) => pose.opacity > 0.02)
+      .reduce((a, b) =>
+        distance(b.position, camera) < distance(a.position, camera) ? b : a,
+      );
+    assert.equal(nearest, poses[index], `work ${index} leads at its moment`);
   });
 });
 

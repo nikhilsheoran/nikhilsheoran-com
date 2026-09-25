@@ -39,32 +39,40 @@ export const DEFAULT_TUNING = {
     fov: 40,
   },
   panels: {
+    /** Radius at the reading moment, early and late in the story. */
     startRadius: 2.3,
     endRadius: 1.65,
+    /** Radius of the vortex a work drifts back out to between its moments. */
+    orbitRadius: 3.1,
+    /** How much each work's orbit radius and height differ from its neighbours'. */
+    orbitSpread: 0.18,
     /** World rotation per chapter, against the camera's direction. */
-    counterSpin: 0.55,
-    /** Height gained per chapter: upcoming panels rise from below. */
-    rise: 0.42,
+    counterSpin: 0.7,
+    /** Height gained per chapter: upcoming works rise from below. */
+    rise: 0.5,
     /** Where the reading panel sits in view, right of centre (radians). */
     viewOffset: 0.2,
     /** 0 = faces straight out from the axis, 1 = faces the camera. */
-    faceCamera: 0.45,
+    faceCamera: 0.75,
     /** Roll while a panel passes. */
-    passRoll: 0.22,
+    passRoll: 0.12,
     /** Physical width of a panel. */
     width: 1.55,
     /** Largest share of the frame width a passing panel may cover. */
     maxViewFraction: 0.42,
-    /** How far each sheet's own orbit strays from the shared helix. */
-    orbitSpread: 0.22,
+    /** How many chapters either side of the current one stay in the air. */
+    visibleChapters: 3,
+    /** Distance (scene units) where the haze starts and where it is thickest. */
+    hazeNear: 2.6,
+    hazeFar: 8.5,
+    /** Fold strength of the fabric (1 = the old heavy cloth). */
+    folds: 0.55,
     /** Sheet inertia: lower = heavier, lags and overshoots more. */
-    inertia: 5.5,
+    inertia: 9,
     /** How strongly a sheet banks into its own turns. */
-    bank: 0.9,
+    bank: 0.35,
     /** Idle air drift amplitude. */
-    drift: 0.035,
-    /** Onion-skin falloff: higher = neighbours fainter. */
-    onion: 1.35,
+    drift: 0.02,
   },
   motion: {
     spring: 10,
