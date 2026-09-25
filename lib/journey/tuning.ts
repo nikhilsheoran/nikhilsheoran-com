@@ -34,8 +34,8 @@ export const DEFAULT_TUNING = {
     endHeight: 3.35,
     targetStartHeight: 2.3,
     targetEndHeight: 2.05,
-    /** Fraction of the handoff before the camera starts descending to the screen. */
-    descentStart: 0.62,
+    /** Fraction of the handoff by which the spiral has closed in to screen distance. */
+    closeIn: 0.55,
     fov: 40,
   },
   panels: {
@@ -62,6 +62,12 @@ export const DEFAULT_TUNING = {
     maxViewFraction: 0.42,
     /** How many chapters either side of the current one stay in the air. */
     visibleChapters: 3,
+    /** Each work's own tumble while out in the vortex (radians); it squares up to be read. */
+    tumble: 0.45,
+    /** Opacity of a work once it's back out in the vortex. */
+    farOpacity: 0.32,
+    /** Depth-of-field blur of a work out in the vortex (0 = sharp). */
+    farBlur: 1,
     /** Distance (scene units) where the haze starts and where it is thickest. */
     hazeNear: 2.6,
     hazeFar: 8.5,

@@ -53,19 +53,20 @@ const fragmentShader = `
     vec2 delta = (vUv-uPointer)*vec2(1.55,1.);
     float d = length(delta);
     float front = uRevealTime * 5.;
-    // Mipmapped photographs with a restrained blur for the neighbouring sheets.
-    vec2 blur = vec2(uDefocus * .009);
-    vec3 ink = texture2D(uMap, coord).rgb * .28;
-    ink += texture2D(uMap, coord + vec2(blur.x,0.)).rgb * .18;
-    ink += texture2D(uMap, coord - vec2(blur.x,0.)).rgb * .18;
-    ink += texture2D(uMap, coord + vec2(0.,blur.y)).rgb * .18;
-    ink += texture2D(uMap, coord - vec2(0.,blur.y)).rgb * .18;
+    // Depth of field: far works sample blurrier mips plus a small disc of taps.
+    float bias = uDefocus * 3.2;
+    vec2 blur = vec2(uDefocus * .012);
+    vec3 ink = texture2D(uMap, coord, bias).rgb * .28;
+    ink += texture2D(uMap, coord + vec2(blur.x,0.), bias).rgb * .18;
+    ink += texture2D(uMap, coord - vec2(blur.x,0.), bias).rgb * .18;
+    ink += texture2D(uMap, coord + vec2(0.,blur.y), bias).rgb * .18;
+    ink += texture2D(uMap, coord - vec2(0.,blur.y), bias).rgb * .18;
     float gray = dot(ink,vec3(.2126,.7152,.0722));
     float reveal = (1.-smoothstep(front-.18,front+.12,d))*uHover;
     vec3 monochrome = mix(vec3(gray * .95), vec3(.26,.275,.25), .12);
     vec3 color = mix(monochrome, mix(ink, monochrome, .06), reveal);
     // Printed controls deform, occlude, blur and receive light with the cloth itself.
-    vec4 action = texture2D(uActionMap, coord + vec2(0., (1.-uHover)*.012));
+    vec4 action = texture2D(uActionMap, coord + vec2(0., (1.-uHover)*.012), bias);
     color = mix(color, action.rgb, action.a * smoothstep(.12,.8,uHover));
     vec3 n = normalize(cross(dFdx(vView),dFdy(vView)));
     if(!gl_FrontFacing) n=-n;
@@ -78,9 +79,9 @@ const fragmentShader = `
     // Atmospheric depth, like Greta: distant sheets dissolve into the room's
     // warm daylight haze instead of turning transparent.
     float haze = smoothstep(uHazeNear, uHazeFar, -vView.z);
-    color = mix(color, vec3(.86,.84,.8), haze * .78);
+    color = mix(color, vec3(.86,.84,.8), haze * .15);
     float edge = smoothstep(0.,.004,min(min(vUv.x,1.-vUv.x),min(vUv.y,1.-vUv.y)));
-    gl_FragColor = vec4(color,uOpacity*edge*(1. - haze * .35));
+    gl_FragColor = vec4(color,uOpacity*edge*(1. - haze * .5));
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
@@ -263,8 +264,7 @@ export function Cloth({
       ),
     );
     material.uniforms.uDefocus.value =
-      smoothStep((Math.abs(pose.phase) - 0.35) / 0.8) *
-      (hoveredRef.current ? 0.2 : 1);
+      pose.away * tuning.panels.farBlur * (hoveredRef.current ? 0.2 : 1);
     material.uniforms.uTouch.value.lerp(
       touchTarget.current,
       1 - Math.exp(-14 * delta),

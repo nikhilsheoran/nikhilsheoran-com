@@ -110,10 +110,17 @@ export function helixPose(
     aim = lerp(c.targetStartHeight, c.targetEndHeight, settle(u));
   } else {
     const s = clamp01((progress - handoff) / (1 - handoff));
-    radius = endRadius + (c.endRadius - endRadius) * (1 - smootherStep(s));
-    const drop = smootherStep((s - c.descentStart) / (1 - c.descentStart));
-    height = lerp(c.endHeight, end.position[1], drop);
+    // Close in early, while still turning, so the spiral comes round beside
+    // the statue rather than over it; the last few degrees then turn at the
+    // screen's own distance.
+    radius =
+      endRadius + (c.endRadius - endRadius) * (1 - smootherStep(s / c.closeIn));
     aim = lerp(c.targetEndHeight, end.target[1], smootherStep(s));
+    // Height follows distance, so the camera keeps looking down at the same
+    // gentle angle all the way in: no dip, no nod.
+    const startSlope = (c.endHeight - c.targetEndHeight) / c.endRadius;
+    const endSlope = (end.position[1] - end.target[1]) / endRadius;
+    height = aim + lerp(startSlope, endSlope, smootherStep(s)) * radius;
   }
   return {
     angle,
@@ -150,7 +157,7 @@ function bezier(a: Vec3, b: Vec3, c: Vec3, d: Vec3, t: number): Vec3 {
 }
 
 /** Fraction of the descent where a laptop-click flight joins the rail. */
-const APPROACH_JOIN = 0.4;
+const APPROACH_JOIN = 0.15;
 /** Share of the flight spent reaching the rail; the rest rides the rail in. */
 const APPROACH_SPLIT = 0.6;
 
@@ -229,6 +236,8 @@ export interface PanelPose {
   rotation: Vec3;
   phase: number;
   opacity: number;
+  /** 0 at the reading moment, 1 once the work is back out in the vortex. */
+  away: number;
 }
 
 /**
@@ -275,8 +284,18 @@ export function panelPose(
     AXIS[1] + Math.cos(angle) * radius,
   ];
   const facing = Math.atan2(camera[0] - position[0], camera[2] - position[2]);
-  const yaw = angle + p.faceCamera * wrapAngle(facing - angle);
-  const roll = -Math.max(-0.3, Math.min(0.3, phase * p.passRoll));
+  // Out in the vortex every work tumbles its own way (a fixed personality per
+  // index); it squares up to the camera only as it swoops in to be read.
+  const tumble = p.tumble * away;
+  const yaw =
+    angle +
+    p.faceCamera * wrapAngle(facing - angle) +
+    tumble * Math.sin(index * 1.93 + 0.4);
+  const roll =
+    -Math.max(-0.3, Math.min(0.3, phase * p.passRoll)) *
+      Math.cos(index * 2.2) +
+    tumble * 0.45 * Math.cos(index * 2.71);
+  const pitch = -0.05 + tumble * 0.35 * Math.sin(index * 3.17 + 1.1);
 
   // Present for a few chapters either side; the shader's haze does the rest.
   const distance = Math.abs(phase);
@@ -288,9 +307,11 @@ export function panelPose(
     );
   return {
     position,
-    rotation: [-0.05, yaw, roll],
+    rotation: [pitch, yaw, roll],
     phase,
-    opacity: window * handoff,
+    // Far works fade toward farOpacity; the shader blurs them by `away`.
+    opacity: window * handoff * lerp(1, p.farOpacity, away),
+    away,
   };
 }
 
