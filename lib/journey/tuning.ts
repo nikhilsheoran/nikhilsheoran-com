@@ -22,20 +22,20 @@ export const DEFAULT_TUNING = {
     approachSeconds: 1.7,
   },
   camera: {
-    turns: 1.49,
-    /** Orbit angle at the end of the helix (0 = straight in front of the screen). */
-    endAngle: 0.55,
+    /** Full turns from the opening frame to the Mac; the spin ends facing the screen. */
+    turns: 1.4,
     startRadius: 7.2,
+    /** Radius when the reading helix ends and the spiral starts closing in. */
     endRadius: 2.75,
     /** >1 keeps the camera wide for longer before it tightens. */
     radiusCurve: 1.6,
     startHeight: 3.3,
+    /** Height held over the statue until the camera is in front of its face. */
     endHeight: 3.35,
     targetStartHeight: 2.3,
     targetEndHeight: 2.05,
-    /** The last metres of the approach come down from above and behind the head. */
-    arrivalLift: 1.1,
-    arrivalBack: 0.12,
+    /** Fraction of the handoff before the camera starts descending to the screen. */
+    descentStart: 0.62,
     fov: 40,
   },
   panels: {
@@ -55,6 +55,14 @@ export const DEFAULT_TUNING = {
     width: 1.55,
     /** Largest share of the frame width a passing panel may cover. */
     maxViewFraction: 0.42,
+    /** How far each sheet's own orbit strays from the shared helix. */
+    orbitSpread: 0.22,
+    /** Sheet inertia: lower = heavier, lags and overshoots more. */
+    inertia: 5.5,
+    /** How strongly a sheet banks into its own turns. */
+    bank: 0.9,
+    /** Idle air drift amplitude. */
+    drift: 0.035,
     /** Onion-skin falloff: higher = neighbours fainter. */
     onion: 1.35,
   },

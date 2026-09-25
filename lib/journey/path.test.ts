@@ -115,6 +115,24 @@ test("the rail has no jumps and no kink where the orbit hands off to the descent
   }
 });
 
+test("the approach only ever closes in on the Mac: no overshoot, no swing back", () => {
+  for (const aspect of VIEWPORTS) {
+    const fov = viewFov(aspect, T);
+    const rest = screenPose(aspect, fov).position;
+    let last = Infinity;
+    for (let i = 0; i <= 2000; i++) {
+      const p = T.timeline.handoffStart + (i / 2000) * (1 - T.timeline.handoffStart);
+      const d = distance(railPose(p, aspect, fov, T).position, rest);
+      assert.ok(d <= last + 1e-9, `moved away from the Mac at progress ${p.toFixed(4)}`);
+      last = d;
+    }
+    // Eases to rest: the last 1% of scroll covers under 5% of the approach.
+    const start = railPose(T.timeline.handoffStart, aspect, fov, T).position;
+    const nearEnd = railPose(0.99, aspect, fov, T).position;
+    assert.ok(distance(nearEnd, rest) < 0.05 * distance(start, rest));
+  }
+});
+
 test("neither the rail nor a direct approach passes through the seated statue", () => {
   for (const aspect of VIEWPORTS) {
     const fov = viewFov(aspect, T);

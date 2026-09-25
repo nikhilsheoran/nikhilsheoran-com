@@ -60,37 +60,82 @@ export function screenPose(aspect: number, fov: number): Pose {
   };
 }
 
-/** The helix: u = 0 is the opening frame, u = 1 is the end of the orbit. */
-export function orbitPose(u: number, tuning: Tuning) {
-  const c = tuning.camera;
-  const angle = c.endAngle - c.turns * Math.PI * 2 * (1 - u);
-  const radius =
-    c.endRadius +
-    (c.startRadius - c.endRadius) * Math.pow(1 - u, c.radiusCurve);
-  const pose: Pose = {
-    position: [
-      AXIS[0] + Math.sin(angle) * radius,
-      lerp(c.startHeight, c.endHeight, u),
-      AXIS[1] + Math.cos(angle) * radius,
-    ],
-    target: [AXIS[0], lerp(c.targetStartHeight, c.targetEndHeight, u), AXIS[1]],
-  };
-  return { ...pose, angle, radius };
+/**
+ * Share of the total spin completed by `progress`. Constant angular speed while
+ * reading, then the spin decelerates through the handoff and reaches zero
+ * speed exactly at the Mac (continuous speed and acceleration throughout).
+ */
+function spin(progress: number, handoff: number) {
+  const rate = 1 / (handoff + (1 - handoff) / 2);
+  if (progress <= handoff) return rate * progress;
+  const s = clamp01((progress - handoff) / (1 - handoff));
+  return rate * handoff + rate * (1 - handoff) * (s - s ** 3 + s ** 4 / 2);
 }
 
-/** d(position)/du at the end of the orbit, for a seamless handoff. */
-function orbitEndTangent(tuning: Tuning): Vec3 {
+/** Ease-out with zero slope at 1. */
+const settle = (u: number) => u * (2 - u);
+
+export interface HelixPose extends Pose {
+  angle: number;
+  radius: number;
+}
+
+/**
+ * The single camera rail, designed backwards from where it must end: the
+ * resting Mac pose. Angle, radius, height and aim each converge on that pose
+ * with zero velocity at progress 1, so the camera lands without overshooting
+ * or swinging back. Before `handoffStart` it is the reading helix; after it,
+ * the spin slows, the spiral tightens over the statue's head, and only once
+ * the camera is in front of the face does it descend to the screen.
+ */
+export function helixPose(
+  progress: number,
+  aspect: number,
+  fov: number,
+  tuning: Tuning,
+): HelixPose {
   const c = tuning.camera;
-  const angularSpeed = c.turns * Math.PI * 2;
-  const radialSpeed = c.radiusCurve > 1 ? 0 : -(c.startRadius - c.endRadius);
-  const angle = c.endAngle;
-  return [
-    Math.cos(angle) * c.endRadius * angularSpeed +
-      Math.sin(angle) * radialSpeed,
-    c.endHeight - c.startHeight,
-    -Math.sin(angle) * c.endRadius * angularSpeed +
-      Math.cos(angle) * radialSpeed,
-  ];
+  const handoff = tuning.timeline.handoffStart;
+  const end = screenPose(aspect, fov);
+  const endRadius = Math.hypot(end.position[0] - AXIS[0], end.position[2] - AXIS[1]);
+
+  const angle = -c.turns * Math.PI * 2 * (1 - spin(progress, handoff));
+
+  let radius: number, height: number, aim: number;
+  if (progress <= handoff) {
+    const u = progress / handoff;
+    radius =
+      c.endRadius + (c.startRadius - c.endRadius) * Math.pow(1 - u, c.radiusCurve);
+    height = lerp(c.startHeight, c.endHeight, settle(u));
+    aim = lerp(c.targetStartHeight, c.targetEndHeight, settle(u));
+  } else {
+    const s = clamp01((progress - handoff) / (1 - handoff));
+    radius = endRadius + (c.endRadius - endRadius) * (1 - smootherStep(s));
+    const drop = smootherStep((s - c.descentStart) / (1 - c.descentStart));
+    height = lerp(c.endHeight, end.position[1], drop);
+    aim = lerp(c.targetEndHeight, end.target[1], smootherStep(s));
+  }
+  return {
+    angle,
+    radius,
+    position: [
+      AXIS[0] + Math.sin(angle) * radius,
+      height,
+      AXIS[1] + Math.cos(angle) * radius,
+    ],
+    target: [AXIS[0], aim, AXIS[1]],
+  };
+}
+
+/** The scroll rail. railPose(1) is exactly the resting Mac pose. */
+export function railPose(
+  progress: number,
+  aspect: number,
+  fov: number,
+  tuning: Tuning,
+): Pose {
+  const { position, target } = helixPose(progress, aspect, fov, tuning);
+  return { position, target };
 }
 
 function bezier(a: Vec3, b: Vec3, c: Vec3, d: Vec3, t: number): Vec3 {
@@ -102,45 +147,6 @@ function bezier(a: Vec3, b: Vec3, c: Vec3, d: Vec3, t: number): Vec3 {
       3 * s * t * t * c[i] +
       t * t * t * d[i],
   ) as Vec3;
-}
-
-/** The control point every arrival passes near: above and just behind the final pose. */
-function arrivalControl(end: Vec3, tuning: Tuning): Vec3 {
-  return [
-    end[0],
-    end[1] + tuning.camera.arrivalLift,
-    end[2] + tuning.camera.arrivalBack,
-  ];
-}
-
-/**
- * The single scroll rail. The orbit runs to handoffStart, then a cubic curve
- * that continues the orbit's velocity descends over the statue into the screen.
- * railPose(1) is exactly the resting Mac pose.
- */
-export function railPose(
-  progress: number,
-  aspect: number,
-  fov: number,
-  tuning: Tuning,
-): Pose {
-  const handoff = tuning.timeline.handoffStart;
-  if (progress <= handoff) {
-    const { position, target } = orbitPose(progress / handoff, tuning);
-    return { position, target };
-  }
-  const s = clamp01((progress - handoff) / (1 - handoff));
-  const start = orbitPose(1, tuning);
-  const end = screenPose(aspect, fov);
-  const tangent = orbitEndTangent(tuning);
-  const reach = (1 - handoff) / handoff / 3;
-  const p1 = start.position.map((v, i) => v + tangent[i] * reach) as Vec3;
-  const p2 = arrivalControl(end.position, tuning);
-  const aim = smootherStep(s);
-  return {
-    position: bezier(start.position, p1, p2, end.position, s),
-    target: start.target.map((v, i) => lerp(v, end.target[i], aim)) as Vec3,
-  };
 }
 
 /** Fraction of the descent where a laptop-click flight joins the rail. */
@@ -242,7 +248,7 @@ export function panelPose(
   const reading = beat.chapters[index];
   const phase = chapterPhase(progress, index, beat);
 
-  const view = orbitPose(reading / tuning.timeline.handoffStart, tuning);
+  const view = helixPose(reading, 16 / 9, tuning.camera.fov, tuning);
   const readingRadius = panelRadius(reading, tuning);
   const reach = Math.min(
     1,
@@ -254,10 +260,14 @@ export function panelPose(
   const readingHeight = lerp(view.position[1], view.target[1], depth);
 
   const angle = view.angle + offset - p.counterSpin * phase;
-  const radius = panelRadius(progress, tuning);
+  // Each sheet keeps its own slightly different orbit, so they never read as
+  // cars on one circular track. The deviation vanishes at the reading moment.
+  const away = Math.min(1, Math.abs(phase));
+  const radius =
+    panelRadius(progress, tuning) + p.orbitSpread * Math.sin(index * 2.399) * away;
   const position: Vec3 = [
     AXIS[0] + Math.sin(angle) * radius,
-    readingHeight + p.rise * phase,
+    readingHeight + p.rise * phase + p.orbitSpread * 0.6 * Math.cos(index * 1.7) * away,
     AXIS[1] + Math.cos(angle) * radius,
   ];
   const facing = Math.atan2(camera[0] - position[0], camera[2] - position[2]);

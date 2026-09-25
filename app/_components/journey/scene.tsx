@@ -11,7 +11,15 @@ import { tuning } from "@/lib/journey/tuning";
 import { beats } from "@/lib/journey/timeline";
 import { step, type Mode, type Motion } from "@/lib/journey/machine";
 import { approachPose, railPose, viewFov } from "@/lib/journey/path";
-import { Apartment, BakedStudio, Desk, Laptop, Statue } from "./objects";
+import {
+  Apartment,
+  BakedStudio,
+  Desk,
+  DeskLink,
+  Laptop,
+  Statue,
+} from "./objects";
+import { deskLinks } from "@/lib/journey/desk-links";
 import { Cloth } from "./cloth";
 import { Lens } from "./lens";
 import { ScreenProjection } from "./screen";
@@ -142,6 +150,9 @@ function World(props: SceneProps) {
       )}
       {props.flags.statue && <Statue />}
       <Laptop onFocus={props.onFocus} runtimeRef={props.runtimeRef} />
+      {deskLinks.map((link) => (
+        <DeskLink key={link.id} link={link} runtimeRef={props.runtimeRef} />
+      ))}
       {works.map((work, index) => (
         <Cloth
           key={work.slug}

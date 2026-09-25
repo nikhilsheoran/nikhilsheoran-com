@@ -154,6 +154,20 @@ export function Cloth({
     [material],
   );
   const toCamera = useMemo(() => new THREE.Vector3(), []);
+  // Each sheet is a light body chasing its point on the helix, not a car on a track.
+  const body = useMemo(
+    () => ({
+      position: new THREE.Vector3(),
+      velocity: new THREE.Vector3(),
+      target: new THREE.Vector3(),
+      pull: new THREE.Vector3(),
+      right: new THREE.Vector3(),
+      ready: false,
+      bank: 0,
+      pitch: 0,
+    }),
+    [],
+  );
   const touchTarget = useRef(new THREE.Vector2(0.5, 0.5));
   useFrame(({ clock, size, camera }, delta) => {
     const group = groupRef.current;
@@ -176,14 +190,62 @@ export function Cloth({
     material.uniforms.uAmp.value = tuning.panels.width / 2.8;
     group.visible = opacity > 0.012;
     if (!group.visible) {
+      body.ready = false;
       if (hoveredRef.current) {
         hoveredRef.current = false;
         document.body.style.removeProperty("--journey-cursor");
       }
       return;
     }
-    group.position.fromArray(pose.position);
+    const dt = Math.min(delta, 1 / 30);
+    const p = tuning.panels;
+    body.target.fromArray(pose.position);
+    if (
+      !body.ready ||
+      motion.reducedMotion ||
+      body.position.distanceToSquared(body.target) > 9
+    ) {
+      body.position.copy(body.target);
+      body.velocity.set(0, 0, 0);
+      body.ready = true;
+    } else {
+      // Slightly underdamped: the sheet trails its path when the scroll picks
+      // up and drifts a little past its mark when it stops.
+      const omega = p.inertia;
+      body.pull
+        .copy(body.target)
+        .sub(body.position)
+        .multiplyScalar(omega * omega)
+        .addScaledVector(body.velocity, -2 * 0.72 * omega);
+      body.velocity.addScaledVector(body.pull, dt);
+      body.position.addScaledVector(body.velocity, dt);
+    }
+    // Slow air currents, out of step from sheet to sheet.
+    const t = clock.elapsedTime;
+    const drift = motion.reducedMotion ? 0 : p.drift;
+    group.position.set(
+      body.position.x + drift * Math.sin(t * 0.37 + index * 1.3),
+      body.position.y + drift * 1.4 * Math.sin(t * 0.53 + index * 2.1),
+      body.position.z + drift * Math.cos(t * 0.31 + index * 0.7),
+    );
+    // Bank into its own turns: roll with sideways speed, pitch with climb.
     group.rotation.set(...pose.rotation);
+    body.right.set(1, 0, 0).applyEuler(group.rotation);
+    const sideways = body.velocity.dot(body.right);
+    body.bank = THREE.MathUtils.damp(
+      body.bank,
+      THREE.MathUtils.clamp(-sideways * 0.12 * p.bank, -0.45, 0.45),
+      6,
+      dt,
+    );
+    body.pitch = THREE.MathUtils.damp(
+      body.pitch,
+      THREE.MathUtils.clamp(body.velocity.y * 0.1 * p.bank, -0.3, 0.3),
+      6,
+      dt,
+    );
+    group.rotation.z += body.bank + drift * 0.6 * Math.sin(t * 0.71 + index);
+    group.rotation.x += body.pitch + drift * 0.4 * Math.sin(t * 0.43 + index * 1.9);
     const distance = toCamera.copy(group.position).sub(camera.position).length();
     group.scale.setScalar(
       panelScale(
@@ -211,7 +273,7 @@ export function Cloth({
       material.uniforms.uVelocity.value,
       motion.reducedMotion
         ? 0
-        : THREE.MathUtils.clamp(motion.velocity * 3, -1, 1),
+        : THREE.MathUtils.clamp(sideways * 0.25, -1, 1),
       9,
       delta,
     );
