@@ -286,6 +286,8 @@ export function Cloth({
       body.position.z + drift * Math.cos(t * 0.31 + index * 0.7),
     );
     // Bank into its own turns: roll with sideways speed, pitch with climb.
+    // Turn first, then lean: the tilt is about the sheet's own width.
+    group.rotation.order = "YXZ";
     group.rotation.set(...pose.rotation);
     body.right.set(1, 0, 0).applyEuler(group.rotation);
     const sideways = body.velocity.dot(body.right);

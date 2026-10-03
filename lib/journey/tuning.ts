@@ -106,7 +106,7 @@ export const DEFAULT_TUNING = {
 
 export type Tuning = typeof DEFAULT_TUNING;
 
-const STORAGE_KEY = "journey-tuning";
+const STORAGE_KEY = "journey-tuning-v2";
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
@@ -137,15 +137,26 @@ export function resetTuning() {
   } catch {}
 }
 
+/** Saves only what the tuner changed, so later changes to the defaults still apply. */
 export function saveTuning() {
+  const changed: Record<string, Record<string, number>> = {};
+  for (const group of Object.keys(tuning) as (keyof Tuning)[]) {
+    const now = tuning[group] as Record<string, number>;
+    const base = DEFAULT_TUNING[group] as Record<string, number>;
+    for (const key of Object.keys(now))
+      if (now[key] !== base[key]) (changed[group] ??= {})[key] = now[key];
+  }
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tuning));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(changed));
   } catch {}
 }
 
 /** Restores a tuner session in development only; production uses the defaults. */
 export function loadSavedTuning() {
   if (process.env.NODE_ENV === "production") return;
+  // Only while tuning (?tune or ?lab): the plain page always shows the defaults.
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has("tune") && !params.has("lab")) return;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) applyTuning(JSON.parse(saved));

@@ -37,21 +37,58 @@
   display: none;
 }
 
+/*
+ * The dock's glass, in the same language as the room's overlay: a clear pane
+ * that lets the wallpaper's colour through (light frost, lifted saturation),
+ * a lit top lip and shaded bottom lip so it reads as raised, a cast shadow,
+ * and a sparse rim that is bright at two opposite corners and gone between.
+ * The refracting lens itself is left out: the dock changes width on every
+ * frame of its magnification, and the lens would have to be rebuilt each time.
+ */
 .dock-list {
   position: relative;
-  border: 1px solid rgba(156, 163, 175, 0.4);
+  isolation: isolate;
+  border: 0;
   border-radius: 4rem;
-  background: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.3),
+    rgb(255 255 255 / 0.16)
+  );
   box-shadow:
-    0 0 20px 0 rgba(0, 0, 0, 0.17),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+    0 18px 34px -14px rgb(0 0 0 / 0.42),
+    0 2px 8px -2px rgb(0 0 0 / 0.14),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.75),
+    inset 0 -1px 0.5px rgb(0 0 0 / 0.08),
+    inset 0 10px 14px -12px rgb(255 255 255 / 0.5);
+  backdrop-filter: blur(22px) saturate(1.7) brightness(1.06);
+  -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(1.06);
+}
+.dock-list::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from -50deg at 50% 50%,
+    rgb(255 255 255 / 0.95),
+    rgb(255 255 255 / 0.15) 9% 42%,
+    rgb(255 255 255 / 0.55) 50%,
+    rgb(255 255 255 / 0.15) 58% 91%,
+    rgb(255 255 255 / 0.95)
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 @supports (corner-shape: squircle) {
-  .dock-list {
+  .dock-list,
+  .dock-list::before {
     corner-shape: squircle;
   }
 }

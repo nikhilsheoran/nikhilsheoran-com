@@ -358,13 +358,19 @@ function helix(
   // How far round from the front it is: 0 facing you, 1 across the desk.
   // Distance, and with it haze, blur and dimness, all grow with this.
   const away = smoothStep((1 - Math.cos(Math.min(Math.PI, Math.abs(turn)))) / 1.7);
+  const elevation = Math.atan2(
+    now.view.position[1] - now.view.target[1],
+    now.view.radius,
+  );
   return {
     position: onAxis(
       angle,
       radius,
       Math.min(p.ceiling, p.floor + softPlus(height - p.floor, 0.25)),
     ),
-    rotation: [-0.04, angle, 0],
+    // Leaned back a little toward the camera above it (bottom edge nearer),
+    // more so as the camera closes in and looks down more steeply.
+    rotation: [-0.6 * elevation, angle, 0],
     away,
     presence: 1 - smoothStep((Math.abs(phase) - p.visibleChapters + 0.5) / 0.6),
     scale: radius / p.startRadius,

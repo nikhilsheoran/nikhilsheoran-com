@@ -2,8 +2,15 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
+import {
+  FastForwardIcon,
+  PauseIcon,
+  PlayIcon,
+  RewindIcon,
+} from "@phosphor-icons/react";
 import { useBattery } from "@/lib/use-battery";
 import { wifiInfo } from "@/lib/settings-data";
+import { Glass } from "../journey/glass";
 import styles from "../top-bar.module.css";
 import {
   WifiIconSm,
@@ -18,10 +25,6 @@ import {
   SunIconSm,
   SunIconLg,
   SpeakerHigh,
-  IconPrev,
-  IconPlay,
-  IconPause,
-  IconNext,
   WarningIcon,
   ChevronRight,
   HotspotIcon,
@@ -46,13 +49,30 @@ export function BatteryIndicator() {
     <span className="topbar-item gap-2 px-2">
       <span className="text-xs">{(batteryState.level * 100).toFixed()}%</span>
       <span className="relative flex items-center">
-        <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor" className="text-2xl" aria-hidden>
-          <path d="M0 6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6zm2-1a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H2zm14 3a1.5 1.5 0 0 1-1.5 1.5v-3A1.5 1.5 0 0 1 16 8z"/>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          className="text-2xl"
+          aria-hidden
+        >
+          <path d="M0 6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6zm2-1a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H2zm14 3a1.5 1.5 0 0 1-1.5 1.5v-3A1.5 1.5 0 0 1 16 8z" />
         </svg>
-        <span className={`battery-level ${colorClass}`} style={{ width: `${width}rem` }} />
+        <span
+          className={`battery-level ${colorClass}`}
+          style={{ width: `${width}rem` }}
+        />
         {batteryState.charging ? (
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" className="absolute inset-0 m-auto -translate-x-0.5 text-xs" aria-hidden>
-            <path d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z"/>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            className="absolute inset-0 m-auto -translate-x-0.5 text-xs"
+            aria-hidden
+          >
+            <path d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z" />
           </svg>
         ) : null}
       </span>
@@ -63,15 +83,26 @@ export function BatteryIndicator() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Toggle
 // ─────────────────────────────────────────────────────────────────────────────
-export function Toggle({ checked, onClick }: { checked: boolean; onClick: () => void }) {
+export function Toggle({
+  checked,
+  onClick,
+}: {
+  checked: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
       className={`${styles.wifiToggle} ${checked ? styles.wifiToggleOn : ""}`}
       aria-label={checked ? "Enabled" : "Disabled"}
     >
-      <span className={`${styles.wifiToggleThumb} ${checked ? styles.wifiToggleThumbOn : ""}`} />
+      <span
+        className={`${styles.wifiToggleThumb} ${checked ? styles.wifiToggleThumbOn : ""}`}
+      />
     </button>
   );
 }
@@ -79,42 +110,77 @@ export function Toggle({ checked, onClick }: { checked: boolean; onClick: () => 
 // ─────────────────────────────────────────────────────────────────────────────
 // Apple menu panel
 // ─────────────────────────────────────────────────────────────────────────────
-export function AppleMenuPanel({ onAction }: { onAction: (action: string) => void }) {
+export function AppleMenuPanel({
+  onAction,
+}: {
+  onAction: (action: string) => void;
+}) {
   return (
     <div className={`${styles.panel} ${styles.glassDark} ${styles.appleMenu}`}>
-      <button type="button" className={styles.menuItem} onClick={() => onAction("about")}>
+      <button
+        type="button"
+        className={styles.menuItem}
+        onClick={() => onAction("about")}
+      >
         <span>About This Mac</span>
       </button>
       <div className={styles.menuDivider} />
-      <button type="button" className={styles.menuItem} onClick={() => onAction("settings")}>
+      <button
+        type="button"
+        className={styles.menuItem}
+        onClick={() => onAction("settings")}
+      >
         <span>System Settings...</span>
       </button>
       <div className={styles.menuDivider} />
-      <button type="button" className={`${styles.menuItem} ${styles.menuItemDisabled}`}>
+      <button
+        type="button"
+        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+      >
         <span>Recent Items</span>
-        <span className={styles.menuItemShortcut}><ChevronRight /></span>
+        <span className={styles.menuItemShortcut}>
+          <ChevronRight />
+        </span>
       </button>
       <div className={styles.menuDivider} />
-      <button type="button" className={`${styles.menuItem} ${styles.menuItemDisabled}`}>
+      <button
+        type="button"
+        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+      >
         <span>Force Quit...</span>
         <span className={styles.menuItemShortcut}>&#x2325;&#x2318;Esc</span>
       </button>
       <div className={styles.menuDivider} />
-      <button type="button" className={`${styles.menuItem} ${styles.menuItemDisabled}`}>
+      <button
+        type="button"
+        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+      >
         <span>Sleep</span>
       </button>
-      <button type="button" className={`${styles.menuItem} ${styles.menuItemDisabled}`}>
+      <button
+        type="button"
+        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+      >
         <span>Restart...</span>
       </button>
-      <button type="button" className={`${styles.menuItem} ${styles.menuItemDisabled}`}>
+      <button
+        type="button"
+        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+      >
         <span>Shut Down...</span>
       </button>
       <div className={styles.menuDivider} />
-      <button type="button" className={`${styles.menuItem} ${styles.menuItemDisabled}`}>
+      <button
+        type="button"
+        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+      >
         <span>Lock Screen</span>
         <span className={styles.menuItemShortcut}>&#x2303;&#x2318;Q</span>
       </button>
-      <button type="button" className={`${styles.menuItem} ${styles.menuItemDisabled}`}>
+      <button
+        type="button"
+        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+      >
         <span>Log Out Nikhil Sheoran...</span>
         <span className={styles.menuItemShortcut}>&#x21E7;&#x2318;Q</span>
       </button>
@@ -181,7 +247,10 @@ export function AppMenuPanel({
 }) {
   const items = APP_MENUS[menuId] ?? [];
   return (
-    <div className={`${styles.panel} ${styles.glassDark} ${styles.appMenu}`} style={{ left: leftOffset }}>
+    <div
+      className={`${styles.panel} ${styles.glassDark} ${styles.appMenu}`}
+      style={{ left: leftOffset }}
+    >
       {items.map((item, i) => {
         if (item.label === "" && item.dividerAfter) {
           return <div key={`divider-${i}`} className={styles.menuDivider} />;
@@ -221,7 +290,10 @@ export function WiFiPanel() {
     <div className={`${styles.wifiPanel} ${styles.glassLight}`}>
       <div className={styles.wifiHeader}>
         <span className={styles.wifiHeaderTitle}>Wi-Fi</span>
-        <Toggle checked={wifiEnabled} onClick={() => setWifiEnabled((v) => !v)} />
+        <Toggle
+          checked={wifiEnabled}
+          onClick={() => setWifiEnabled((v) => !v)}
+        />
       </div>
 
       {wifiEnabled ? (
@@ -236,22 +308,89 @@ export function WiFiPanel() {
           <div className={styles.wifiSection}>
             <p className={styles.wifiSectionLabel}>Personal Hotspot</p>
             <button type="button" className={styles.wifiRow}>
-              <span className={`${styles.wifiIconCircle} ${styles.wifiIconCircleGray}`}>
+              <span
+                className={`${styles.wifiIconCircle} ${styles.wifiIconCircleGray}`}
+              >
                 <HotspotIcon />
               </span>
               <span className={styles.wifiRowText}>{wifiInfo.hotspotName}</span>
               <span className={styles.wifiRowMeta}>
-                <svg width="14" height="11" viewBox="0 0 14 11" fill="none" aria-hidden>
-                  <rect x="0" y="8" width="2.4" height="3" rx="0.5" fill="currentColor" />
-                  <rect x="3.6" y="6" width="2.4" height="5" rx="0.5" fill="currentColor" />
-                  <rect x="7.2" y="3.5" width="2.4" height="7.5" rx="0.5" fill="currentColor" opacity="0.3" />
-                  <rect x="10.8" y="0.5" width="2.4" height="10.5" rx="0.5" fill="currentColor" opacity="0.3" />
+                <svg
+                  width="14"
+                  height="11"
+                  viewBox="0 0 14 11"
+                  fill="none"
+                  aria-hidden
+                >
+                  <rect
+                    x="0"
+                    y="8"
+                    width="2.4"
+                    height="3"
+                    rx="0.5"
+                    fill="currentColor"
+                  />
+                  <rect
+                    x="3.6"
+                    y="6"
+                    width="2.4"
+                    height="5"
+                    rx="0.5"
+                    fill="currentColor"
+                  />
+                  <rect
+                    x="7.2"
+                    y="3.5"
+                    width="2.4"
+                    height="7.5"
+                    rx="0.5"
+                    fill="currentColor"
+                    opacity="0.3"
+                  />
+                  <rect
+                    x="10.8"
+                    y="0.5"
+                    width="2.4"
+                    height="10.5"
+                    rx="0.5"
+                    fill="currentColor"
+                    opacity="0.3"
+                  />
                 </svg>
                 <span style={{ fontWeight: 600 }}>4G</span>
-                <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden>
-                  <rect x="0.5" y="0.5" width="18" height="10" rx="2.5" stroke="currentColor" opacity="0.4" />
-                  <rect x="2" y="2" width="5" height="7" rx="1" fill="currentColor" />
-                  <rect x="19.5" y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor" opacity="0.4" />
+                <svg
+                  width="22"
+                  height="11"
+                  viewBox="0 0 22 11"
+                  fill="none"
+                  aria-hidden
+                >
+                  <rect
+                    x="0.5"
+                    y="0.5"
+                    width="18"
+                    height="10"
+                    rx="2.5"
+                    stroke="currentColor"
+                    opacity="0.4"
+                  />
+                  <rect
+                    x="2"
+                    y="2"
+                    width="5"
+                    height="7"
+                    rx="1"
+                    fill="currentColor"
+                  />
+                  <rect
+                    x="19.5"
+                    y="3.5"
+                    width="1.5"
+                    height="4"
+                    rx="0.5"
+                    fill="currentColor"
+                    opacity="0.4"
+                  />
                 </svg>
               </span>
             </button>
@@ -273,7 +412,9 @@ export function WiFiPanel() {
 
           <button type="button" className={styles.wifiSettingsRow}>
             <span>Other Networks</span>
-            <span className={styles.wifiChevron}><ChevronRight /></span>
+            <span className={styles.wifiChevron}>
+              <ChevronRight />
+            </span>
           </button>
 
           <div className={styles.wifiDivider} />
@@ -283,7 +424,13 @@ export function WiFiPanel() {
           </button>
         </>
       ) : (
-        <div style={{ padding: "8px 16px 12px", color: "rgba(0,0,0,0.45)", fontSize: 13 }}>
+        <div
+          style={{
+            padding: "8px 16px 12px",
+            color: "rgba(0,0,0,0.45)",
+            fontSize: 13,
+          }}
+        >
           Wi-Fi is turned off
         </div>
       )}
@@ -320,7 +467,9 @@ export function CCSlider({
         <div className={styles.ccSliderBg} />
         <div className={styles.ccSliderFill} style={{ width: `${pct}%` }} />
         {iconLeft && <div className={styles.ccSliderIconLeft}>{iconLeft}</div>}
-        {iconRight && <div className={styles.ccSliderIconRight}>{iconRight}</div>}
+        {iconRight && (
+          <div className={styles.ccSliderIconRight}>{iconRight}</div>
+        )}
         <input
           type="range"
           className={styles.ccSlider}
@@ -339,6 +488,9 @@ export function CCSlider({
 // ─────────────────────────────────────────────────────────────────────────────
 // Control Center panel
 // ─────────────────────────────────────────────────────────────────────────────
+/** Frost inside each control-centre pane, for contrast over bright windows. */
+const CC_FROST = 10;
+
 function CCConnectivityPill({
   label,
   sub,
@@ -355,13 +507,23 @@ function CCConnectivityPill({
   children: ReactNode;
 }) {
   return (
-    <button type="button" className={`${styles.ccPill} ${styles.ccTile} ${areaClass}`} onClick={onClick}>
-      <span className={`${styles.ccPillIcon} ${on ? "" : styles.ccPillIconOff}`}>{children}</span>
+    <Glass
+      as="button"
+      type="button"
+      coreBlur={CC_FROST}
+      className={`${styles.ccPill} ${styles.ccTile} ${areaClass}`}
+      onClick={onClick}
+    >
+      <span
+        className={`${styles.ccPillIcon} ${on ? "" : styles.ccPillIconOff}`}
+      >
+        {children}
+      </span>
       <span className={styles.ccPillText}>
         <span className={styles.ccPillLabel}>{label}</span>
         <span className={styles.ccPillSub}>{sub}</span>
       </span>
-    </button>
+    </Glass>
   );
 }
 
@@ -371,7 +533,12 @@ export function ControlCenterPanel({
   onMusicNext,
   onMusicToggle,
 }: {
-  nowPlaying: { title: string; artist: string; artworkUrl: string; isPlaying: boolean } | null;
+  nowPlaying: {
+    title: string;
+    artist: string;
+    artworkUrl: string;
+    isPlaying: boolean;
+  } | null;
   onMusicPrev?: () => void;
   onMusicNext?: () => void;
   onMusicToggle?: () => void;
@@ -404,17 +571,21 @@ export function ControlCenterPanel({
         on={wifiOn}
         onClick={() => setWifiOn((v) => !v)}
       >
-        <WifiIconSm size={18} />
+        <WifiIconSm size={21} />
       </CCConnectivityPill>
 
-      <div className={`${styles.ccNowPlaying} ${styles.ccTile}`}>
+      <Glass
+        as="div"
+        coreBlur={CC_FROST}
+        className={`${styles.ccNowPlaying} ${styles.ccTile}`}
+      >
         <div className={styles.ccNpHead}>
           {nowPlaying ? (
             <Image
               src={nowPlaying.artworkUrl}
               alt=""
-              width={36}
-              height={36}
+              width={50}
+              height={50}
               className={styles.ccNpArt}
               unoptimized
             />
@@ -424,11 +595,15 @@ export function ControlCenterPanel({
             </span>
           )}
           <div className={styles.ccNpMeta}>
-            <p className={styles.ccNpTitle}>{nowPlaying?.title ?? "Not Playing"}</p>
+            <p className={styles.ccNpTitle}>
+              {nowPlaying?.title ?? "Not Playing"}
+            </p>
             <p className={styles.ccNpArtist}>{nowPlaying?.artist ?? "Music"}</p>
           </div>
         </div>
-        <div className={`${styles.ccNpControls} ${nowPlaying ? "" : styles.ccNpControlsIdle}`}>
+        <div
+          className={`${styles.ccNpControls} ${nowPlaying ? "" : styles.ccNpControlsIdle}`}
+        >
           <button
             type="button"
             className={styles.ccNpBtn}
@@ -436,7 +611,7 @@ export function ControlCenterPanel({
             aria-label="Previous"
             disabled={!nowPlaying}
           >
-            <IconPrev />
+            <RewindIcon size={17} weight="fill" />
           </button>
           <button
             type="button"
@@ -445,7 +620,11 @@ export function ControlCenterPanel({
             aria-label={nowPlaying?.isPlaying ? "Pause" : "Play"}
             disabled={!nowPlaying}
           >
-            {nowPlaying?.isPlaying ? <IconPause /> : <IconPlay />}
+            {nowPlaying?.isPlaying ? (
+              <PauseIcon size={21} weight="fill" />
+            ) : (
+              <PlayIcon size={21} weight="fill" />
+            )}
           </button>
           <button
             type="button"
@@ -454,10 +633,10 @@ export function ControlCenterPanel({
             aria-label="Next"
             disabled={!nowPlaying}
           >
-            <IconNext />
+            <FastForwardIcon size={17} weight="fill" />
           </button>
         </div>
-      </div>
+      </Glass>
 
       <CCConnectivityPill
         areaClass={styles.ccBluetooth}
@@ -466,7 +645,7 @@ export function ControlCenterPanel({
         on={bluetoothOn}
         onClick={() => setBluetoothOn((v) => !v)}
       >
-        <BluetoothIconSm size={18} />
+        <BluetoothIconSm size={21} />
       </CCConnectivityPill>
 
       <CCConnectivityPill
@@ -476,51 +655,65 @@ export function ControlCenterPanel({
         on={airdropOn}
         onClick={() => setAirdropOn((v) => !v)}
       >
-        <AirDropIconSm size={18} />
+        <AirDropIconSm size={21} />
       </CCConnectivityPill>
 
-      <button
+      <Glass
+        as="button"
+        coreBlur={CC_FROST}
         type="button"
         className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccStage}`}
         aria-label="Stage Manager"
       >
-        <StageManagerTahoe size={36} />
-      </button>
-      <button
+        <StageManagerTahoe size={30} />
+      </Glass>
+      <Glass
+        as="button"
+        coreBlur={CC_FROST}
         type="button"
         className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccMirror}`}
         aria-label="Screen Mirroring"
       >
-        <MirrorTahoe size={36} />
-      </button>
+        <MirrorTahoe size={30} />
+      </Glass>
 
-      <button
+      <Glass
+        as="button"
+        coreBlur={CC_FROST}
         type="button"
         className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccDark} ${darkOn ? styles.ccRoundTileActive : ""}`}
         aria-label="Dark Mode"
         onClick={() => setDarkOn((v) => !v)}
       >
-        <DarkModeIcon size={36} />
-      </button>
-      <button
+        <DarkModeIcon size={30} />
+      </Glass>
+      <Glass
+        as="button"
+        coreBlur={CC_FROST}
         type="button"
         className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccCamera}`}
         aria-label="Screenshot"
       >
-        <CameraIcon size={36} />
-      </button>
-      <button
+        <CameraIcon size={30} />
+      </Glass>
+      <Glass
+        as="button"
+        coreBlur={CC_FROST}
         type="button"
         className={`${styles.ccFocusPill} ${styles.ccTile} ${focusOn ? styles.ccFocusPillActive : ""}`}
         onClick={() => setFocusOn((v) => !v)}
       >
         <span className={styles.ccFocusIcon}>
-          <MoonIcon size={18} />
+          <MoonIcon size={21} />
         </span>
         <span>Focus</span>
-      </button>
+      </Glass>
 
-      <div className={`${styles.ccSliderTile} ${styles.ccTile} ${styles.ccDisplay}`}>
+      <Glass
+        as="div"
+        coreBlur={CC_FROST}
+        className={`${styles.ccSliderTile} ${styles.ccTile} ${styles.ccDisplay}`}
+      >
         <span className={styles.ccSliderLabel}>Display</span>
         <CCSlider
           value={brightness}
@@ -531,9 +724,13 @@ export function ControlCenterPanel({
           iconRight={<SunIconLg />}
           ariaLabel="Display brightness"
         />
-      </div>
+      </Glass>
 
-      <div className={`${styles.ccSliderTile} ${styles.ccTile} ${styles.ccSound}`}>
+      <Glass
+        as="div"
+        coreBlur={CC_FROST}
+        className={`${styles.ccSliderTile} ${styles.ccTile} ${styles.ccSound}`}
+      >
         <span className={styles.ccSliderLabel}>Sound</span>
         <CCSlider
           value={volume}
@@ -542,17 +739,26 @@ export function ControlCenterPanel({
           onChange={setVolume}
           iconLeft={<SpeakerHigh />}
           endButton={
-            <button type="button" className={styles.ccSoundEnd} aria-label="AirPlay">
+            <button
+              type="button"
+              className={styles.ccSoundEnd}
+              aria-label="AirPlay"
+            >
               <AirPlayIcon size={12} />
             </button>
           }
           ariaLabel="Sound volume"
         />
-      </div>
+      </Glass>
 
-      <button type="button" className={`${styles.ccEditBtn} ${styles.ccTile}`}>
+      <Glass
+        as="button"
+        coreBlur={CC_FROST}
+        type="button"
+        className={`${styles.ccEditBtn} ${styles.ccTile}`}
+      >
         Edit Controls
-      </button>
+      </Glass>
     </div>
   );
 }
