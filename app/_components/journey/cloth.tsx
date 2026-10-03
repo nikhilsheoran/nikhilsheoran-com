@@ -253,8 +253,12 @@ export function Cloth({
     const dt = Math.min(delta, 1 / 30);
     const p = tuning.panels;
     body.target.fromArray(pose.position);
+    // On the helix a sheet is fixed to its place on the spiral: it moves only
+    // along that path, never trailing behind it or swinging off to the side.
+    const fixed = tuning.lab.path === 2;
     if (
       !body.ready ||
+      fixed ||
       motion.reducedMotion ||
       body.position.distanceToSquared(body.target) > 9
     ) {
@@ -275,7 +279,7 @@ export function Cloth({
     }
     // Slow air currents, out of step from sheet to sheet.
     const t = clock.elapsedTime;
-    const drift = motion.reducedMotion ? 0 : p.drift;
+    const drift = motion.reducedMotion || fixed ? 0 : p.drift;
     group.position.set(
       body.position.x + drift * Math.sin(t * 0.37 + index * 1.3),
       body.position.y + drift * 1.4 * Math.sin(t * 0.53 + index * 2.1),
