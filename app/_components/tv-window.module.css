@@ -11,15 +11,17 @@
   min-height: min(520px, calc(100vh - 72px));
   max-width: calc(100vw - 12px);
   max-height: calc(100vh - 44px);
-  border-radius: 28px;
-  background: #efedf0;
-  box-shadow:
-    0 30px 90px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 hsla(0, 0%, 100%, 0.55);
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 
+    0 0 0 0.5px rgb(0 0 0 / 0.16),
+    0 38px 80px -22px rgb(0 0 0 / 0.5),
+    0 14px 30px -14px rgb(0 0 0 / 0.28);
   font-family:
     "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont,
     "Helvetica Neue", sans-serif;
   color: #1d1d1f;
+  border: 0;
 }
 
 .window::-webkit-resizer {
@@ -44,13 +46,16 @@
    Sidebar
 ════════════════════════════════════════════════════════════════ */
 .sidebar {
-  margin: 6px 0 6px 6px;
-  border-radius: 22px;
-  border: 1px solid #d7d7d7;
-  background: linear-gradient(180deg, #eae5e8 0%, #e1dcdf 100%);
+  margin: 8px 0 8px 8px;
+  border-radius: 18px;
+  border: 0.5px solid rgb(0 0 0 / 0.06);
+  background: #f2f2f4;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  box-shadow: 
+    0 10px 26px -14px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.85);
 }
 
 .sidebarHeader {
@@ -69,23 +74,23 @@
 }
 
 .sidebarGroup + .sidebarGroup {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .sidebarItem {
   width: 100%;
-  min-height: 28px;
+  min-height: 32px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 9px;
   background: transparent;
   text-align: left;
-  padding: 0 8px;
-  font-size: 13px;
+  padding: 0 9px;
+  font-size: 14px;
   color: #1d1d1f;
   cursor: default;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 9px;
   letter-spacing: -0.006em;
 }
 
@@ -95,32 +100,32 @@
 
 /* Active = blue, same hue as Apple's own TV active state */
 .sidebarItemActive {
-  background: rgba(0, 102, 204, 0.10);
-  color: #0066cc;
-  font-weight: 500;
+  background: rgb(0 0 0 / 0.075);
+  color: #1d1d1f;
+  font-weight: 600;
 }
 
 .sidebarIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
+  color: #0a7aff;
 }
 
 .sidebarIcon svg {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
 }
 
 .sectionTitle {
-  margin: 0 6px 4px;
-  font-size: 11px;
-  color: #8e8e8e;
+  margin: 0 9px 5px;
+  font-size: 12px;
+  color: #8a8a8e;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -233,8 +238,7 @@
   font-size: 12px;
   color: rgba(255, 255, 255, 0.62);
   font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .heroTitle {
@@ -557,8 +561,7 @@
   font-size: 10px;
   color: rgba(255, 255, 255, 0.68);
   font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .pickTitle {

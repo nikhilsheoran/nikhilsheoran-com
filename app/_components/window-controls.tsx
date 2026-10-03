@@ -32,7 +32,7 @@ function DotButton({
       data-window-control
       aria-label={ariaLabel}
       onClick={onClick}
-      className={`relative h-3 w-3 cursor-default rounded-full border border-black/10 ${colorClassName}`}
+      className={`relative h-3.5 w-3.5 cursor-default rounded-full border border-black/10 ${colorClassName}`}
     >
       <span className={iconClassNames(iconVisible)}>{icon}</span>
     </button>
@@ -76,7 +76,7 @@ export function WindowControls({ onClose, windowName = "window" }: WindowControl
   const hasCloseAction = typeof onClose === "function";
 
   return (
-    <div className="window-controls group flex items-center gap-1.5">
+    <div className="window-controls group flex items-center gap-2">
       <DotButton
         colorClassName="bg-[#ff5f57]"
         icon={<CloseIcon />}

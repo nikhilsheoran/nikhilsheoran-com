@@ -8,12 +8,13 @@
   min-height: min(480px, calc(100vh - 72px));
   max-width: calc(100vw - 12px);
   max-height: calc(100vh - 44px);
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  background: #f5f5f5;
-  box-shadow:
-    0 30px 90px rgba(0, 0, 0, 0.38),
-    0 1px 0 rgba(255, 255, 255, 0.45) inset;
+  border-radius: 26px;
+  border: 0;
+  background: #fff;
+  box-shadow: 
+    0 0 0 0.5px rgb(0 0 0 / 0.16),
+    0 38px 80px -22px rgb(0 0 0 / 0.5),
+    0 14px 30px -14px rgb(0 0 0 / 0.28);
   font-family:
     -apple-system,
     BlinkMacSystemFont,
@@ -33,18 +34,20 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-columns: 212px minmax(0, 1fr);
   height: 100%;
 }
 
 /* ========== Sidebar ========== */
 
 .sidebar {
-  margin: 6px 0 6px 6px;
-  border-radius: 22px;
-  border: 0.5px solid rgba(0, 0, 0, 0.06);
-  background: #f5f5f5;
-  box-shadow: 0 0 40px rgba(43, 43, 43, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  margin: 8px 0 8px 8px;
+  border-radius: 18px;
+  border: 0.5px solid rgb(0 0 0 / 0.06);
+  background: #f2f2f4;
+  box-shadow: 
+    0 10px 26px -14px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.85);
   display: flex;
   flex-direction: column;
 }
@@ -63,32 +66,31 @@
 }
 
 .sidebarGroup + .sidebarGroup {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .groupTitle {
-  margin: 0 6px 4px;
-  font-size: 11px;
-  color: #8e8e8e;
+  margin: 0 9px 5px;
+  font-size: 12px;
+  color: #8a8a8e;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .sidebarItem {
   width: 100%;
   border: 0;
   background: transparent;
-  border-radius: 6px;
-  min-height: 28px;
+  border-radius: 9px;
+  min-height: 32px;
   text-align: left;
-  padding: 0 8px;
-  font-size: 13px;
+  padding: 0 9px;
+  font-size: 14px;
   color: #1d1d1f;
   cursor: default;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 9px;
   letter-spacing: -0.006em;
 }
 
@@ -97,23 +99,24 @@
 }
 
 .sidebarItemActive {
-  background: rgba(0, 0, 0, 0.06);
-  color: #007aff;
-  font-weight: 500;
+  background: rgb(0 0 0 / 0.075);
+  color: #1d1d1f;
+  font-weight: 600;
 }
 
 .sidebarIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
+  color: #0a7aff;
 }
 
 .sidebarIcon svg {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
 }
 
 /* ========== Main content ========== */
@@ -126,12 +129,12 @@
 /* ========== Top bar ========== */
 
 .topBar {
-  min-height: 52px;
-  border-bottom: 0.5px solid #d5d5d5;
+  min-height: 58px;
+  border-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px 0 12px;
+  padding: 0 14px 0 14px;
 }
 
 .pathHeader {
@@ -145,33 +148,34 @@
   display: inline-flex;
   align-items: center;
   border-radius: 9999px;
-  border: 1px solid #d7d7d7;
-  background: rgba(252, 252, 252, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow:
-    0 0 40px rgba(43, 43, 43, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  border: 0.5px solid rgb(0 0 0 / 0.07);
+  background: #fff;
+  box-shadow: 
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 8px 18px -10px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 #fff;
   overflow: hidden;
+  color: #3a3a3c;
 }
 
 .navSeparator {
   width: 1px;
   align-self: stretch;
-  background: #d7d7d7;
+  background: rgb(0 0 0 / 0.08);
   flex-shrink: 0;
+  margin: 8px 0;
 }
 
 .navButton {
-  width: 32px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 0;
   border: 0;
   background: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #636366;
+  color: #3a3a3c;
   cursor: default;
   padding: 0;
   transition: background 0.12s;
@@ -187,8 +191,8 @@
 }
 
 .pathTitle {
-  margin: 0 0 0 6px;
-  font-size: 15px;
+  margin: 0 0 0 10px;
+  font-size: 16px;
   font-weight: 700;
   color: #1d1d1f;
   letter-spacing: -0.01em;
@@ -201,30 +205,30 @@
 }
 
 .toolbarButton {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 9999px;
-  border: 1px solid #d7d7d7;
-  background: rgba(252, 252, 252, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow:
-    0 0 40px rgba(43, 43, 43, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  border: 0.5px solid rgb(0 0 0 / 0.07);
+  background: #fff;
+  box-shadow: 
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 8px 18px -10px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #636366;
+  color: #3a3a3c;
   cursor: default;
   padding: 0;
   transition: background 0.12s, box-shadow 0.12s;
 }
 
 .toolbarButton:hover {
-  background: rgba(252, 252, 252, 0.7);
-  box-shadow:
-    0 0 40px rgba(43, 43, 43, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: #f6f6f7;
+  box-shadow: 
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 8px 18px -10px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 #fff;
 }
 
 /* ========== Table ========== */
@@ -240,27 +244,27 @@
   display: grid;
   grid-template-columns: minmax(280px, 1fr) minmax(180px, 0.75fr) 70px 110px;
   gap: 0;
-  min-height: 28px;
+  min-height: 30px;
   align-items: center;
-  padding: 0 16px;
-  border-bottom: 0.5px solid #d5d5d5;
-  color: #86868b;
+  padding: 0 22px;
+  border-bottom: 0.5px solid #e6e6e8;
+  color: #6e6e73;
   font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .tableBody {
   flex: 1;
   overflow-y: auto;
-  padding: 2px 0;
+  padding: 4px 0;
 }
 
 .tableRow {
-  width: calc(100% - 8px);
-  margin: 0 4px;
-  min-height: 28px;
-  border-radius: 6px;
+  width: calc(100% - 20px);
+  margin: 0 10px;
+  min-height: 27px;
+  border-radius: 8px;
   border: 0;
   background: transparent;
   display: grid;
@@ -273,12 +277,22 @@
   cursor: default;
 }
 
+/* Alternate rows are banded, each band a rounded capsule, as in Finder. */
+.tableRow:nth-child(even):not(.tableRowActive) {
+  background: #f4f4f5;
+}
+
 .tableRow:hover:not(.tableRowActive) {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgb(0 0 0 / 0.05);
 }
 
 .tableRowActive {
-  background: rgba(0, 122, 255, 0.12);
+  background: #0a64dc;
+  color: #fff;
+}
+
+.tableRowActive * {
+  color: #fff;
 }
 
 .fileName {
@@ -303,20 +317,20 @@
 /* ========== Footer — two layers ========== */
 
 .footer {
-  border-top: 0.5px solid #d5d5d5;
+  border-top: 0.5px solid #e6e6e8;
   display: flex;
   flex-direction: column;
 }
 
 .footerBreadcrumb {
-  min-height: 24px;
+  min-height: 28px;
   display: flex;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 16px;
   gap: 0;
-  font-size: 11px;
+  font-size: 12px;
   color: #6e6e73;
-  border-bottom: 0.5px solid #d5d5d5;
+  border-bottom: 0.5px solid #e6e6e8;
 }
 
 .breadcrumbSegment {
@@ -337,11 +351,11 @@
 }
 
 .footerInfo {
-  min-height: 22px;
+  min-height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   color: #86868b;
   padding: 0 12px 2px;
 }

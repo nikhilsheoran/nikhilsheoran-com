@@ -8,12 +8,13 @@
   min-height: min(480px, calc(100vh - 72px));
   max-width: calc(100vw - 12px);
   max-height: calc(100vh - 44px);
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.52);
-  background: #ececec;
-  box-shadow:
-    0 30px 90px rgba(0, 0, 0, 0.38),
-    0 1px 0 rgba(255, 255, 255, 0.52) inset;
+  border-radius: 26px;
+  border: 0;
+  background: #f5f5f7;
+  box-shadow: 
+    0 0 0 0.5px rgb(0 0 0 / 0.16),
+    0 38px 80px -22px rgb(0 0 0 / 0.5),
+    0 14px 30px -14px rgb(0 0 0 / 0.28);
   color: #2a2a2a;
   font-family:
     "SF Pro Text",
@@ -50,13 +51,13 @@
 .sidebar {
   display: flex;
   flex-direction: column;
-  margin: 6px 0 6px 6px;
-  border-radius: 22px;
-  border: 1px solid #d7d7d7;
-  box-shadow:
-    0 0 40px rgba(43, 43, 43, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
-  background: linear-gradient(180deg, #e6e6e7 0%, #dfdfe0 100%);
+  margin: 8px 0 8px 8px;
+  border-radius: 18px;
+  border: 0.5px solid rgb(0 0 0 / 0.06);
+  box-shadow: 
+    0 10px 26px -14px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.85);
+  background: #f2f2f4;
   overflow: hidden;
   z-index: 100;
   min-height: 0;
@@ -98,8 +99,8 @@
 }
 
 .accountRowActive {
-  background: #1669d4;
-  color: #fff;
+  background: rgb(0 0 0 / 0.075);
+  color: #1d1d1f;
 }
 
 .accountAvatar {
@@ -129,7 +130,7 @@
 }
 
 .accountName {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -149,8 +150,8 @@
 }
 
 .sidebarItem {
-  min-height: 30px;
-  border-radius: 7px;
+  min-height: 34px;
+  border-radius: 9px;
   padding: 0 8px;
   display: flex;
   align-items: center;
@@ -167,7 +168,7 @@
 }
 
 .sidebarItemActive {
-  background: #1669d4;
+  background: #0a64dc;
 }
 
 .sidebarItemActive .sidebarItemLabel {
@@ -175,8 +176,8 @@
 }
 
 .sidebarItemLabel {
-  font-size: 13px;
-  color: #2f2f2f;
+  font-size: 14px;
+  color: #1d1d1f;
   letter-spacing: -0.005em;
 }
 
@@ -307,7 +308,7 @@
 .content {
   display: flex;
   flex-direction: column;
-  background: #ececed;
+  background: #f5f5f7;
   min-height: 0;
   min-width: 0;
 }
@@ -315,9 +316,9 @@
 /* ========== Content header with frosted-glass nav ========== */
 
 .contentHeader {
-  min-height: 54px;
+  min-height: 58px;
   padding: 0 18px 0 12px;
-  border-bottom: 1px solid #d5d5d6;
+  border-bottom: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -328,20 +329,21 @@
   display: inline-flex;
   align-items: center;
   border-radius: 9999px;
-  border: 1px solid #d2d2d2;
-  background: rgba(252, 252, 252, 0.5);
+  border: 0.5px solid rgb(0 0 0 / 0.07);
+  background: #fff;
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  box-shadow: 
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 8px 18px -10px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 #fff;
   overflow: hidden;
 }
 
 .navSeparator {
   width: 1px;
   align-self: stretch;
-  background: #d2d2d2;
+  background: rgb(0 0 0 / 0.08);
   flex-shrink: 0;
 }
 
@@ -370,8 +372,8 @@
 .headerTitle {
   margin: 0;
   font-size: 16px;
-  font-weight: 640;
-  color: #444;
+  font-weight: 700;
+  color: #1d1d1f;
   letter-spacing: -0.01em;
 }
 
@@ -387,9 +389,9 @@
 /* ========== Cards ========== */
 
 .card {
-  border-radius: 12px;
-  background: #f0f0f1;
-  border: 1px solid #e4e4e4;
+  border-radius: 14px;
+  background: #fff;
+  border: 0.5px solid rgb(0 0 0 / 0.06);
   overflow: hidden;
   margin-bottom: 12px;
 }
@@ -709,9 +711,9 @@
 .generalHero {
   margin-bottom: 14px;
   padding: 20px 16px 16px;
-  border-radius: 12px;
-  background: #f0f0f1;
-  border: 1px solid #e4e4e4;
+  border-radius: 14px;
+  background: #fff;
+  border: 0.5px solid rgb(0 0 0 / 0.06);
   text-align: center;
 }
 
@@ -747,7 +749,7 @@
 }
 
 .toggleOn {
-  background: #2479ec;
+  background: #34c759;
 }
 
 .toggleThumb {
@@ -769,9 +771,9 @@
   text-align: center;
   padding: 22px 16px 18px;
   margin-bottom: 14px;
-  border-radius: 12px;
-  background: #f0f0f1;
-  border: 1px solid #e4e4e4;
+  border-radius: 14px;
+  background: #fff;
+  border: 0.5px solid rgb(0 0 0 / 0.06);
 }
 
 .aboutAppleLogo {

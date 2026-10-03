@@ -17,22 +17,22 @@ import styles from "./notes-window.module.css";
 // ── Notes-specific icons (unique to this window) ────────────────────────────
 
 function FolderIcon({ active }: { active: boolean }) {
-  const color = active ? "#f09a00" : "#7a7a7a";
+  const color = "#e9a100";
   return (
-    <svg className={styles.sidebarIcon} width="18" height="15" viewBox="0 0 20 16" fill="none" aria-hidden>
+    <svg className={styles.sidebarIcon} width="20" height="17" viewBox="0 0 20 16" fill="none" aria-hidden>
       <path
         d="M1.3 3.6C1.3 2.61 2.11 1.8 3.1 1.8H7.1L8.7 3.4H16.9C17.89 3.4 18.7 4.21 18.7 5.2V12.9C18.7 13.89 17.89 14.7 16.9 14.7H3.1C2.11 14.7 1.3 13.89 1.3 12.9V3.6Z"
         stroke={color}
         strokeWidth="1.35"
         strokeLinejoin="round"
-        fill={active ? "rgba(240,154,0,0.1)" : "none"}
+        fill={active ? "rgba(233,161,0,0.14)" : "none"}
       />
     </svg>
   );
 }
 
 function SharedSidebarIcon({ active }: { active: boolean }) {
-  const color = active ? "#3d82e0" : "#7a7a7a";
+  const color = "#0a7aff";
   return (
     <svg className={styles.sidebarIcon} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
       <circle cx="8" cy="5.2" r="2.3" stroke={color} strokeWidth="1.3" />
@@ -153,7 +153,7 @@ export function NotesWindow({
               })}
             </div>
 
-            <p className={styles.sectionLabel}>Category</p>
+            <p className={styles.sectionLabel}>iCloud</p>
             <div className={styles.folderList}>
               {iCloudFolders.map((folder) => {
                 const isActive = folder.id === selectedFolder.id;
