@@ -22,6 +22,7 @@ import { useJourneyInput } from "./use-journey-input";
 import { Overlay } from "./overlay";
 import { Loader } from "./loader";
 import { RoomSound } from "./sound";
+import { journeyMono, journeySerif } from "./fonts";
 import styles from "./journey.module.css";
 
 const Scene = dynamic(() => import("./scene").then((m) => m.JourneyScene), {
@@ -67,6 +68,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const [webglFailed, setWebglFailed] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
+  const [creed, setCreed] = useState(false);
   const search = useSyncExternalStore(
     noSubscription,
     () => window.location.search,
@@ -108,6 +110,13 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       rangeRef.current.value = String(Math.round(progress * 1000));
     setMode(next);
     setNearScreen(progress >= runtime.beats.handoffStart);
+    // The closing line plays over the descent and clears before the screen arrives.
+    const { handoffStart } = runtime.beats;
+    setCreed(
+      next !== "focused" &&
+        progress >= handoffStart &&
+        progress < handoffStart + 0.55 * (1 - handoffStart),
+    );
     const nextChapter = activeChapter(progress, runtime.beats);
     if (nextChapter !== lastChapterRef.current) {
       if (nextChapter >= 0) soundRef.current?.pass();
@@ -176,7 +185,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       </noscript>
       <div
         ref={surfaceRef}
-        className={`portfolio-journey ${styles.journey}`}
+        className={`portfolio-journey ${styles.journey} ${journeySerif.variable} ${journeyMono.variable}`}
         data-testid="journey"
         data-mode={mode}
       >
@@ -225,7 +234,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         <Overlay
           chapter={chapter}
           hidden={uiHidden}
-          reducedMotion={reducedMotion}
           rangeRef={rangeRef}
           onSlide={(value) =>
             seek(runtimeRef.current.motion, value, runtimeRef.current.beats)
@@ -244,8 +252,13 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             className={`${styles.returnButton} ${exitHint ? styles.returnHint : ""}`}
             onClick={backToDesk}
           >
-            Back to the desk
+            ← Back to the desk
           </button>
+        )}
+        {creed && (
+          <p className={styles.creed}>
+            “Your only true moat is how bad you want it.”
+          </p>
         )}
         {webglFailed && (
           <div className={styles.fallback}>
@@ -266,7 +279,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             setSoundOn(!soundOn);
           }}
         >
-          {soundOn ? <SpeakerHighIcon size={16} /> : <SpeakerSlashIcon size={16} />}
+          {soundOn ? <SpeakerHighIcon size={14} /> : <SpeakerSlashIcon size={14} />}
           <span>{soundOn ? "Sound on" : "Sound off"}</span>
         </button>
         {tuning && <Tuner />}

@@ -5,6 +5,8 @@ export interface Work {
   slug: string;
   year: string;
   date: string | null;
+  /** How old Nikhil was; the story is told in ages. */
+  age: number;
   kind: "youtube" | "x" | "web";
   url: string;
   image: string;
@@ -14,10 +16,11 @@ export interface Work {
 
 /** Chronological. Regenerate artwork with `bun scripts/works/build.ts`. */
 export const works: Work[] = (data as Work[]).map(
-  ({ slug, year, date, kind, url, image, title, subtitle }) => ({
+  ({ slug, year, date, age, kind, url, image, title, subtitle }) => ({
     slug,
     year,
     date,
+    age,
     kind,
     url,
     image,

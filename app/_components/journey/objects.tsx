@@ -216,7 +216,7 @@ export function Laptop({
           style={{ pointerEvents: "none" }}
         >
           <div className={styles.laptopTooltip} role="tooltip">
-            <span className={styles.tooltipDot} /> Click to use
+            <span className={styles.tooltipDot} /> Open my Mac
           </div>
         </Html>
       )}

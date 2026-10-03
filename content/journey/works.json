@@ -6,10 +6,11 @@
     "kind": "youtube",
     "url": "https://www.youtube.com/watch?v=krWeNv1GvSY",
     "image": "/journey/works/first-video.jpg",
-    "title": "First video",
-    "subtitle": "Started a new YouTube channel after binge-watching Mike Shake. This was video one.",
+    "title": "The channel I kept",
+    "subtitle": "My first YouTube channel died after one video. A year later I filmed myself learning to spin a basketball on one finger, and this time I didn’t quit.",
     "source": "YouTube thumbnail",
-    "videoTitle": "How I Learned to Spin A Ball on Finger (Hindi)"
+    "videoTitle": "How I Learned to Spin A Ball on Finger (Hindi)",
+    "age": 16
   },
   {
     "slug": "first-dollar",
@@ -18,10 +19,11 @@
     "kind": "x",
     "url": "https://x.com/_nikhilsheoran/status/1604491342482214913",
     "image": "/journey/works/first-dollar.jpg",
-    "title": "First dollar",
-    "subtitle": "Edited a video for a senior's channel. Got paid ₹600. I was 16.",
+    "title": "First ₹600",
+    "subtitle": "A senior paid me to edit his video. It was the first money I ever made, and I posted about it like I’d won the lottery.",
     "source": "tweet card",
-    "tweetText": "Today, for the first time in my life, I earned money and it’s the best feeling. 🥳\n\nI am 16 btw. 😄"
+    "tweetText": "Today, for the first time in my life, I earned money and it’s the best feeling. 🥳\n\nI am 16 btw. 😄",
+    "age": 16
   },
   {
     "slug": "hostel-life",
@@ -30,10 +32,11 @@
     "kind": "youtube",
     "url": "https://www.youtube.com/watch?v=sNO5pibczTI",
     "image": "/journey/works/hostel-life.jpg",
-    "title": "Making videos",
-    "subtitle": "Used to really enjoy making videos. Might return to it someday.",
+    "title": "No plan, just a camera",
+    "subtitle": "I landed in an electronics degree I had zero interest in. So I kept making videos.",
     "source": "YouTube thumbnail",
-    "videoTitle": "BITS Goa Hostel life | My experience | Nikhil Sheoran"
+    "videoTitle": "BITS Goa Hostel life | My experience | Nikhil Sheoran",
+    "age": 17
   },
   {
     "slug": "media-groww",
@@ -45,8 +48,9 @@
     "frameLabel": "mediagroww.com",
     "image": "/journey/works/media-groww.jpg",
     "title": "Media Groww",
-    "subtitle": "Started a video editing service for creators with Jeet.",
-    "source": "homepage screenshot (Wayback Machine, Feb 2025)"
+    "subtitle": "Editing for one senior turned into an agency with Jeet. Five creators on retainer, run from a hostel room.",
+    "source": "homepage screenshot (Wayback Machine, Feb 2025)",
+    "age": 17
   },
   {
     "slug": "fastcut",
@@ -56,8 +60,9 @@
     "url": "https://fastcutai.co",
     "image": "/journey/works/fastcut.jpg",
     "title": "FastCut",
-    "subtitle": "Built an AI video editor with Harsh. 13k+ users across 38 countries, no funding.",
-    "source": "homepage screenshot"
+    "subtitle": "Every client wanted the same edit, so Harsh and I automated it. 13,000 users in 38 countries, no investors. Then it ran out of momentum.",
+    "source": "homepage screenshot",
+    "age": 17
   },
   {
     "slug": "goa-police-hackathon",
@@ -66,10 +71,11 @@
     "kind": "x",
     "url": "https://x.com/_nikhilsheoran/status/1849360705084121385",
     "image": "/journey/works/goa-police-hackathon.jpg",
-    "title": "Goa Police hackathon",
-    "subtitle": "Won the Goa Police hackathon and got to demo our project to the DGP.",
+    "title": "A hackathon, won",
+    "subtitle": "Goa Police ran a hackathon. We won it, and I ended up demoing our project to the Director General of Police.",
     "source": "tweet card",
-    "tweetText": "Woah so I showcased our hackathon project to DGP Goa today.\n\nThis hackathon thing is interesting."
+    "tweetText": "Woah so I showcased our hackathon project to DGP Goa today.\n\nThis hackathon thing is interesting.",
+    "age": 18
   },
   {
     "slug": "spotthescam",
@@ -79,8 +85,9 @@
     "url": "https://spotthescam.in",
     "image": "/journey/works/spotthescam.jpg",
     "title": "SpotTheScam",
-    "subtitle": "The hackathon project became a real tool, built with BITS Pilani and launched by Goa's chief minister.",
-    "source": "homepage screenshot"
+    "subtitle": "That project became a real tool, built with BITS Pilani and Goa Police. The Chief Minister launched it. The Times of India wrote about it.",
+    "source": "homepage screenshot",
+    "age": 19
   },
   {
     "slug": "first-job",
@@ -89,10 +96,11 @@
     "kind": "x",
     "url": "https://x.com/_nikhilsheoran/status/1954943060749799496",
     "image": "/journey/works/first-job.jpg",
-    "title": "First job",
-    "subtitle": "Joined Ponder as a founding engineer. It didn't work out, but it was a start.",
+    "title": "Hired. Fired.",
+    "subtitle": "Founding engineer at a startup, my first job. It lasted two months. I moved cities, ran a 10k and started over.",
     "source": "tweet card",
-    "tweetText": "Time to reintroduce myself here:\n\n> 19, ece@BITS goa\n> fullstack web dev\n> love tech & video editing\n> built a startup around that, failed\n> got a 50LPA remote job soon after\n> didn’t work out, had to part ways\n> moved to blr recently\n\nFiguring out what’s next, hit me up if you…"
+    "tweetText": "Time to reintroduce myself here:\n\n> 19, ece@BITS goa\n> fullstack web dev\n> love tech & video editing\n> built a startup around that, failed\n> got a 50LPA remote job soon after\n> didn’t work out, had to part ways\n> moved to blr recently\n\nFiguring out what’s next, hit me up if you…",
+    "age": 19
   },
   {
     "slug": "backdoor",
@@ -102,7 +110,8 @@
     "url": "https://backdoorai.app",
     "image": "/journey/works/backdoor.jpg",
     "title": "Backdoor",
-    "subtitle": "Building an AI agent that helps people land interviews at early-stage startups, with Sarvagya.",
-    "source": "homepage screenshot"
+    "subtitle": "I had a job offer on the table. I turned it down to bet on myself again: an AI agent that lands you interviews at early-stage startups.",
+    "source": "homepage screenshot",
+    "age": 20
   }
 ]

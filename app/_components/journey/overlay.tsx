@@ -1,51 +1,42 @@
 "use client";
 
-import { type RefObject, useState } from "react";
+import { type RefObject } from "react";
 import Link from "next/link";
-import {
-  ArrowUpRightIcon,
-  InstagramLogoIcon,
-  LinkedinLogoIcon,
-  XLogoIcon,
-} from "@phosphor-icons/react";
+import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { HANDOFF, INTRO } from "@/lib/journey/timeline";
-import { works, yearStops } from "@/lib/journey/works";
+import { works } from "@/lib/journey/works";
 import styles from "./journey.module.css";
 
 const SOCIALS = [
-  { label: "X", href: "https://x.com/_nikhilsheoran", Icon: XLogoIcon },
-  {
-    label: "Instagram",
-    href: "https://instagram.com/thenikhilsheoran/",
-    Icon: InstagramLogoIcon,
-  },
-  {
-    label: "LinkedIn",
-    href: "https://linkedin.com/in/nikhilsheoran/",
-    Icon: LinkedinLogoIcon,
-  },
+  { label: "X", href: "https://x.com/_nikhilsheoran" },
+  { label: "Instagram", href: "https://instagram.com/thenikhilsheoran/" },
+  { label: "LinkedIn", href: "https://linkedin.com/in/nikhilsheoran/" },
 ];
 
 const ACTION_LABEL = {
-  youtube: "Watch on YouTube",
-  x: "Read on X",
-  web: "Visit the site",
+  youtube: "Watch the video",
+  x: "Read the post",
+  web: "See it live",
 } as const;
 
-function formatDate(date: string | null, year: string) {
+const pad = (n: number) => String(n).padStart(2, "0");
+
+function stamp(date: string | null, year: string) {
   if (!date) return year;
   const [y, m] = date.split("-").map(Number);
   if (!m) return year;
-  return new Date(y, m - 1).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(y, m - 1)
+    .toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    .toUpperCase();
 }
 
+/**
+ * The title-card layer over the scene: who this is (top), the beat being read
+ * (lower left), and a log of every beat (bottom). The story is told in ages.
+ */
 export function Overlay({
   chapter,
   hidden,
-  reducedMotion,
   rangeRef,
   onSlide,
   onChapter,
@@ -53,15 +44,12 @@ export function Overlay({
 }: {
   chapter: number;
   hidden: boolean;
-  reducedMotion: boolean;
   rangeRef: RefObject<HTMLInputElement | null>;
   onSlide: (value: number) => void;
   onChapter: (index: number) => void;
   onFocusScreen: () => void;
 }) {
-  const [showHelp, setShowHelp] = useState(false);
   const work = chapter >= 0 ? works[chapter] : null;
-  const activeYear = work?.year;
   return (
     <div
       data-journey-ui
@@ -69,43 +57,54 @@ export function Overlay({
       inert={hidden}
       aria-hidden={hidden}
     >
-      <header className={styles.profile}>
+      <header className={styles.masthead}>
         <Link className={styles.wordmark} href="/">
           Nikhil Sheoran
         </Link>
-        <p>I’m 20, I love tech and my dream is to produce a movie someday.</p>
-        <nav className={styles.socials} aria-label="Social profiles">
-          {SOCIALS.map(({ label, href, Icon }) => (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${label} (opens in a new tab)`}
-              title={label}
-            >
-              <Icon size={19} />
-            </a>
-          ))}
-        </nav>
+        <p className={styles.tagline}>
+          Building things since 16. Someday, a movie.
+        </p>
       </header>
 
+      <nav className={styles.socials} aria-label="Social profiles">
+        {SOCIALS.map(({ label, href }) => (
+          <a
+            key={label}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${label} (opens in a new tab)`}
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
+
       {chapter !== HANDOFF && (
-        <section
-          key={chapter}
-          className={styles.caption}
-          aria-live="polite"
-        >
-          <span className={styles.year}>
-            {work ? formatDate(work.date, work.year) : "Hello, I’m Nikhil."}
-          </span>
-          <h1>{work ? work.title : "It started at a desk."}</h1>
-          <p>
+        <section key={chapter} className={styles.caption} aria-live="polite">
+          <p className={styles.stamp}>
+            {work ? (
+              <>
+                <span className={styles.age}>Age {work.age}</span>
+                <span>{stamp(work.date, work.year)}</span>
+                <span>
+                  {pad(chapter + 1)}/{pad(works.length)}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className={styles.age}>Age 20</span>
+                <span>The story so far</span>
+              </>
+            )}
+          </p>
+          <h1>{work ? work.title : "I wanted to fly planes."}</h1>
+          <p className={styles.body}>
             {work
               ? work.subtitle
-              : "A few years of curiosity, experiments, and things I’ve built. Scroll to begin."}
+              : "That plan fell through. So I started building things instead, and I haven’t stopped since."}
           </p>
-          {work && (
+          {work ? (
             <a
               className={styles.readLink}
               href={work.url}
@@ -113,76 +112,62 @@ export function Overlay({
               rel="noopener noreferrer"
             >
               {ACTION_LABEL[work.kind]}
-              <ArrowUpRightIcon size={14} aria-label="Opens in a new tab" />
+              <ArrowUpRightIcon size={13} aria-label="Opens in a new tab" />
             </a>
+          ) : (
+            <p className={styles.cue}>Scroll to begin</p>
           )}
         </section>
       )}
 
       <button className={styles.keyboardScreen} onClick={onFocusScreen}>
-        Use the laptop screen
+        Open my Mac
       </button>
 
-      <footer className={styles.footer}>
-        <div className={styles.timeline}>
-          <label className={styles.srOnly} htmlFor="journey-progress">
-            Explore the timeline
-          </label>
-          <input
-            ref={rangeRef}
-            id="journey-progress"
-            type="range"
-            min="0"
-            max="1000"
-            defaultValue="0"
-            onChange={(event) => onSlide(Number(event.target.value) / 1000)}
-            aria-valuetext={
-              work
-                ? `${work.year}: ${work.title}`
-                : chapter === INTRO
-                  ? "At the desk"
-                  : "Approaching the Mac"
-            }
-          />
-          <div className={styles.years}>
-            {yearStops(works).map(({ year, index }) => (
+      <footer className={styles.log}>
+        <label className={styles.srOnly} htmlFor="journey-progress">
+          Move through the story
+        </label>
+        <input
+          ref={rangeRef}
+          id="journey-progress"
+          type="range"
+          min="0"
+          max="1000"
+          defaultValue="0"
+          onChange={(event) => onSlide(Number(event.target.value) / 1000)}
+          aria-valuetext={
+            work
+              ? `Age ${work.age}: ${work.title}`
+              : chapter === INTRO
+                ? "The beginning"
+                : "Opening the Mac"
+          }
+        />
+        <ol className={styles.beats}>
+          {works.map((item, index) => (
+            <li key={item.slug}>
               <button
-                key={year}
-                aria-current={activeYear === year ? "step" : undefined}
+                aria-current={chapter === index ? "step" : undefined}
+                aria-label={`Age ${item.age}: ${item.title}`}
+                title={item.title}
                 onClick={() => onChapter(index)}
               >
-                {year}
+                {(index === 0 || works[index - 1].age !== item.age) && (
+                  <span>{item.age}</span>
+                )}
               </button>
-            ))}
-          </div>
-        </div>
-        <button
-          className={styles.helpButton}
-          aria-expanded={showHelp}
-          onClick={() => setShowHelp(!showHelp)}
-        >
-          How to explore <span aria-hidden="true">{showHelp ? "−" : "+"}</span>
-        </button>
+            </li>
+          ))}
+          <li className={styles.destination}>
+            <button onClick={onFocusScreen} title="Open my Mac">
+              <span>Now</span>
+            </button>
+          </li>
+        </ol>
       </footer>
 
-      {showHelp && (
-        <aside className={styles.help}>
-          <p>
-            Scroll or drag to move along the spiral. Hover a panel to bring
-            back its colour; click it to open the video, post or site.
-          </p>
-          <p>
-            Click the laptop, or keep scrolling, to use its screen. Scroll back,
-            press Escape or use “Back to the desk” to return.
-          </p>
-          {reducedMotion && (
-            <p>
-              Reduced motion is on: camera moves are immediate and the fabric
-              stays still.
-            </p>
-          )}
-        </aside>
-      )}
+      <p className={styles.hint}>Scroll · drag · ← →</p>
     </div>
   );
 }
