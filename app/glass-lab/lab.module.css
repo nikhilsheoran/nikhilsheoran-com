@@ -1,11 +1,13 @@
 .lab {
   --control: 48px;
   --serif: var(--font-journey-serif), Georgia, serif;
-  min-height: 100vh;
-  padding: 72px 40px 80px;
+  /* The site locks body scroll for the 3D scene, so the lab scrolls itself. */
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  padding: 72px 40px 120px;
   background-size: 135% auto;
   background-position: 0% 40%;
-  background-attachment: fixed;
   /* The backdrop drifts so each recipe's refraction is visible in motion. */
   animation: drift 26s ease-in-out infinite alternate;
 }
@@ -79,8 +81,12 @@
 .row {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 48px;
   padding: 0 20px;
   font: inherit;
@@ -159,44 +165,39 @@
     linear-gradient(180deg, var(--glass-top), var(--glass-bottom));
 }
 
-/* Hover variants (H1 is the default lift from the site's glass). */
-.lab .hTilt:hover {
-  transform: perspective(700px) rotateX(calc(var(--py, 0) * -9deg))
-    rotateY(calc(var(--px, 0) * 9deg)) scale(1.02);
-  transition-duration: 0.12s;
-}
-.lab .hGrow:hover {
-  transform: scale(1.065);
-}
-.lab .hRim:hover {
+/* Hover on clickable elements, from three ingredients. The site's default
+   lift and shadow are switched off here so each ingredient shows alone. */
+.lab .hv:hover {
   transform: none;
 }
-.lab .hRim:hover::after {
+.lab .hv:hover::after {
   opacity: 0;
 }
-.lab .hMagnet:hover {
-  transform: translate(calc(var(--px, 0) * 7px), calc(var(--py, 0) * 5px));
-  transition-duration: 0.15s;
+.lab .hvPlain:hover::before,
+.lab .hvDark:hover::before,
+.lab .hvDarker:hover::before {
+  filter: none;
+  opacity: var(--glass-rim, 1);
 }
-.lab .hSheen:hover {
-  transform: none;
-}
-.lab .hSheen::after {
-  box-shadow: none;
+/* Rim light: brighter, and it turns toward the pointer (set by Glass). */
+.lab .hvRim:hover::before {
+  filter: brightness(2.1);
   opacity: 1;
-  background: linear-gradient(
-    110deg,
-    transparent 38%,
-    rgb(255 255 255 / 0.4) 50%,
-    transparent 62%
-  );
-  background-size: 260% 100%;
-  background-position: 130% 0;
-  transition: background-position 0s;
+  padding: 1.5px;
 }
-.lab .hSheen:hover::after {
-  background-position: -30% 0;
-  transition: background-position 0.75s ease;
+/* Darkness: the pane dims from within. */
+.lab .hvDark:hover {
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 0 0 200px rgb(8 10 12 / 0.24);
+}
+.lab .hvDarker:hover {
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 0 0 200px rgb(8 10 12 / 0.38);
+}
+.lab .hvLift:hover {
+  transform: translateY(-1.5px) scale(1.02);
 }
 
 /* Press variants. */
@@ -294,4 +295,63 @@
   line-height: 1.45;
   color: #fff;
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.6), 0 0 16px rgb(0 0 0 / 0.4);
+}
+
+/* Years: a tab bar whose selection slides with a liquid stretch. */
+.tabs {
+  --radius: 26px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 76px);
+  height: 52px;
+  padding: 5px;
+}
+.selection {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: calc(5px + var(--i) * 76px);
+  right: calc(5px + (4 - var(--i)) * 76px);
+  border-radius: max(4px, calc(min(var(--radius), 26px) - 5px));
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.45),
+    inset 0 -1px 0.5px rgb(0 0 0 / 0.12),
+    0 2px 6px -2px rgb(0 0 0 / 0.25);
+  transition:
+    left var(--lead) cubic-bezier(0.3, 1.4, 0.5, 1),
+    right var(--trail) cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.tabs[data-forward="true"] .selection {
+  --lead: 0.62s;
+  --trail: 0.34s;
+}
+.tabs[data-forward="false"] .selection {
+  --lead: 0.34s;
+  --trail: 0.62s;
+}
+.tabs button {
+  position: relative;
+  border: 0;
+  border-radius: 21px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-muted);
+  text-shadow: inherit;
+  cursor: pointer;
+  transition:
+    color 0.25s,
+    background 0.25s,
+    transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.tabs button:hover {
+  color: var(--ink);
+}
+.tabs button:active {
+  transform: scale(0.9);
+}
+.tabs button[aria-current] {
+  color: var(--ink);
+  font-weight: 600;
 }

@@ -22,7 +22,7 @@ const LENS = {
   depth: 57,
   blur: 0.35,
   saturate: 1.28,
-  fringe: 0.095,
+  fringe: 0.07,
   rimPower: 5,
   rimGain: 1.2,
   bevelGain: 0.95,
@@ -131,13 +131,17 @@ const CONTRAST = [
   },
 ];
 
+/** Hover is built from three ingredients on the clickable elements:
+ * background blur, darkness, and rim light. */
 const HOVER = [
-  { id: "H1", name: "Lift", note: "Rises, shadow deepens, rim turns to the pointer.", cls: "" },
-  { id: "H2", name: "Tilt", note: "Leans toward the pointer in 3D.", cls: styles.hTilt },
-  { id: "H3", name: "Magnify", note: "Grows, like a lens coming closer.", cls: styles.hGrow },
-  { id: "H4", name: "Sheen", note: "A band of light sweeps across.", cls: styles.hSheen },
-  { id: "H5", name: "Rim only", note: "No movement; just the rim catching light.", cls: styles.hRim },
-  { id: "H6", name: "Magnetic", note: "Drifts a few pixels toward the pointer.", cls: styles.hMagnet },
+  { id: "H1", name: "Rim light", note: "Only the rim brightens and turns to the pointer.", cls: styles.hvRim, blur: undefined },
+  { id: "H2", name: "Blur", note: "Only the background behind it frosts over.", cls: styles.hvPlain, blur: 7 },
+  { id: "H3", name: "Darken", note: "Only the pane dims.", cls: styles.hvDark, blur: undefined },
+  { id: "H4", name: "Rim + blur", note: "Rim light and a frosted background.", cls: styles.hvRim, blur: 7 },
+  { id: "H5", name: "Rim + darken", note: "Rim light and a dimmed pane.", cls: `${styles.hvRim} ${styles.hvDark}`, blur: undefined },
+  { id: "H6", name: "Blur + darken", note: "Frosted and dimmed, rim unchanged.", cls: styles.hvDark, blur: 7 },
+  { id: "H7", name: "All three", note: "Rim light, frosted background and a dimmed pane.", cls: `${styles.hvRim} ${styles.hvDark}`, blur: 7 },
+  { id: "H8", name: "All three, strong", note: "The same, pushed harder, with a slight lift.", cls: `${styles.hvRim} ${styles.hvDarker} ${styles.hvLift}`, blur: 12 },
 ];
 
 const PRESS = [
@@ -155,6 +159,47 @@ const RADII = [
   { id: "R4", name: "16", note: "Tighter corners.", radius: 16 },
   { id: "R5", name: "10", note: "Nearly square.", radius: 10 },
 ];
+
+/** Years as a tab bar. The selection slides: its leading edge goes first and
+ * the trailing edge catches up, so the pill stretches like liquid, then settles. */
+function Tabs({
+  className = "",
+  style,
+  hoverBlur,
+  onPress,
+}: {
+  className?: string;
+  style: CSSProperties;
+  hoverBlur?: number;
+  onPress?: (event: PointerEvent<HTMLElement>) => void;
+}) {
+  const [year, setYear] = useState(2);
+  const [forward, setForward] = useState(true);
+  return (
+    <Glass
+      className={`${styles.tabs} ${className}`}
+      style={{ ...style, "--i": year } as CSSProperties}
+      data-forward={forward}
+      {...LENS}
+      hoverBlur={hoverBlur}
+      onPointerDown={onPress}
+    >
+      <span className={styles.selection} aria-hidden />
+      {[2022, 2023, 2024, 2025, 2026].map((y, index) => (
+        <button
+          key={y}
+          aria-current={year === index ? "step" : undefined}
+          onClick={() => {
+            setForward(index > year);
+            setYear(index);
+          }}
+        >
+          {y}
+        </button>
+      ))}
+    </Glass>
+  );
+}
 
 export default function GlassLab() {
   const [backdrop, setBackdrop] = useState(0);
@@ -188,22 +233,22 @@ export default function GlassLab() {
         ))}
       </div>
 
-      <h1 className={styles.heading}>Hover: move the pointer over each</h1>
+      <h1 className={styles.heading}>Hover on clickable elements: blur, darkness, rim light</h1>
       <div className={styles.grid}>
-        {HOVER.map(({ id, name, note, cls }) => (
+        {HOVER.map(({ id, name, note, cls, blur }) => (
           <Cell key={id} id={id} name={name} note={note}>
             <div className={styles.row}>
-              <Glass as="button" className={`${styles.pill} ${cls}`} style={VARS} {...LENS}>
+              <Glass as="button" className={`${styles.pill} ${styles.hv} ${cls}`} style={VARS} {...LENS} hoverBlur={blur}>
                 Nikhil Sheoran
               </Glass>
-              <Glass as="button" className={`${styles.circle} ${cls}`} style={VARS} {...LENS} bezel={16}>
+              <Glass as="button" className={`${styles.circle} ${styles.hv} ${cls}`} style={VARS} {...LENS} bezel={16} hoverBlur={blur}>
                 <XLogoIcon size={18} />
               </Glass>
+              <Glass as="button" className={`${styles.pill} ${styles.hv} ${cls}`} style={VARS} {...LENS} hoverBlur={blur}>
+                Read the post <ArrowUpRightIcon size={13} weight="bold" />
+              </Glass>
             </div>
-            <Glass as="button" className={`${styles.now} ${styles.asButton} ${cls}`} style={VARS} {...LENS}>
-              <Words />
-              <Go />
-            </Glass>
+            <Tabs className={`${styles.hv} ${cls}`} style={VARS} hoverBlur={blur} />
           </Cell>
         ))}
       </div>
@@ -243,6 +288,7 @@ export default function GlassLab() {
               <Words />
               <Go />
             </Glass>
+            <Tabs className={cls} style={VARS} onPress={(event) => press(fx, event)} />
           </Cell>
         ))}
       </div>
@@ -265,6 +311,7 @@ export default function GlassLab() {
                 <Words />
                 <Go />
               </Glass>
+              <Tabs style={style} />
             </Cell>
           );
         })}
