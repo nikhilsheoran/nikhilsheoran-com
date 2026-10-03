@@ -58,14 +58,30 @@ export async function createActionTexture(kind: Work["kind"]) {
     loadImage(`/journey/action-${ACTION_ICON[kind]}.svg`),
     loadImage("/journey/action-external.svg"),
   ]);
+  if (kind === "youtube") {
+    // Videos carry YouTube's own mark in the middle: a red tile, white play.
+    ctx.fillStyle = "#ff0033";
+    ctx.beginPath();
+    ctx.roundRect(710, 437, 180, 126, 36);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.moveTo(778, 464);
+    ctx.lineTo(778, 536);
+    ctx.lineTo(840, 500);
+    ctx.closePath();
+    ctx.fill();
+  }
   ctx.fillStyle = "#08140fb3";
   ctx.strokeStyle = "#ffffffd9";
   ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(800, 500, 74, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-  if (icon) ctx.drawImage(icon, 764, 464, 72, 72);
+  if (kind !== "youtube") {
+    ctx.beginPath();
+    ctx.arc(800, 500, 74, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    if (icon) ctx.drawImage(icon, 764, 464, 72, 72);
+  }
   ctx.beginPath();
   ctx.arc(1494, 104, 40, 0, Math.PI * 2);
   ctx.fill();

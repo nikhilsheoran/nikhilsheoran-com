@@ -8,7 +8,7 @@ export const story = {
   tagline: "I love playing with tech, and my dream is to produce a movie someday.",
   intro: {
     tag: "Hello, I’m Nikhil.",
-    title: "My little corner of the internet.",
-    line: "Scroll or drag to move through the years. The Mac on the desk opens everything else.",
+    title: "Welcome home",
+    line: "Scroll or drag to see the journey of my life. The Mac on my desk is interactive, by the way.",
   },
 } as const;

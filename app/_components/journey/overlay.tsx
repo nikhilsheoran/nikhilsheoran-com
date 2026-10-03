@@ -48,6 +48,9 @@ function when(date: string | null, year: string) {
   });
 }
 
+/** Where the "interface hidden" choice is kept between visits. */
+const CLEAN_KEY = "journey-interface-hidden";
+
 /** Top plus bottom padding of the story card (see .now). */
 const CARD_PADDING = 50;
 
@@ -122,6 +125,20 @@ export function Overlay({
   const forward = travel.forward;
   // Clear the room: every pane fades away except the button that brings them back.
   const [clean, setClean] = useState(false);
+  // The choice is remembered in this browser, so a refresh keeps it.
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Read once after mount: storage is not available on the server.
+      if (localStorage.getItem(CLEAN_KEY) === "1") setClean(true);
+    } catch {}
+  }, []);
+  const toggleClean = () => {
+    const next = !clean;
+    setClean(next);
+    try {
+      localStorage.setItem(CLEAN_KEY, next ? "1" : "0");
+    } catch {}
+  };
   // The card eases its height to fit each work's words instead of jumping:
   // measure the words, then let CSS transition the card to that height.
   const [cardHeight, setCardHeight] = useState(0);
@@ -173,7 +190,7 @@ export function Overlay({
               aria-pressed={clean}
               aria-label={clean ? "Show the interface" : "Hide the interface"}
               title={clean ? "Show the interface" : "Hide the interface"}
-              onClick={() => setClean(!clean)}
+              onClick={toggleClean}
             >
               {clean ? <EyeIcon size={18} /> : <EyeSlashIcon size={18} />}
             </Glass>
