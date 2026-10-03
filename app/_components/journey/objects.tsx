@@ -59,25 +59,6 @@ export function BakedStudio() {
   return <primitive object={model} />;
 }
 
-/** The unbaked statue, for previewing it under live light. */
-export function Statue() {
-  const { scene } = useGLTF("/journey/statue.glb");
-  const model = useMemo(() => {
-    const root = scene.clone(true);
-    root.traverse((object) => {
-      if (object instanceof THREE.Mesh) {
-        object.material = new THREE.MeshStandardMaterial({
-          color: "#cfcbc4",
-          roughness: 0.78,
-        });
-        object.castShadow = object.receiveShadow = true;
-      }
-    });
-    return root;
-  }, [scene]);
-  return <primitive object={model} />;
-}
-
 /**
  * The selection outline shared by the laptop and desk links: back faces pushed
  * out along their normals by about one screen pixel, drawn as a soft white rim.

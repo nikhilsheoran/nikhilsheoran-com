@@ -77,7 +77,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const flags = useMemo(
     () => ({
       live: new URLSearchParams(search).has("live"),
-      statue: new URLSearchParams(search).has("statue"),
     }),
     [search],
   );

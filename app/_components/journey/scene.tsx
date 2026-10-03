@@ -17,7 +17,6 @@ import {
   Desk,
   DeskLink,
   Laptop,
-  Statue,
 } from "./objects";
 import { deskLinks } from "@/lib/journey/desk-links";
 import { Cloth } from "./cloth";
@@ -148,7 +147,6 @@ function World(props: SceneProps) {
           <BakedStudio />
         </>
       )}
-      {props.flags.statue && <Statue />}
       <Laptop onFocus={props.onFocus} runtimeRef={props.runtimeRef} />
       {deskLinks.map((link) => (
         <DeskLink key={link.id} link={link} runtimeRef={props.runtimeRef} />
