@@ -69,6 +69,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const [webglFailed, setWebglFailed] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const [creed, setCreed] = useState(false);
+  const [atClock, setAtClock] = useState(false);
   const [music, setMusic] = useState<MusicSnapshot | null>(null);
   const search = useSyncExternalStore(
     noSubscription,
@@ -95,7 +96,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   }, [sceneReady, webglFailed]);
 
   const focused = mode === "focused";
-  const uiHidden = mode !== "orbit" || nearScreen;
+  const uiHidden = mode !== "orbit" || nearScreen || atClock;
 
   useJourneyInput(surfaceRef, runtimeRef);
 
@@ -114,40 +115,47 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     };
   }, []);
 
-  const onFrame = useCallback(({ mode: next, progress }: FrameReport) => {
-    const runtime = runtimeRef.current;
-    setSceneReady(true);
-    if (rangeRef.current && next === "orbit")
-      rangeRef.current.value = String(Math.round(progress * 1000));
-    setMode(next);
-    setNearScreen(progress >= runtime.beats.handoffStart);
-    // The closing line plays over the descent and clears before the screen arrives.
-    const { handoffStart } = runtime.beats;
-    setCreed(
-      next !== "focused" &&
-        progress >= handoffStart &&
-        progress < handoffStart + 0.55 * (1 - handoffStart),
-    );
-    const nextChapter = activeChapter(progress, runtime.beats);
-    if (nextChapter !== lastChapterRef.current) {
-      if (nextChapter >= 0) soundRef.current?.pass();
-      lastChapterRef.current = nextChapter;
-    }
-    setChapter(nextChapter);
-    // Rim light on the glass comes from the window wall (+z): as the camera
-    // orbits, the highlight swings round every pane.
-    const [px, , pz] = runtime.cameraPosition;
-    const facing = Math.atan2(-px, -0.44 - pz);
-    const toWindow = Math.atan2(-px, 9 - pz);
-    const turn = Math.atan2(Math.sin(toWindow - facing), Math.cos(toWindow - facing));
-    surfaceRef.current?.style.setProperty(
-      "--light",
-      `${Math.round((-turn * 180) / Math.PI / 2 - 20)}deg`,
-    );
-    // The window wall is at +z; the city gets louder as the camera nears it.
-    soundRef.current?.setWindowProximity((runtime.cameraPosition[2] - 1) / 5);
-    if (next !== "focused") setExitHint(false);
-  }, []);
+  const onFrame = useCallback(
+    ({ mode: next, progress, detour }: FrameReport) => {
+      const runtime = runtimeRef.current;
+      setSceneReady(true);
+      setAtClock(detour);
+      if (rangeRef.current && next === "orbit")
+        rangeRef.current.value = String(Math.round(progress * 1000));
+      setMode(next);
+      setNearScreen(progress >= runtime.beats.handoffStart);
+      // The closing line plays over the descent and clears before the screen arrives.
+      const { handoffStart } = runtime.beats;
+      setCreed(
+        next !== "focused" &&
+          progress >= handoffStart &&
+          progress < handoffStart + 0.55 * (1 - handoffStart),
+      );
+      const nextChapter = activeChapter(progress, runtime.beats);
+      if (nextChapter !== lastChapterRef.current) {
+        if (nextChapter >= 0) soundRef.current?.pass();
+        lastChapterRef.current = nextChapter;
+      }
+      setChapter(nextChapter);
+      // Rim light on the glass comes from the window wall (+z): as the camera
+      // orbits, the highlight swings round every pane.
+      const [px, , pz] = runtime.cameraPosition;
+      const facing = Math.atan2(-px, -0.44 - pz);
+      const toWindow = Math.atan2(-px, 9 - pz);
+      const turn = Math.atan2(
+        Math.sin(toWindow - facing),
+        Math.cos(toWindow - facing),
+      );
+      surfaceRef.current?.style.setProperty(
+        "--light",
+        `${Math.round((-turn * 180) / Math.PI / 2 - 20)}deg`,
+      );
+      // The window wall is at +z; the city gets louder as the camera nears it.
+      soundRef.current?.setWindowProximity((runtime.cameraPosition[2] - 1) / 5);
+      if (next !== "focused") setExitHint(false);
+    },
+    [],
+  );
 
   const focusScreen = useCallback(() => {
     const runtime = runtimeRef.current;
@@ -286,9 +294,12 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           <Glass
             as="button"
             className={`${styles.returnButton} ${exitHint ? styles.returnHint : ""}`}
-            onClick={backToDesk}
+            onClick={() => {
+              if (atClock) runtimeRef.current.detour.active = false;
+              else backToDesk();
+            }}
           >
-            Back to the desk
+            {atClock ? "Back to the room" : "Back to the desk"}
           </Glass>
         )}
         {creed && (

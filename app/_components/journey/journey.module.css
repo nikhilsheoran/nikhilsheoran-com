@@ -762,6 +762,14 @@ button.glass:active {
 }
 
 /* Hover hints floating over the laptop and desk objects. */
+.eggLine {
+  padding: 10px 18px;
+  font-family: var(--serif);
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  animation: rise 0.5s ease-out both;
+}
 .laptopTooltip {
   /* A small glass capsule, cut from the same glass as the name pill. */
   padding: 7px 14px;

@@ -10,15 +10,21 @@ import { LAPTOP_POSITION } from "@/lib/journey/anchors";
 import { tuning } from "@/lib/journey/tuning";
 import { beats } from "@/lib/journey/timeline";
 import { step, type Mode, type Motion } from "@/lib/journey/machine";
-import { approachPose, railPose, viewFov } from "@/lib/journey/path";
+import {
+  approachPose,
+  railPose,
+  smootherStep,
+  viewFov,
+} from "@/lib/journey/path";
 import {
   Apartment,
   BakedStudio,
+  ClockEgg,
   Desk,
   DeskLink,
   Laptop,
 } from "./objects";
-import { deskLinks } from "@/lib/journey/desk-links";
+import { clockEgg, deskLinks } from "@/lib/journey/desk-links";
 import { Cloth } from "./cloth";
 import { Lens } from "./lens";
 import { ScreenProjection } from "./screen";
@@ -42,8 +48,9 @@ function CameraRig({
   onFrame,
 }: Pick<SceneProps, "runtimeRef" | "onFrame">) {
   const { camera, size } = useThree();
-  const report = useRef({ at: 0, mode: "" as Mode | "" });
+  const report = useRef({ at: 0, mode: "" as Mode | "", away: false });
   const target = useRef(new THREE.Vector3());
+  const aside = useRef(new THREE.Vector3());
   useFrame(({ clock }, rawDelta) => {
     const runtime = runtimeRef.current;
     const motion = runtime.motion;
@@ -59,15 +66,45 @@ function CameraRig({
 
     const pose = cameraPose(motion, aspect, fov);
     camera.position.fromArray(pose.position);
-    camera.lookAt(target.current.fromArray(pose.target));
+    target.current.fromArray(pose.target);
+    // The clock detour: ease from wherever the rail has the camera over to
+    // the clock and back. Scrolling on ends it.
+    const detour = runtime.detour;
+    if (detour.active && Math.abs(motion.target - detour.heldTarget) > 0.002)
+      detour.active = false;
+    detour.amount = THREE.MathUtils.clamp(
+      detour.amount +
+        ((detour.active ? 1 : -1) * Math.min(rawDelta, 0.05)) /
+          clockEgg.seconds,
+      0,
+      1,
+    );
+    if (detour.amount > 0) {
+      const ease = smootherStep(detour.amount);
+      camera.position.lerp(
+        aside.current.fromArray(clockEgg.camera.position),
+        ease,
+      );
+      target.current.lerp(
+        aside.current.fromArray(clockEgg.camera.target),
+        ease,
+      );
+    }
+    camera.lookAt(target.current);
     camera.updateMatrixWorld();
     camera.position.toArray(runtime.cameraPosition);
 
     const last = report.current;
-    if (motion.mode !== last.mode || clock.elapsedTime - last.at > 0.08) {
+    const away = detour.amount > 0;
+    if (
+      motion.mode !== last.mode ||
+      away !== last.away ||
+      clock.elapsedTime - last.at > 0.08
+    ) {
+      last.away = away;
       last.mode = motion.mode;
       last.at = clock.elapsedTime;
-      onFrame({ mode: motion.mode, progress: motion.progress });
+      onFrame({ mode: motion.mode, progress: motion.progress, detour: away });
     }
   }, -2);
   return null;
@@ -107,7 +144,11 @@ function LiveLighting() {
         shadow-bias={-0.00002}
         shadow-radius={2}
       />
-      <directionalLight position={[1, 4, -4]} intensity={0.35} color="#eef3ff" />
+      <directionalLight
+        position={[1, 4, -4]}
+        intensity={0.35}
+        color="#eef3ff"
+      />
     </>
   );
 }
@@ -121,7 +162,9 @@ function BakedLighting() {
   return (
     <>
       <Environment frames={1} resolution={256} environmentIntensity={0.9}>
-        <group position={LAPTOP_POSITION.map((v) => -v) as [number, number, number]}>
+        <group
+          position={LAPTOP_POSITION.map((v) => -v) as [number, number, number]}
+        >
           <BakedStudio />
         </group>
       </Environment>
@@ -148,6 +191,7 @@ function World(props: SceneProps) {
         </>
       )}
       <Laptop onFocus={props.onFocus} runtimeRef={props.runtimeRef} />
+      <ClockEgg runtimeRef={props.runtimeRef} />
       {deskLinks.map((link) => (
         <DeskLink key={link.id} link={link} runtimeRef={props.runtimeRef} />
       ))}

@@ -13,7 +13,10 @@ import {
   SCREEN_POSITION,
   SCREEN_LOCAL_POSITION,
 } from "@/lib/journey/anchors";
-import type { DeskLink as DeskLinkData } from "@/lib/journey/desk-links";
+import {
+  clockEgg,
+  type DeskLink as DeskLinkData,
+} from "@/lib/journey/desk-links";
 import { createScreenTexture } from "./textures";
 import { useStaticModel } from "./static-model";
 import baked from "@/public/journey/studio-baked.json";
@@ -102,6 +105,7 @@ function laptopInviting(runtime: JourneyRuntime) {
   const motion = runtime.motion;
   return (
     motion.mode === "orbit" &&
+    runtime.detour.amount === 0 &&
     !motion.dragging &&
     !runtime.pointerOnScreen &&
     motion.progress < runtime.beats.handoffStart
@@ -282,6 +286,62 @@ function HoverRegion({
       <boxGeometry args={[size.x, size.y, size.z]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>
+  );
+}
+
+/**
+ * The hidden extra on the shelf. No glow and no hint: only the pointer changes
+ * over the clock. A click sends the camera over; once it is there a single
+ * line appears above the clock.
+ */
+export function ClockEgg({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
+  const [arrived, setArrived] = useState(false);
+  useFrame(() => {
+    const there = runtimeRef.current.detour.amount > 0.75;
+    if (there !== arrived) setArrived(there);
+  });
+  useEffect(
+    () => () => {
+      document.body.style.removeProperty("--journey-cursor");
+    },
+    [],
+  );
+  return (
+    <>
+      <mesh
+        position={clockEgg.position}
+        onPointerOver={(event) => {
+          event.stopPropagation();
+          if (laptopInviting(runtimeRef.current))
+            document.body.style.setProperty("--journey-cursor", "pointer");
+        }}
+        onPointerOut={() =>
+          document.body.style.removeProperty("--journey-cursor")
+        }
+        onClick={(event) => {
+          event.stopPropagation();
+          const runtime = runtimeRef.current;
+          if (
+            !laptopInviting(runtime) ||
+            performance.now() < runtime.suppressClickUntil
+          )
+            return;
+          document.body.style.removeProperty("--journey-cursor");
+          runtime.detour.heldTarget = runtime.motion.target;
+          runtime.detour.active = true;
+        }}
+      >
+        <boxGeometry args={clockEgg.size} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+      {arrived && (
+        <Html center position={clockEgg.label} style={{ pointerEvents: "none" }}>
+          <Glass as="div" className={styles.eggLine} role="status">
+            Hmm, #watdatmean
+          </Glass>
+        </Html>
+      )}
+    </>
   );
 }
 

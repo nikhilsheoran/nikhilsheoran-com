@@ -16,6 +16,8 @@ export interface JourneyRuntime {
   /** A drag just ended; swallow the click it would otherwise produce. */
   suppressClickUntil: number;
   cameraPosition: Vec3;
+  /** The clock detour: `amount` eases 0..1 toward the clock while `active`. */
+  detour: { active: boolean; amount: number; heldTarget: number };
 }
 
 export function createRuntime(): JourneyRuntime {
@@ -26,12 +28,15 @@ export function createRuntime(): JourneyRuntime {
     pointerOnScreen: false,
     suppressClickUntil: 0,
     cameraPosition: [0, 0, 0],
+    detour: { active: false, amount: 0, heldTarget: 0 },
   };
 }
 
 export interface FrameReport {
   mode: Mode;
   progress: number;
+  /** The camera is at, or on its way to or from, the clock. */
+  detour: boolean;
 }
 
 /** Preview switches read from the URL: `?live` (the pre-bake real-time room). */

@@ -13,6 +13,22 @@ export interface DeskLink {
   rotationY: number;
 }
 
+/**
+ * A hidden extra: the shelf clock reads 14:08. Nothing marks it out except the
+ * pointer; clicking it brings the camera over for a closer look. The box is
+ * the click volume, the pose is where the camera comes to rest.
+ */
+export const clockEgg = {
+  position: [7.74, 1.39, 0.42] as [number, number, number],
+  size: [0.24, 0.38, 0.68] as [number, number, number],
+  label: [7.6, 1.69, 0.42] as [number, number, number],
+  camera: {
+    position: [5.75, 1.56, 0.15] as [number, number, number],
+    target: [7.64, 1.43, 0.42] as [number, number, number],
+  },
+  seconds: 1.4,
+};
+
 export const deskLinks: DeskLink[] = [
   {
     id: "rubiks-cube",

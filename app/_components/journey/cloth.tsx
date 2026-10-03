@@ -225,7 +225,9 @@ export function Cloth({
     const approachFade =
       motion.approachFrom === null ? 1 : 1 - smoothStep(motion.approach / 0.35);
     const focusFade = motion.mode === "focused" ? 0 : 1;
-    const opacity = pose.opacity * approachFade * focusFade;
+    // The clock detour clears the air too.
+    const detourFade = 1 - smoothStep(runtime.detour.amount / 0.5);
+    const opacity = pose.opacity * approachFade * focusFade * detourFade;
     material.uniforms.uOpacity.value = opacity;
     // Lab variants: how the cloth moves and how the sheet is printed.
     const { cloth, look, far } = tuning.lab;
