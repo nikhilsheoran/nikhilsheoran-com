@@ -229,12 +229,18 @@ button.glass:active {
   position: absolute;
   top: var(--edge);
   left: var(--edge);
+  width: min(300px, calc(100vw - 2 * var(--edge)));
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--gap);
 }
-.identityRow,
+/* Name at the left end, X at the right end, spanning the tagline's width. */
+.identityRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .socials {
   display: flex;
   gap: 8px;
@@ -258,7 +264,6 @@ button.glass:active {
 }
 .tagline {
   --radius: 20px;
-  max-width: 300px;
   margin: 0;
   padding: 11px 18px 12px;
   font-size: 12.5px;
@@ -602,9 +607,6 @@ button.glass:active {
   .journey {
     --edge: 14px;
     --control: 44px;
-  }
-  .tagline {
-    max-width: calc(100vw - 2 * var(--edge));
   }
   .dock {
     bottom: calc(var(--edge) + 62px);
