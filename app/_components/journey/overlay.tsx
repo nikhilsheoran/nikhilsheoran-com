@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type RefObject } from "react";
+import { type CSSProperties, type RefObject, useState } from "react";
 import Link from "next/link";
 import {
   ArrowUpRightIcon,
@@ -67,6 +67,11 @@ export function Overlay({
   const work = chapter >= 0 ? works[chapter] : null;
   const years = yearStops(works);
   const activeYear = years.findIndex((stop) => stop.year === work?.year);
+  // Which way the selection is travelling, so its leading edge can go first.
+  const [travel, setTravel] = useState({ year: activeYear, forward: true });
+  if (activeYear !== travel.year)
+    setTravel({ year: activeYear, forward: activeYear > travel.year });
+  const forward = travel.forward;
   return (
     <div
       data-journey-ui
@@ -97,23 +102,25 @@ export function Overlay({
             ))}
           </nav>
         </div>
-        <Glass as="p" className={styles.tagline} bezel={14}>
+        <Glass as="p" className={`${styles.tagline} ${styles.pool}`} bezel={16}>
           I’m 20, I love tech and my dream is to produce a movie someday.
         </Glass>
       </header>
 
       <div className={styles.dock}>
-        <Glass as="section" className={styles.now} aria-live="polite" bezel={22} depth={36}>
-          {work && (
-            // eslint-disable-next-line @next/next/no-img-element -- A 56px thumbnail of artwork the scene already loaded.
-            <img className={styles.art} src={work.image} alt="" />
-          )}
+        <Glass as="p" className={styles.tag} bezel={12}>
+          <span key={chapter} className={styles.swap}>
+            {work
+              ? `${when(work.date, work.year)}, age ${work.age}`
+              : "Hello, I’m Nikhil."}
+          </span>
+        </Glass>
+        <Glass
+          as="section"
+          className={`${styles.now} ${styles.pool}`}
+          aria-live="polite"
+        >
           <div key={chapter} className={`${styles.words} ${styles.swap}`}>
-            <p className={styles.when}>
-              {work
-                ? `${when(work.date, work.year)}, age ${work.age}`
-                : "Hello, I’m Nikhil."}
-            </p>
             <h1>{work ? work.title : "I wanted to fly planes."}</h1>
             <p className={styles.line}>
               {work
@@ -122,16 +129,18 @@ export function Overlay({
             </p>
           </div>
           {work && (
-            <a
+            <Glass
+              as="a"
               className={styles.go}
               href={work.url}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${ACTION_LABEL[work.kind]} (opens in a new tab)`}
               title={ACTION_LABEL[work.kind]}
+              bezel={14}
             >
               <ArrowUpRightIcon size={18} weight="bold" />
-            </a>
+            </Glass>
           )}
         </Glass>
 
@@ -140,6 +149,7 @@ export function Overlay({
           className={styles.tabs}
           style={{ "--count": years.length, "--active": activeYear } as CSSProperties}
           data-active={activeYear >= 0 ? "" : undefined}
+          data-forward={forward}
         >
           <label className={styles.srOnly} htmlFor="journey-progress">
             Move through the story

@@ -112,41 +112,50 @@
 }
 
 /*
- * Liquid glass, light variant (as on iOS over bright content): a luminous,
- * lightly frosted pane with dark type. The lens in glass.tsx (Chromium) bends
- * the room in a thick band at the rim; here: tint, lip, shadow, a rim that
- * turns with the window's direction (--light), and a pointer highlight.
+ * Liquid glass (chosen in /glass-lab): a clear pane with white type. The lens
+ * in glass.tsx (Chromium) bends the room in a deep band at the rim; here: a
+ * whisper of tint, the lip and cast shadow, and a sparse rim that turns with
+ * the window's direction (--light) or toward the pointer.
+ *   hover  – only the rim brightens and turns to the pointer
+ *   press  – a hair squish (1.5%)
+ *   .pool  – a soft dark pool behind text, for contrast without blur
  */
 .glass {
-  --ink: #121512;
-  --ink-soft: rgb(18 21 18 / 0.74);
-  --ink-muted: rgb(18 21 18 / 0.52);
+  --ink: #fff;
+  --ink-soft: rgb(255 255 255 / 0.86);
+  --ink-muted: rgb(255 255 255 / 0.62);
   --radius: calc(var(--control) / 2);
+  --tint: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.05),
+    rgb(255 255 255 / 0.03)
+  );
   position: relative;
   isolation: isolate;
   border: 0;
   border-radius: var(--radius);
-  background: linear-gradient(
-    180deg,
-    var(--glass-top, rgb(255 255 255 / 0.4)),
-    var(--glass-bottom, rgb(255 255 255 / 0.22))
-  );
-  text-shadow: var(--glass-text-shadow, none);
-  backdrop-filter: blur(10px) saturate(1.6) brightness(1.04);
-  -webkit-backdrop-filter: blur(10px) saturate(1.6) brightness(1.04);
-  box-shadow: var(
-    --glass-shadow,
-    0 16px 36px -14px rgb(30 26 18 / 0.34),
-    0 4px 10px -4px rgb(30 26 18 / 0.16),
-    inset 0 1px 0.5px rgb(255 255 255 / 0.7),
-    inset 0 -1px 0.5px rgb(255 255 255 / 0.22),
-    inset 0 0 14px rgb(255 255 255 / 0.18)
-  );
+  background: var(--tint);
+  backdrop-filter: blur(2px) saturate(1.28);
+  -webkit-backdrop-filter: blur(2px) saturate(1.28);
+  box-shadow:
+    0 17px 32px -13px rgb(20 18 12 / 0.44),
+    inset 0 1.5px 1px rgb(255 255 255 / 0.34),
+    inset 0 -2px 4px rgb(0 0 0 / 0.08);
   color: var(--ink);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 0 14px rgb(0 0 0 / 0.28);
   pointer-events: auto;
-  transition:
-    transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1),
-    box-shadow 0.3s ease;
+  transition: transform 0.18s ease;
+}
+.pool {
+  background:
+    radial-gradient(
+      ellipse 75% 95% at 38% 50%,
+      rgb(0 0 0 / 0.34),
+      transparent 72%
+    ),
+    var(--tint);
 }
 .glass::before {
   content: "";
@@ -157,51 +166,31 @@
   border-radius: inherit;
   background: conic-gradient(
     from var(--light) at 50% 50%,
-    rgb(255 255 255 / 1),
-    rgb(255 255 255 / 0) 8% 43%,
-    rgb(255 255 255 / 0.6) 50%,
-    rgb(255 255 255 / 0) 57% 92%,
-    rgb(255 255 255 / 1)
+    rgb(255 255 255 / 0.95),
+    rgb(255 255 255 / 0) 7% 44%,
+    rgb(255 255 255 / 0.45) 50%,
+    rgb(255 255 255 / 0) 56% 93%,
+    rgb(255 255 255 / 0.95)
   );
   mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
-  opacity: var(--glass-rim, 1);
   transition:
     --light 0.35s ease-out,
     filter 0.3s;
   pointer-events: none;
 }
-/* Hover: the pane lifts, its shadow deepens and its rim brightens. No glow blob. */
-.glass::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  box-shadow:
-    0 26px 44px -16px rgb(20 18 12 / 0.45),
-    inset 0 0 0 1px rgb(255 255 255 / 0.22);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-.glass:hover::after {
-  opacity: 1;
-}
-.glass:hover::before {
-  opacity: 1;
-  filter: brightness(1.4);
-}
-a.glass:hover,
-button.glass:hover {
-  transform: translateY(-1.5px) scale(1.025);
+a.glass:hover::before,
+button.glass:hover::before,
+.tabs:hover::before {
+  filter: brightness(2.1);
+  padding: 1.5px;
 }
 a.glass:active,
 button.glass:active {
-  transform: scale(0.95);
-  transition-duration: 0.12s;
+  transform: scale(0.985);
+  transition-duration: 0.09s;
 }
 
 /* Identity, top left: a name pill, detached round buttons, the line below. */
@@ -258,34 +247,25 @@ button.glass:active {
   align-items: center;
   gap: 12px;
 }
+.tag {
+  align-self: flex-start;
+  margin: 0 0 -2px 16px;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
 .now {
-  --radius: 38px;
+  --radius: 32px;
   align-self: stretch;
   display: flex;
   align-items: center;
   gap: 16px;
   min-height: 76px;
-  padding: 14px 16px 14px 18px;
-}
-.art {
-  flex: none;
-  width: 68px;
-  height: 68px;
-  /* Concentric with the bar: 38px outer radius minus the inset. */
-  border-radius: 22px;
-  object-fit: cover;
-  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.35);
-  animation: swap 0.5s ease both;
+  padding: 16px 16px 16px 24px;
 }
 .words {
   flex: 1;
   min-width: 0;
-  padding-left: 4px;
-}
-.when {
-  margin: 0 0 3px;
-  font-size: 12px;
-  color: var(--ink-muted);
 }
 .now h1 {
   margin: 0 0 5px;
@@ -308,17 +288,8 @@ button.glass:active {
   place-items: center;
   width: 46px;
   height: 46px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: #fff;
+  --radius: 23px;
   animation: swap 0.5s ease both;
-  transition: transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
-}
-.go:hover {
-  transform: scale(1.08) rotate(8deg);
-}
-.go:active {
-  transform: scale(0.9);
 }
 /* Only the words change between works; the glass stays put. */
 .swap {
@@ -338,34 +309,46 @@ button.glass:active {
   }
 }
 
-/* Years: a tab bar whose selection is a well that slides. */
+/* Years: a tab bar. The selection slides with a liquid stretch: its leading
+   edge goes first and the trailing edge catches up. */
 .tabs {
+  --radius: 26px;
+  --tab: 76px;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--count), 76px);
+  grid-template-columns: repeat(var(--count), var(--tab));
   height: 52px;
   padding: 5px;
-  --radius: 26px;
 }
 .selection {
   position: absolute;
   top: 5px;
   bottom: 5px;
-  left: 5px;
-  width: 76px;
+  left: calc(5px + var(--active) * var(--tab));
+  right: calc(5px + (var(--count) - 1 - var(--active)) * var(--tab));
   border-radius: 21px;
-  background: rgb(18 21 18 / 0.1);
+  background: rgb(255 255 255 / 0.16);
   box-shadow:
-    inset 0 1px 2px rgb(0 0 0 / 0.08),
-    inset 0 -1px 0.5px rgb(255 255 255 / 0.5);
-  transform: translateX(calc(var(--active) * 100%)) scale(1);
+    inset 0 1px 0.5px rgb(255 255 255 / 0.45),
+    inset 0 -1px 0.5px rgb(0 0 0 / 0.12),
+    0 2px 6px -2px rgb(0 0 0 / 0.25);
   opacity: 0;
   transition:
-    transform 0.55s cubic-bezier(0.3, 1.35, 0.4, 1),
+    left var(--lead) cubic-bezier(0.3, 1.4, 0.5, 1),
+    right var(--trail) cubic-bezier(0.3, 1.4, 0.5, 1),
     opacity 0.3s;
 }
 .tabs[data-active] .selection {
   opacity: 1;
+}
+/* Moving right, the right edge leads; moving left, the left edge leads. */
+.tabs[data-forward="true"] .selection {
+  --lead: 0.62s;
+  --trail: 0.34s;
+}
+.tabs[data-forward="false"] .selection {
+  --lead: 0.34s;
+  --trail: 0.62s;
 }
 .tabs button {
   position: relative;
@@ -376,16 +359,17 @@ button.glass:active {
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: var(--ink-muted);
+  text-shadow: inherit;
   cursor: pointer !important;
   transition:
-    color 0.2s,
-    transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+    color 0.25s,
+    transform 0.18s ease;
 }
 .tabs button:hover {
   color: var(--ink);
 }
 .tabs button:active {
-  transform: scale(0.92);
+  transform: scale(0.97);
 }
 .tabs button[aria-current] {
   color: var(--ink);
@@ -438,13 +422,13 @@ button.glass:active {
   gap: 7px;
   padding: 7px 13px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.62);
-  backdrop-filter: blur(12px) saturate(1.6);
-  -webkit-backdrop-filter: blur(12px) saturate(1.6);
+  background: rgb(20 22 24 / 0.38);
+  backdrop-filter: blur(6px) saturate(1.3);
+  -webkit-backdrop-filter: blur(6px) saturate(1.3);
   box-shadow:
-    0 8px 20px -8px rgb(30 26 18 / 0.4),
-    inset 0 1px 0.5px rgb(255 255 255 / 0.9);
-  color: #121512;
+    0 8px 20px -8px rgb(20 18 12 / 0.5),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.4);
+  color: #fff;
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -586,22 +570,14 @@ button.glass:active {
     bottom: calc(var(--edge) + 62px);
   }
   .now {
-    --radius: 30px;
+    --radius: 26px;
     gap: 12px;
-  }
-  .art {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
   }
   .now h1 {
     font-size: 24px;
   }
   .tabs {
-    grid-template-columns: repeat(var(--count), 60px);
-  }
-  .selection {
-    width: 60px;
+    --tab: 60px;
   }
   .tabs button {
     font-size: 12px;

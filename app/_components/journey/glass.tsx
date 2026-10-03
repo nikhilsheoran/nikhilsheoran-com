@@ -26,7 +26,7 @@ import styles from "./journey.module.css";
 
 const IOR = 1.5;
 /** How differently red and blue bend at the rim. */
-const FRINGE = 0.05;
+const FRINGE = 0.07;
 const CHANNELS = [
   ["r", 1, "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"],
   ["g", 0, "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"],
@@ -202,14 +202,15 @@ type GlassProps<T extends ElementType> = {
 
 export function Glass<T extends ElementType = "div">({
   as,
-  bezel = 18,
-  depth = 34,
-  blur = 3.2,
-  saturate = 1.55,
+  // Defaults are the chosen recipe: a clear pane with a deep refracting rim.
+  bezel = 26,
+  depth = 57,
+  blur = 0.35,
+  saturate = 1.28,
   fringe = FRINGE,
   rimPower = 5,
-  rimGain = 1,
-  bevelGain = 1,
+  rimGain = 1.2,
+  bevelGain = 0.95,
   coreBlur = 0,
   hoverBlur,
   pressBlur,
