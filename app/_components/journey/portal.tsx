@@ -218,7 +218,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             <feDisplacementMap
               in="SourceGraphic"
               in2="map"
-              scale="0.09"
+              scale="0.16"
               xChannelSelector="R"
               yChannelSelector="G"
             />
