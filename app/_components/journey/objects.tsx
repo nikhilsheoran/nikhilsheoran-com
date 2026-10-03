@@ -233,7 +233,7 @@ export function Laptop({
         {/* A small label floating just above the lid's top edge, in the lid's own plane. */}
         <group ref={labelRef} position={[0, SCREEN_HEIGHT / 2 + 0.11, 0]}>
           {hovered && (
-            <Html transform scale={0.1} style={{ pointerEvents: "none" }}>
+            <Html transform scale={0.135} style={{ pointerEvents: "none" }}>
               <Glass as="div" className={styles.laptopTooltip} role="tooltip">
                 Jump to Mac
               </Glass>
@@ -441,10 +441,14 @@ export function DeskLink({
           position={[0, link.size[1] * 1.3, 0]}
           style={{ pointerEvents: "none" }}
         >
-          <Glass as="div" className={styles.laptopTooltip} role="tooltip">
+          <Glass
+            as="div"
+            className={`${styles.laptopTooltip} ${styles.deskTooltip}`}
+            role="tooltip"
+          >
             {link.label}
             {/* It opens in a new tab. */}
-            <ArrowUpRightIcon size={12} weight="bold" aria-hidden />
+            <ArrowUpRightIcon size={9} weight="bold" aria-hidden />
           </Glass>
         </Html>
       )}
