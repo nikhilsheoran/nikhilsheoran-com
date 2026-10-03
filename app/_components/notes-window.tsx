@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { MDXRemote } from "next-mdx-remote";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
-import { getDesktopWindowBounds, getDesktopWindowFrameStyle } from "@/lib/desktop-window";
+import {
+  getDesktopWindowBounds,
+  getDesktopWindowFrameStyle,
+} from "@/lib/desktop-window";
 import {
   getFolderById,
   getGroupedNotesForFolder,
@@ -14,9 +18,12 @@ import { PinIcon } from "@/app/_components/shared/icons";
 import { createMdxComponents } from "@/app/_components/shared/mdx-components";
 import {
   ExportIcon,
+  MagnifyingGlassIcon,
   FolderIcon as PhFolderIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
+import { Glass } from "./journey/glass";
+import { APP_GLASS, NO_AUTOFILL, appGlass } from "./shared/app-glass";
 import styles from "./notes-window.module.css";
 
 // ── Notes-specific icons (unique to this window) ────────────────────────────
@@ -35,15 +42,32 @@ function FolderIcon({ active }: { active: boolean }) {
 
 function SharedSidebarIcon() {
   return (
-    <UsersIcon className={styles.sidebarIcon} size={19} color="#0a7aff" aria-hidden />
+    <UsersIcon
+      className={styles.sidebarIcon}
+      size={19}
+      color="#0a7aff"
+      aria-hidden
+    />
   );
 }
 
 function SharedNoteIndicator() {
   return (
-    <svg className={styles.sharedNoteIndicator} width="13" height="13" viewBox="0 0 16 16" fill="none" aria-label="Shared note">
+    <svg
+      className={styles.sharedNoteIndicator}
+      width="13"
+      height="13"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-label="Shared note"
+    >
       <circle cx="8" cy="5.2" r="2.3" stroke="#3d82e0" strokeWidth="1.4" />
-      <path d="M3.5 13C4.2 10.9 5.9 9.6 8 9.6C10.1 9.6 11.8 10.9 12.5 13" stroke="#3d82e0" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M3.5 13C4.2 10.9 5.9 9.6 8 9.6C10.1 9.6 11.8 10.9 12.5 13"
+        stroke="#3d82e0"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -91,20 +115,40 @@ export function NotesWindow({
   onFolderSelect,
   onNoteSelect,
 }: NotesWindowProps) {
-  const { windowRef, position, isDragging, handleDragStart } = useDraggableWindow({
-    initialPosition: { x: 36, y: 46 },
-    getBounds: getDesktopWindowBounds,
-    disabled: !isOpen,
-  });
+  const { windowRef, position, isDragging, handleDragStart } =
+    useDraggableWindow({
+      initialPosition: { x: 36, y: 46 },
+      getBounds: getDesktopWindowBounds,
+      disabled: !isOpen,
+    });
+
+  // Typing in the search field narrows the list to matching titles and previews.
+  const [query, setQuery] = useState("");
 
   if (!isOpen) return null;
 
-  const selectedFolder = getFolderById(notesData, selectedFolderId) ?? notesData.folders[0];
-  const groupedNotes = getGroupedNotesForFolder(notesData, selectedFolder.id);
+  const selectedFolder =
+    getFolderById(notesData, selectedFolderId) ?? notesData.folders[0];
+  const needle = query.trim().toLowerCase();
+  const groupedNotes = getGroupedNotesForFolder(notesData, selectedFolder.id)
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (note) =>
+          !needle ||
+          note.title.toLowerCase().includes(needle) ||
+          note.preview.toLowerCase().includes(needle),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
   const resolvedSlug = selectedNoteSlug ?? notesData.defaultNoteSlug;
-  const selectedNote = resolvedSlug ? notesData.notesBySlug[resolvedSlug] ?? null : null;
+  const selectedNote = resolvedSlug
+    ? (notesData.notesBySlug[resolvedSlug] ?? null)
+    : null;
   const isSharedNote = selectedNote?.isShared ?? false;
-  const iCloudFolders = notesData.folders.filter((f) => f.id !== "shared" && f.noteSlugs.length > 0);
+  const iCloudFolders = notesData.folders.filter(
+    (f) => f.id !== "shared" && f.noteSlugs.length > 0,
+  );
 
   return (
     <section
@@ -122,7 +166,10 @@ export function NotesWindow({
       <div className={styles.layout}>
         {/* ── Left sidebar ── */}
         <aside className={styles.leftPane}>
-          <div className={styles.leftPaneHeader} onPointerDown={handleDragStart}>
+          <div
+            className={styles.leftPaneHeader}
+            onPointerDown={handleDragStart}
+          >
             <WindowControls onClose={onClose} windowName="Notes" />
           </div>
           <div className={styles.leftPaneContent}>
@@ -130,7 +177,13 @@ export function NotesWindow({
               {notesData.quickGroups.map((item) => {
                 const isActive = selectedFolder.id === item.folderId;
                 return (
-                  <button key={item.id} type="button" data-window-drag-ignore onClick={() => onFolderSelect(item.folderId)} className={`${styles.quickRow} ${isActive ? styles.quickRowActive : ""}`}>
+                  <button
+                    key={item.id}
+                    type="button"
+                    data-window-drag-ignore
+                    onClick={() => onFolderSelect(item.folderId)}
+                    className={`${styles.quickRow} ${isActive ? styles.quickRowActive : ""}`}
+                  >
                     <span className={styles.quickLabel}>
                       <SharedSidebarIcon />
                       <span>{item.label}</span>
@@ -146,12 +199,20 @@ export function NotesWindow({
               {iCloudFolders.map((folder) => {
                 const isActive = folder.id === selectedFolder.id;
                 return (
-                  <button key={folder.id} type="button" data-window-drag-ignore onClick={() => onFolderSelect(folder.id)} className={`${styles.folderRow} ${isActive ? styles.folderRowActive : ""}`}>
+                  <button
+                    key={folder.id}
+                    type="button"
+                    data-window-drag-ignore
+                    onClick={() => onFolderSelect(folder.id)}
+                    className={`${styles.folderRow} ${isActive ? styles.folderRowActive : ""}`}
+                  >
                     <span className={styles.folderLabel}>
                       <FolderIcon active={isActive} />
                       <span>{folder.label}</span>
                     </span>
-                    <span className={styles.countBadge}>{folder.noteSlugs.length}</span>
+                    <span className={styles.countBadge}>
+                      {folder.noteSlugs.length}
+                    </span>
                   </button>
                 );
               })}
@@ -163,7 +224,10 @@ export function NotesWindow({
         <div className={styles.headerList} onPointerDown={handleDragStart}>
           <div className={styles.listHeadingBlock}>
             <p className={styles.listHeadingTitle}>{selectedFolder.label}</p>
-            <p className={styles.listHeadingMeta}>{selectedFolder.noteSlugs.length} note{selectedFolder.noteSlugs.length === 1 ? "" : "s"}</p>
+            <p className={styles.listHeadingMeta}>
+              {selectedFolder.noteSlugs.length} note
+              {selectedFolder.noteSlugs.length === 1 ? "" : "s"}
+            </p>
           </div>
           <div className={styles.headerListSpacer} />
         </div>
@@ -171,33 +235,74 @@ export function NotesWindow({
         {/* ── Editor toolbar ── */}
         <div className={styles.headerEditor} onPointerDown={handleDragStart}>
           <div className={styles.editorToolbar}>
-            <button type="button" data-window-drag-ignore className={styles.toolbarButtonPrimary} aria-label="Share note">
+            <Glass
+              as="button"
+              type="button"
+              {...APP_GLASS}
+              data-window-drag-ignore
+              className={`${appGlass} ${styles.toolbarButtonPrimary}`}
+              aria-label="Share note"
+            >
               <ShareIcon />
-            </button>
+            </Glass>
           </div>
-          <div className={styles.searchField} data-window-drag-ignore>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-              <circle cx="6.2" cy="6.2" r="4.7" stroke="#787878" strokeWidth="1.2" />
-              <path d="M9.7 9.7L12.7 12.7" stroke="#787878" strokeWidth="1.2" strokeLinecap="round" />
-            </svg>
-            <span>Search</span>
-          </div>
+          <Glass
+            as="label"
+            {...APP_GLASS}
+            className={`${appGlass} ${styles.searchField}`}
+            data-window-drag-ignore
+          >
+            <MagnifyingGlassIcon
+              size={15}
+              weight="bold"
+              color="#8e8e93"
+              aria-hidden
+            />
+            <input
+              type="text"
+              {...NO_AUTOFILL}
+              className={styles.searchInput}
+              placeholder="Search"
+              aria-label="Search notes"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              data-window-drag-ignore
+            />
+          </Glass>
         </div>
 
         {/* ── Note list ── */}
         <section className={styles.noteList}>
+          {groupedNotes.length === 0 && (
+            <p className={styles.noteListEmpty}>
+              No notes match “{query.trim()}”.
+            </p>
+          )}
           {groupedNotes.map((group) => (
             <div key={group.heading} className={styles.noteGroup}>
-              <h3 className={`${styles.noteGroupTitle} ${group.heading === "Pinned" ? styles.noteGroupTitlePinned : ""}`}>
-                {group.heading === "Pinned" && <PinIcon />}
+              <h3
+                className={`${styles.noteGroupTitle} ${group.heading === "Pinned" ? styles.noteGroupTitlePinned : ""}`}
+              >
+                {group.heading === "Pinned" && <PinIcon size={15} />}
                 {group.heading}
               </h3>
               {group.items.map((note) => {
                 const isActive = selectedNote?.slug === note.slug;
-                const folderLabel = notesData.folders.find((f) => f.id !== "all-icloud" && f.id !== "shared" && note.folderIds.includes(f.id))?.label;
+                const folderLabel = notesData.folders.find(
+                  (f) =>
+                    f.id !== "all-icloud" &&
+                    f.id !== "shared" &&
+                    note.folderIds.includes(f.id),
+                )?.label;
                 const displayDate = note.dateLabel;
                 return (
-                  <button key={note.slug} type="button" data-window-drag-ignore onClick={() => onNoteSelect(note.slug)} className={`${styles.noteCard} ${isActive ? styles.noteCardActive : ""}`}>
+                  <button
+                    key={note.slug}
+                    type="button"
+                    data-window-drag-ignore
+                    onClick={() => onNoteSelect(note.slug)}
+                    className={`${styles.noteCard} ${isActive ? styles.noteCardActive : ""}`}
+                  >
                     <div className={styles.noteCardTitleRow}>
                       <p className={styles.noteCardTitle}>{note.title}</p>
                       {note.isShared && <SharedNoteIndicator />}
@@ -224,12 +329,17 @@ export function NotesWindow({
               <p className={styles.editorMeta}>
                 {selectedNote.updatedAtLabel}
                 {selectedNote.isShared ? " · Shared" : ""}
-                {selectedNote.readingTime > 0 ? ` · ${selectedNote.readingTime} min read` : ""}
+                {selectedNote.readingTime > 0
+                  ? ` · ${selectedNote.readingTime} min read`
+                  : ""}
               </p>
               <h1 className={styles.editorTitle}>{selectedNote.title}</h1>
               <div className={styles.editorBody}>
                 {selectedNote.mdxSource ? (
-                  <MDXRemote {...selectedNote.mdxSource} components={mdxComponents} />
+                  <MDXRemote
+                    {...selectedNote.mdxSource}
+                    components={mdxComponents}
+                  />
                 ) : (
                   <p>No content available.</p>
                 )}

@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
-import { getDesktopWindowBounds, getDesktopWindowFrameStyle } from "@/lib/desktop-window";
+import {
+  getDesktopWindowBounds,
+  getDesktopWindowFrameStyle,
+} from "@/lib/desktop-window";
 import { WindowControls } from "@/app/_components/window-controls";
 import {
   getFileSystem,
@@ -23,6 +26,8 @@ import {
   IconEllipsis,
   IconSearch,
 } from "@/app/_components/finder/finder-icons";
+import { Glass } from "./journey/glass";
+import { APP_GLASS, NO_AUTOFILL, appGlass } from "./shared/app-glass";
 import styles from "./finder-window.module.css";
 
 const DEFAULT_PATH = getPathForSidebarItem("Projects");
@@ -38,7 +43,14 @@ const sidebarGroups = [
   },
   {
     title: "Favorites",
-    items: ["Applications", "Desktop", "Documents", "Downloads", "Projects", "Pictures"],
+    items: [
+      "Applications",
+      "Desktop",
+      "Documents",
+      "Downloads",
+      "Projects",
+      "Pictures",
+    ],
   },
   {
     title: "Locations",
@@ -63,12 +75,18 @@ interface FinderWindowProps {
   zIndex?: number;
 }
 
-export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWindowProps) {
-  const { windowRef, position, isDragging, handleDragStart } = useDraggableWindow({
-    initialPosition: { x: 72, y: 70 },
-    getBounds: getDesktopWindowBounds,
-    disabled: !isOpen,
-  });
+export function FinderWindow({
+  isOpen,
+  onClose,
+  onActivate,
+  zIndex,
+}: FinderWindowProps) {
+  const { windowRef, position, isDragging, handleDragStart } =
+    useDraggableWindow({
+      initialPosition: { x: 72, y: 70 },
+      getBounds: getDesktopWindowBounds,
+      disabled: !isOpen,
+    });
 
   // --- Navigation state ---
   const [currentPath, setCurrentPath] = useState(DEFAULT_PATH);
@@ -83,14 +101,20 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
 
   // --- Derived data ---
   const fs = useMemo(() => getFileSystem(), []);
-  const directoryContents = useMemo(() => listDirectory(fs, currentPath), [fs, currentPath]);
+  const directoryContents = useMemo(
+    () => listDirectory(fs, currentPath),
+    [fs, currentPath],
+  );
   const filteredContents = useMemo(() => {
     if (!searchActive || !searchQuery.trim()) return directoryContents;
     const q = searchQuery.trim().toLowerCase();
     return directoryContents.filter((n) => n.name.toLowerCase().includes(q));
   }, [directoryContents, searchActive, searchQuery]);
   const crumbs = useMemo(() => breadcrumbs(currentPath), [currentPath]);
-  const activeSidebarItem = useMemo(() => sidebarItemForPath(currentPath), [currentPath]);
+  const activeSidebarItem = useMemo(
+    () => sidebarItemForPath(currentPath),
+    [currentPath],
+  );
 
   /** The name shown in the top bar — last path segment */
   const pathTitle = crumbs.length > 0 ? crumbs[crumbs.length - 1].name : "/";
@@ -211,7 +235,9 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
           <div className={styles.sidebarScroll}>
             {sidebarGroups.map((group) => (
               <div key={group.title || "root"} className={styles.sidebarGroup}>
-                {group.title ? <p className={styles.groupTitle}>{group.title}</p> : null}
+                {group.title ? (
+                  <p className={styles.groupTitle}>{group.title}</p>
+                ) : null}
                 {group.items.map((item) => {
                   const isActive = activeSidebarItem === item;
                   const iconEntry = sidebarIconMap[item];
@@ -243,7 +269,11 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
         <main className={styles.content}>
           <header className={styles.topBar} onPointerDown={handleDragStart}>
             <div className={styles.pathHeader}>
-              <div className={styles.navGroup}>
+              <Glass
+                as="div"
+                {...APP_GLASS}
+                className={`${appGlass} ${styles.navGroup}`}
+              >
                 <button
                   type="button"
                   className={`${styles.navButton} ${!canGoBack ? styles.navButtonDisabled : ""}`}
@@ -265,16 +295,41 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
                 >
                   <ChevronRight />
                 </button>
-              </div>
+              </Glass>
               {searchActive ? (
-                <div className={styles.searchBar} data-window-drag-ignore>
-                  <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden className={styles.searchBarIcon}>
-                    <circle cx="7.8" cy="7.8" r="5" stroke="currentColor" strokeWidth="1.7" />
-                    <path d="M11.5 11.5L15.5 15.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <Glass
+                  as="div"
+                  {...APP_GLASS}
+                  className={`${appGlass} ${styles.searchBar}`}
+                  style={{ "--radius": "18px" } as React.CSSProperties}
+                  data-window-drag-ignore
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    aria-hidden
+                    className={styles.searchBarIcon}
+                  >
+                    <circle
+                      cx="7.8"
+                      cy="7.8"
+                      r="5"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                    />
+                    <path
+                      d="M11.5 11.5L15.5 15.5"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   <input
                     ref={searchInputRef}
                     type="text"
+                    {...NO_AUTOFILL}
                     className={styles.searchInput}
                     placeholder={`Search "${pathTitle}"`}
                     value={searchQuery}
@@ -289,44 +344,64 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
                       aria-label="Clear search"
                       data-window-drag-ignore
                     >
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        aria-hidden
+                      >
                         <circle cx="7" cy="7" r="6" fill="rgba(0,0,0,0.15)" />
-                        <path d="M4.5 4.5l5 5M9.5 4.5l-5 5" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
+                        <path
+                          d="M4.5 4.5l5 5M9.5 4.5l-5 5"
+                          stroke="white"
+                          strokeWidth="1.3"
+                          strokeLinecap="round"
+                        />
                       </svg>
                     </button>
                   )}
-                </div>
+                </Glass>
               ) : (
                 <p className={styles.pathTitle}>{pathTitle}</p>
               )}
             </div>
 
             <div className={styles.toolbarActions}>
-              <button
+              <Glass
+                as="button"
+                {...APP_GLASS}
+                style={{ "--radius": "18px" } as React.CSSProperties}
                 type="button"
-                className={styles.toolbarButton}
+                className={`${appGlass} ${styles.toolbarButton}`}
                 data-window-drag-ignore
                 aria-label="List view"
               >
                 <IconListView />
-              </button>
-              <button
+              </Glass>
+              <Glass
+                as="button"
+                {...APP_GLASS}
+                style={{ "--radius": "18px" } as React.CSSProperties}
                 type="button"
-                className={styles.toolbarButton}
+                className={`${appGlass} ${styles.toolbarButton}`}
                 data-window-drag-ignore
                 aria-label="More actions"
               >
                 <IconEllipsis />
-              </button>
-              <button
+              </Glass>
+              <Glass
+                as="button"
+                {...APP_GLASS}
+                style={{ "--radius": "18px" } as React.CSSProperties}
                 type="button"
-                className={`${styles.toolbarButton} ${searchActive ? styles.toolbarButtonActive : ""}`}
+                className={`${appGlass} ${styles.toolbarButton} ${searchActive ? styles.toolbarButtonActive : ""}`}
                 data-window-drag-ignore
                 aria-label={searchActive ? "Close search" : "Search"}
                 onClick={toggleSearch}
               >
                 <IconSearch />
-              </button>
+              </Glass>
             </div>
           </header>
 
@@ -342,7 +417,11 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
             <div className={styles.tableBody}>
               {filteredContents.length === 0 && (
                 <div className={styles.emptyState}>
-                  <p>{searchActive && searchQuery ? `No results for "${searchQuery}"` : "This folder is empty"}</p>
+                  <p>
+                    {searchActive && searchQuery
+                      ? `No results for "${searchQuery}"`
+                      : "This folder is empty"}
+                  </p>
                 </div>
               )}
               {filteredContents.map((node) => (
@@ -358,7 +437,8 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
                     <span className={styles.rowIcon}>
                       {node.kind === "directory" ? (
                         <FolderIcon16 />
-                      ) : node.kind === "file" && node.fileKind === "Application" ? (
+                      ) : node.kind === "file" &&
+                        node.fileKind === "Application" ? (
                         <AppIcon16 />
                       ) : (
                         <DocIcon16 />
@@ -368,7 +448,9 @@ export function FinderWindow({ isOpen, onClose, onActivate, zIndex }: FinderWind
                   </span>
                   <span>{node.dateModified}</span>
                   <span>{node.kind === "file" ? node.size : "--"}</span>
-                  <span>{node.kind === "directory" ? "Folder" : node.fileKind}</span>
+                  <span>
+                    {node.kind === "directory" ? "Folder" : node.fileKind}
+                  </span>
                 </button>
               ))}
             </div>

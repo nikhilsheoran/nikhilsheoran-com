@@ -69,7 +69,7 @@
 .leftPane {
   grid-area: sidebar;
   margin: 0;
-  border-radius: 0;
+  border-radius: 26px 0 0 26px;
   border: 0;
   box-shadow: none;
   background: #f0f0f2;
@@ -262,36 +262,40 @@
   cursor: default;
   align-items: center;
   justify-content: center;
-  border: 0.5px solid rgb(0 0 0 / 0.07);
-  box-shadow: 
-    0 1px 2px rgb(0 0 0 / 0.06),
-    0 8px 18px -10px rgb(0 0 0 / 0.22),
-    inset 0 1px 0 #fff;
-  border-radius: 9999px;
-  background: #fff;
-  color: #3a3a3c;
 }
 
 .searchField {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
   flex: 1 1 160px;
   max-width: 350px;
   height: 38px;
   padding: 0 14px;
-  border-radius: 9999px;
-  border: 0.5px solid rgb(0 0 0 / 0.07);
-  box-shadow: 
-    0 1px 2px rgb(0 0 0 / 0.06),
-    0 8px 18px -10px rgb(0 0 0 / 0.22),
-    inset 0 1px 0 #fff;
-  background: #fff;
-  color: #8e8e93;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: -0.01em;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  color: #1d1d1f;
+  cursor: text !important;
+}
+.searchInput::placeholder {
+  color: #8e8e93;
+}
+.noteListEmpty {
+  margin: 28px 8px;
+  text-align: center;
+  color: #8e8e93;
+  font-size: 14px;
 }
 
 /* ================================================================
@@ -324,7 +328,7 @@
 .noteGroupTitlePinned {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   color: #1d1d1f;
   font-size: 19px;
   font-weight: 700;
@@ -427,6 +431,7 @@
   overflow-y: auto;
   background: #fff;
   padding: 10px 32px 40px;
+  border-bottom-right-radius: 26px;
 }
 
 .editorMeta {

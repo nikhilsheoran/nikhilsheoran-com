@@ -135,6 +135,9 @@ function GuestbookInner({ styles }: GuestbookProps) {
           <input
             ref={inputRef}
             type="text"
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
             className={styles.commentInput}
             placeholder={
               session ? "Leave a message…" : "Sign in to leave a message…"

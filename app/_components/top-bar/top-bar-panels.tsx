@@ -107,8 +107,11 @@ export function Toggle({
   );
 }
 
-/** Frost inside a menu pane: enough to keep a long list readable over anything. */
-const MENU_FROST = 16;
+/**
+ * Menu panes: frosted enough to keep a long list readable over anything, with
+ * a shallow rim so sharp text behind the edge is not smeared into streaks.
+ */
+const MENU_GLASS = { coreBlur: 16, bezel: 12, depth: 16, fringe: 0 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Apple menu panel
@@ -120,7 +123,7 @@ export function AppleMenuPanel({
 }) {
   return (
     <div className={`${styles.panel} ${styles.appleMenu}`}>
-      <Glass as="div" coreBlur={MENU_FROST} className={styles.menuGlass}>
+      <Glass as="div" {...MENU_GLASS} className={styles.menuGlass}>
         <button
           type="button"
           className={styles.menuItem}
@@ -256,7 +259,7 @@ export function AppMenuPanel({
       className={`${styles.panel} ${styles.appMenu}`}
       style={{ left: leftOffset }}
     >
-      <Glass as="div" coreBlur={MENU_FROST} className={styles.menuGlass}>
+      <Glass as="div" {...MENU_GLASS} className={styles.menuGlass}>
         {items.map((item, i) => {
           if (item.label === "" && item.dividerAfter) {
             return <div key={`divider-${i}`} className={styles.menuDivider} />;
@@ -295,7 +298,7 @@ export function WiFiPanel() {
 
   return (
     <div className={styles.wifiPanel}>
-      <Glass as="div" coreBlur={MENU_FROST} className={styles.menuGlass}>
+      <Glass as="div" {...MENU_GLASS} className={styles.menuGlass}>
         <div className={styles.wifiHeader}>
           <span className={styles.wifiHeaderTitle}>Wi-Fi</span>
           <Toggle
@@ -501,8 +504,8 @@ export function CCSlider({
 // ─────────────────────────────────────────────────────────────────────────────
 // Control Center panel
 // ─────────────────────────────────────────────────────────────────────────────
-/** Frost inside each control-centre pane, for contrast over bright windows. */
-const CC_FROST = 10;
+/** Control Center panes: softly frosted, with the same shallow rim as the menus. */
+const CC_GLASS = { coreBlur: 10, bezel: 12, depth: 16, fringe: 0 } as const;
 
 function CCConnectivityPill({
   label,
@@ -523,7 +526,7 @@ function CCConnectivityPill({
     <Glass
       as="button"
       type="button"
-      coreBlur={CC_FROST}
+      {...CC_GLASS}
       className={`${styles.ccPill} ${styles.ccTile} ${areaClass}`}
       onClick={onClick}
     >
@@ -589,7 +592,7 @@ export function ControlCenterPanel({
 
       <Glass
         as="div"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         className={`${styles.ccNowPlaying} ${styles.ccTile}`}
       >
         <div className={styles.ccNpHead}>
@@ -673,7 +676,7 @@ export function ControlCenterPanel({
 
       <Glass
         as="button"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         type="button"
         className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccStage}`}
         aria-label="Stage Manager"
@@ -682,7 +685,7 @@ export function ControlCenterPanel({
       </Glass>
       <Glass
         as="button"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         type="button"
         className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccMirror}`}
         aria-label="Screen Mirroring"
@@ -692,7 +695,7 @@ export function ControlCenterPanel({
 
       <Glass
         as="button"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         type="button"
         className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccDark} ${darkOn ? styles.ccRoundTileActive : ""}`}
         aria-label="Dark Mode"
@@ -702,7 +705,7 @@ export function ControlCenterPanel({
       </Glass>
       <Glass
         as="button"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         type="button"
         className={`${styles.ccRoundTile} ${styles.ccTile} ${styles.ccCamera}`}
         aria-label="Screenshot"
@@ -711,7 +714,7 @@ export function ControlCenterPanel({
       </Glass>
       <Glass
         as="button"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         type="button"
         className={`${styles.ccFocusPill} ${styles.ccTile} ${focusOn ? styles.ccFocusPillActive : ""}`}
         onClick={() => setFocusOn((v) => !v)}
@@ -724,7 +727,7 @@ export function ControlCenterPanel({
 
       <Glass
         as="div"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         className={`${styles.ccSliderTile} ${styles.ccTile} ${styles.ccDisplay}`}
       >
         <span className={styles.ccSliderLabel}>Display</span>
@@ -741,7 +744,7 @@ export function ControlCenterPanel({
 
       <Glass
         as="div"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         className={`${styles.ccSliderTile} ${styles.ccTile} ${styles.ccSound}`}
       >
         <span className={styles.ccSliderLabel}>Sound</span>
@@ -766,7 +769,7 @@ export function ControlCenterPanel({
 
       <Glass
         as="button"
-        coreBlur={CC_FROST}
+        {...CC_GLASS}
         type="button"
         className={`${styles.ccEditBtn} ${styles.ccTile}`}
       >

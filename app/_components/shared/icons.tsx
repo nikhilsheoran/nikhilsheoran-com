@@ -1,3 +1,4 @@
+import { PushPinIcon } from "@phosphor-icons/react";
 /**
  * Shared SVG icon components used across multiple views (Notes desktop + mobile).
  */
@@ -18,27 +19,5 @@ export function GoogleG() {
 }
 
 export function PinIcon({ size = 11 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden
-    >
-      <path
-        d="M10.5 2.5L13.5 5.5L10.5 8.5L9 7L7 9L8.5 10.5L7.5 11.5L4.5 8.5L5.5 7.5L7 9L9 7L7.5 5.5L10.5 2.5Z"
-        stroke="currentColor"
-        strokeWidth="1.1"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path
-        d="M4.5 8.5L2 11"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+  return <PushPinIcon size={size} weight="fill" color="#e9a100" aria-hidden />;
 }

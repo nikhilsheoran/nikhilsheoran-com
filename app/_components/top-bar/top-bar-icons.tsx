@@ -1,3 +1,7 @@
+"use client";
+
+import { LinkSimpleIcon, WarningIcon as WarningIconGlyph } from "@phosphor-icons/react";
+
 export function CCMIcon({ size }: { size: number }) {
   return (
     <svg viewBox="0 0 29 29" width={size} height={size} xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -207,13 +211,7 @@ export function IconNext() {
 }
 
 export function WarningIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <path d="M7 1L1 13h12L7 1Z" stroke="#f5a623" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M7 5.5V9" stroke="#f5a623" strokeWidth="1.3" strokeLinecap="round" />
-      <circle cx="7" cy="11" r="0.7" fill="#f5a623" />
-    </svg>
-  );
+  return <WarningIconGlyph size={16} weight="fill" color="#f5a623" aria-hidden />;
 }
 
 export function ChevronRight() {
@@ -225,11 +223,5 @@ export function ChevronRight() {
 }
 
 export function HotspotIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M4.5 4.5a5 5 0 0 1 7 0" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-      <path d="M4.5 11.5a5 5 0 0 0 7 0" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
+  return <LinkSimpleIcon size={14} weight="bold" aria-hidden />;
 }

@@ -11,6 +11,8 @@ import {
   IconVolumeLow,
   IconVolumeHigh,
 } from "@/app/_components/music/music-icons";
+import { Glass } from "../journey/glass";
+import { APP_GLASS, appGlass } from "../shared/app-glass";
 import styles from "../music-window.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,106 +41,117 @@ export function PlayerBar({ player }: { player: MusicPlayer }) {
 
   return (
     <div className={styles.playerBar} data-window-drag-ignore>
-      {/* Left: transport controls */}
-      <div className={styles.playerLeft}>
-        <button
-          type="button"
-          className={styles.playerBtn}
-          aria-label="Previous"
-          onClick={player.prev}
-          data-window-drag-ignore
-        >
-          <IconPrev />
-        </button>
-        <button
-          type="button"
-          className={`${styles.playerBtn} ${styles.playerBtnPlay}`}
-          aria-label={isPlaying ? "Pause" : "Play"}
-          onClick={() => player.togglePlay()}
-          data-window-drag-ignore
-        >
-          {isPlaying ? <IconPause /> : <IconPlay />}
-        </button>
-        <button
-          type="button"
-          className={styles.playerBtn}
-          aria-label="Next"
-          onClick={player.next}
-          data-window-drag-ignore
-        >
-          <IconNext />
-        </button>
-      </div>
-
-      {/* Center: thumb · title — artist · progress · time (all one row) */}
-      <div className={styles.playerCenter}>
-        {currentSong ? (
-          <>
-            <Image
-              src={currentSong.artworkUrl}
-              alt={currentSong.albumTitle}
-              width={36}
-              height={36}
-              className={styles.trackThumb}
-              unoptimized
-            />
-            <div className={styles.trackMeta}>
-              <p className={styles.trackTitle}>{currentSong.title}</p>
-            </div>
-            {duration > 0 && (
-              <div className={styles.progressWrap} data-window-drag-ignore>
-                <input
-                  type="range"
-                  className={styles.progressBar}
-                  min={0}
-                  max={duration}
-                  step={0.1}
-                  value={currentTime}
-                  onChange={(e) => player.seek(Number(e.target.value))}
-                  data-window-drag-ignore
-                  style={{
-                    "--progress": `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
-                  } as React.CSSProperties}
-                />
-              </div>
-            )}
-            {duration > 0 && (
-              <span className={styles.progressTime}>
-                {formatSeconds(currentTime)}&thinsp;/&thinsp;{formatSeconds(duration)}
-              </span>
-            )}
-          </>
-        ) : (
-          <span className={styles.noSong}>Double-click a song to play</span>
-        )}
-      </div>
-
-      {/* Right: volume */}
-      <div
-        className={styles.playerRight}
-        onMouseEnter={handleVolumeEnter}
-        onMouseLeave={handleVolumeLeave}
+      <Glass
+        as="div"
+        {...APP_GLASS}
+        coreBlur={14}
+        className={`${appGlass} ${styles.playerGlass}`}
+        style={{ "--radius": "28px" } as React.CSSProperties}
       >
-        <input
-          type="range"
-          className={`${styles.volumeSlider} ${volumeHovered ? styles.volumeSliderVisible : ""}`}
-          min={0}
-          max={1}
-          step={0.01}
-          value={volume}
-          onChange={(e) => player.setVolume(Number(e.target.value))}
-          aria-label="Volume"
-          data-window-drag-ignore
-        />
-        <button
-          type="button"
-          className={styles.playerBtn}
-          aria-label="Volume"
-          data-window-drag-ignore
+        {/* Left: transport controls */}
+        <div className={styles.playerLeft}>
+          <button
+            type="button"
+            className={styles.playerBtn}
+            aria-label="Previous"
+            onClick={player.prev}
+            data-window-drag-ignore
+          >
+            <IconPrev />
+          </button>
+          <button
+            type="button"
+            className={`${styles.playerBtn} ${styles.playerBtnPlay}`}
+            aria-label={isPlaying ? "Pause" : "Play"}
+            onClick={() => player.togglePlay()}
+            data-window-drag-ignore
+          >
+            {isPlaying ? <IconPause /> : <IconPlay />}
+          </button>
+          <button
+            type="button"
+            className={styles.playerBtn}
+            aria-label="Next"
+            onClick={player.next}
+            data-window-drag-ignore
+          >
+            <IconNext />
+          </button>
+        </div>
+
+        {/* Center: thumb · title — artist · progress · time (all one row) */}
+        <div className={styles.playerCenter}>
+          {currentSong ? (
+            <>
+              <Image
+                src={currentSong.artworkUrl}
+                alt={currentSong.albumTitle}
+                width={36}
+                height={36}
+                className={styles.trackThumb}
+                unoptimized
+              />
+              <div className={styles.trackMeta}>
+                <p className={styles.trackTitle}>{currentSong.title}</p>
+              </div>
+              {duration > 0 && (
+                <div className={styles.progressWrap} data-window-drag-ignore>
+                  <input
+                    type="range"
+                    className={styles.progressBar}
+                    min={0}
+                    max={duration}
+                    step={0.1}
+                    value={currentTime}
+                    onChange={(e) => player.seek(Number(e.target.value))}
+                    data-window-drag-ignore
+                    style={
+                      {
+                        "--progress": `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
+                      } as React.CSSProperties
+                    }
+                  />
+                </div>
+              )}
+              {duration > 0 && (
+                <span className={styles.progressTime}>
+                  {formatSeconds(currentTime)}&thinsp;/&thinsp;
+                  {formatSeconds(duration)}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className={styles.noSong}>Double-click a song to play</span>
+          )}
+        </div>
+
+        {/* Right: volume */}
+        <div
+          className={styles.playerRight}
+          onMouseEnter={handleVolumeEnter}
+          onMouseLeave={handleVolumeLeave}
         >
-          {volume === 0 ? <IconVolumeLow /> : <IconVolumeHigh />}
-        </button>
-      </div>
+          <input
+            type="range"
+            className={`${styles.volumeSlider} ${volumeHovered ? styles.volumeSliderVisible : ""}`}
+            min={0}
+            max={1}
+            step={0.01}
+            value={volume}
+            onChange={(e) => player.setVolume(Number(e.target.value))}
+            aria-label="Volume"
+            data-window-drag-ignore
+          />
+          <button
+            type="button"
+            className={styles.playerBtn}
+            aria-label="Volume"
+            data-window-drag-ignore
+          >
+            {volume === 0 ? <IconVolumeLow /> : <IconVolumeHigh />}
+          </button>
+        </div>
+      </Glass>
     </div>
   );
 }
