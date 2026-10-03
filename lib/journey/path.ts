@@ -352,8 +352,9 @@ function helix(
   const turn = -p.spacing * phase;
   const angle = now.angle + turn;
   const radius = panelRadius(beat.chapters[index], tuning);
-  // Works to come sit a little higher up the spiral and descend as they arrive.
-  const height = now.height - p.rise * phase;
+  // The spiral narrows downward: works to come wait lower down and rise into
+  // place, and those already read carry on up and out, where it is wider.
+  const height = now.height + p.rise * phase;
   // How far round from the front it is: 0 facing you, 1 across the desk.
   // Distance, and with it haze, blur and dimness, all grow with this.
   const away = smoothStep((1 - Math.cos(Math.min(Math.PI, Math.abs(turn)))) / 1.7);
