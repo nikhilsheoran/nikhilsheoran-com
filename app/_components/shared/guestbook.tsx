@@ -1,11 +1,8 @@
 "use client";
 
-import { Component, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { authClient } from "@/lib/auth-client";
-import { ConvexClientProvider } from "@/app/_components/convex-provider";
 import { Glass } from "../journey/glass";
 import { APP_GLASS, appGlass } from "./app-glass";
 import { GoogleG } from "./icons";
@@ -25,48 +22,62 @@ const day = new Intl.DateTimeFormat("en-GB", {
   year: "numeric",
 });
 
-class GuestbookBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-
-  render() {
-    if (this.state.failed)
-      return (
-        <section className={styles.guestbook}>
-          <p className={styles.note}>The guestbook can’t be reached right now.</p>
-        </section>
-      );
-    return this.props.children;
-  }
-}
-
-/** The guestbook under a shared note, on both the desktop and the phone view. */
+/**
+ * The guestbook under a shared note, on both the desktop and the phone view.
+ * Messages live in the site's database behind /api/guestbook; signing in is
+ * Google, through Better Auth.
+ */
 export function Guestbook() {
-  return (
-    <GuestbookBoundary>
-      <ConvexClientProvider>
-        <GuestbookLive />
-      </ConvexClientProvider>
-    </GuestbookBoundary>
-  );
-}
-
-function GuestbookLive() {
   const { data: session } = authClient.useSession();
-  const messages = useQuery(api.guestbook.list);
-  const addMessage = useMutation(api.guestbook.add);
-  const signIn = () =>
-    authClient.signIn.social({ provider: "google", callbackURL: window.location.href });
+  const [messages, setMessages] = useState<GuestbookMessage[] | undefined>();
+  const [failed, setFailed] = useState(false);
+
+  const refresh = useCallback(async () => {
+    try {
+      const response = await fetch("/api/guestbook", { cache: "no-store" });
+      if (!response.ok) throw new Error(String(response.status));
+      setMessages((await response.json()) as GuestbookMessage[]);
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    }
+  }, []);
+
+  // Load on arrival, and again whenever the tab is looked at, so messages
+  // other people leave show up without a reload.
+  useEffect(() => {
+    void refresh();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refresh]);
+
+  if (failed && !messages)
+    return (
+      <section className={styles.guestbook}>
+        <p className={styles.note}>The guestbook can’t be reached right now.</p>
+      </section>
+    );
+
   return (
     <GuestbookView
       messages={messages}
       signedInAs={session ? (session.user.name ?? "you") : null}
-      onSignIn={signIn}
+      onSignIn={() =>
+        authClient.signIn.social({ provider: "google", callbackURL: window.location.href })
+      }
       onSignOut={() => authClient.signOut()}
-      onSend={(message) => addMessage({ message })}
+      onSend={async (message) => {
+        const response = await fetch("/api/guestbook", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ message }),
+        });
+        if (!response.ok) throw new Error(String(response.status));
+        await refresh();
+      }}
     />
   );
 }

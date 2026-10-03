@@ -47,3 +47,7 @@ next-env.d.ts
 /assets/blender/*.blend1
 /assets/blender/review-*.png
 __pycache__/
+
+# Supabase CLI working files
+supabase/.temp
+supabase/.branches
