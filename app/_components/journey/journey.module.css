@@ -324,8 +324,9 @@ button.glass:active {
   height: var(--control);
   padding: 0 20px;
   text-decoration: none;
-  font-size: 15.5px;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 400;
   letter-spacing: -0.015em;
 }
 .circle {
@@ -495,10 +496,11 @@ button.glass:active {
   height: var(--control);
   margin: 0;
   padding: 0 20px;
-  font-size: 19px;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
   letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 .unit {
   margin-left: 8px;

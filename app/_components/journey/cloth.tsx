@@ -121,6 +121,9 @@ function visibleRaycast(
 
 const ASPECT = 1000 / 1600;
 
+/** Works are not all one size: a product's page hangs larger than a post. */
+const KIND_SIZE = { web: 1.1, youtube: 0.95, x: 0.8 } as const;
+
 export function Cloth({
   work,
   index,
@@ -290,14 +293,18 @@ export function Cloth({
     group.rotation.z += body.bank + drift * 0.6 * Math.sin(t * 0.71 + index);
     group.rotation.x += body.pitch + drift * 0.4 * Math.sin(t * 0.43 + index * 1.9);
     const distance = toCamera.copy(group.position).sub(camera.position).length();
+    // A work's own size (by what it is) times its place in the blocking.
+    const own = KIND_SIZE[work.kind] * pose.scale;
     group.scale.setScalar(
-      panelScale(
-        distance,
-        size.width / size.height,
-        (camera as THREE.PerspectiveCamera).fov,
-        tuning.panels.width,
-        tuning.panels.maxViewFraction,
-      ),
+      own *
+        panelScale(
+          distance,
+          size.width / size.height,
+          (camera as THREE.PerspectiveCamera).fov,
+          tuning.panels.width * own,
+          // The frame share it may take when read follows its size too.
+          (tuning.panels.maxViewFraction * KIND_SIZE[work.kind]) / 1.2,
+        ),
     );
     material.uniforms.uDefocus.value =
       pose.away *

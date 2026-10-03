@@ -224,6 +224,8 @@ export interface PanelPose {
   opacity: number;
   /** 0 at the reading moment, 1 once the work is back out in the vortex. */
   away: number;
+  /** Size relative to the work's full size at its reading moment. */
+  scale: number;
 }
 
 /** Where a work is read from the camera pose at `progress`: just right of centre. */
@@ -328,27 +330,98 @@ function gallery(
 }
 
 /**
- * Carousel: the works sit evenly round one ring that turns as you scroll, so
- * the next one always comes round from the same side.
+ * Stage blocking for the carousel, in chapters from a work's own moment
+ * (negative = still to come). Each row is where a work stands at that point:
+ * `turn` is its angle round the desk measured from the reading spot (positive
+ * = to the camera's right, past a quarter turn = behind the desk), `radius`
+ * its distance from the desk, `lift` its height above the reading height and
+ * `size` its scale. Works still to come wait on the right and come down a little as
+ * they come forward; works already read recede along the back. Lifts stay
+ * small: the camera looks down, so anything much higher leaves the frame.
+ */
+const BLOCKING = [
+  { at: -3, turn: 2.4, radius: 4.0, lift: 0.5, size: 0.5 },
+  { at: -2, turn: 1.5, radius: 3.8, lift: 0.2, size: 0.62 },
+  { at: -1, turn: 0.6, radius: 3.4, lift: 0.15, size: 0.8 },
+  { at: 0, turn: 0, radius: 0, lift: 0, size: 1 },
+  { at: 1, turn: -2.35, radius: 3.2, lift: 0.3, size: 0.72 },
+  { at: 2, turn: -3.0, radius: 3.6, lift: 0.35, size: 0.56 },
+  { at: 3, turn: -3.5, radius: 3.8, lift: 0.5, size: 0.48 },
+] as const;
+type Channel = "turn" | "radius" | "lift" | "size";
+
+/** A smooth curve through one column of BLOCKING (Catmull-Rom). */
+function blocking(channel: Channel, phase: number, hero: number) {
+  const value = (row: number) => {
+    const key = BLOCKING[Math.min(BLOCKING.length - 1, Math.max(0, row))];
+    return channel === "radius" && key.at === 0 ? hero : key[channel];
+  };
+  const x = Math.min(3, Math.max(-3, phase)) + 3;
+  const row = Math.min(BLOCKING.length - 2, Math.floor(x));
+  const t = x - row;
+  const [a, b, c, d] = [value(row - 1), value(row), value(row + 1), value(row + 2)];
+  return (
+    b +
+    0.5 * t * (c - a + t * (2 * a - 5 * b + 4 * c - d + t * (3 * (b - c) + d - a)))
+  );
+}
+
+/**
+ * The ring does not turn evenly: it lingers while a work is being read and
+ * moves on quickly in between, like a carousel indexing from slot to slot.
+ */
+function dwell(phase: number, amount = 0.55) {
+  const whole = Math.floor(phase);
+  const t = phase - whole;
+  return whole + t + amount * (smoothStep(t) - t);
+}
+
+/**
+ * Carousel: the works stand at different depths and heights around the desk
+ * (see BLOCKING) and take turns coming forward. Each also keeps a little of
+ * its own character while it waits: a slightly different distance, height
+ * and angle, so no two hang alike.
  */
 function carousel(
+  index: number,
   progress: number,
   phase: number,
   beat: Beats,
   tuning: Tuning,
   camera: readonly number[],
-): Flight {
+): Flight & { scale: number } {
   const p = tuning.panels;
-  const now = readingSpot(Math.min(progress, beat.handoffStart), tuning);
-  const step = (Math.PI * 2) / Math.max(4, beat.chapters.length);
-  const angle = now.angle - step * phase;
-  const height = p.floor + softPlus(now.height - p.floor, 0.25);
-  const position = onAxis(angle, now.radius + 0.25, height);
-  const away = smoothStep((Math.abs(phase) - 0.2) / 0.8);
-  const yaw =
-    angle +
-    (1 - away) * p.faceCamera * wrapAngle(facingFrom(position, camera) - angle);
-  return { position, rotation: [-0.05, yaw, 0], away, presence: 1 };
+  const now = readingSpot(Math.min(Math.max(0, progress), beat.handoffStart), tuning);
+  const at = dwell(phase);
+  const away = smoothStep((Math.abs(at) - 0.15) / 0.85);
+  // The whole arrangement tightens with the reading radius as the story closes in.
+  const tighten = now.radius / p.startRadius;
+  const angle = now.angle + blocking("turn", at, 0);
+  const radius =
+    blocking("radius", at, now.radius / (0.6 + 0.4 * tighten)) *
+      (0.6 + 0.4 * tighten) +
+    away * 0.25 * Math.sin(index * 2.399);
+  const height =
+    now.height +
+    blocking("lift", at, 0) +
+    away * 0.22 * Math.cos(index * 1.7);
+  const position = onAxis(
+    angle,
+    radius,
+    Math.min(p.ceiling, p.floor + softPlus(height - p.floor, 0.25)),
+  );
+  return {
+    position,
+    rotation: [
+      -0.05,
+      // Turned to the camera when read; waiting, each hangs at its own angle.
+      facingFrom(position, camera) + away * 0.5 * Math.sin(index * 1.93 + 0.4),
+      0,
+    ],
+    away,
+    presence: 1 - smoothStep((Math.abs(phase) - 2) / 0.7),
+    scale: blocking("size", at, 0),
+  };
 }
 
 /**
@@ -448,11 +521,11 @@ export function panelPose(
 ): PanelPose {
   const p = tuning.panels;
   const phase = chapterPhase(progress, index, beat);
-  const flight =
+  const flight: Flight & { scale?: number } =
     tuning.lab.path === 1
       ? gallery(index, phase, beat, tuning)
       : tuning.lab.path === 2
-        ? carousel(progress, phase, beat, tuning, camera)
+        ? carousel(index, progress, phase, beat, tuning, camera)
         : tuning.lab.path === 3
           ? drop(index, progress, phase, beat, tuning, camera)
           : tuning.lab.path === 4
@@ -472,6 +545,7 @@ export function panelPose(
     phase,
     opacity: flight.presence * handoff * lerp(1, farOpacity, flight.away),
     away: flight.away,
+    scale: flight.scale ?? 1,
   };
 }
 
