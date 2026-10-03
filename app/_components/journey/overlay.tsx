@@ -12,6 +12,12 @@ const SOCIALS = [
   { label: "X", href: "https://x.com/_nikhilsheoran", Icon: XLogoIcon },
 ];
 
+/** Set inline: the CSS pipeline drops the unprefixed property next to its -webkit- twin. */
+const HAZE: CSSProperties = {
+  backdropFilter: "blur(16px)",
+  WebkitBackdropFilter: "blur(16px)",
+};
+
 const ACTION_LABEL = {
   youtube: "Watch the video",
   x: "Read the post",
@@ -64,6 +70,11 @@ export function Overlay({
       inert={hidden}
       aria-hidden={hidden}
     >
+      {/* A soft blur pooled in three corners (not the top right), behind the glass. */}
+      <div className={`${styles.haze} ${styles.hazeTopLeft}`} style={HAZE} aria-hidden />
+      <div className={`${styles.haze} ${styles.hazeBottomLeft}`} style={HAZE} aria-hidden />
+      <div className={`${styles.haze} ${styles.hazeBottomRight}`} style={HAZE} aria-hidden />
+
       <header className={styles.identity}>
         <div className={styles.identityRow}>
           <Glass as={Link} className={styles.namePill} href="/">

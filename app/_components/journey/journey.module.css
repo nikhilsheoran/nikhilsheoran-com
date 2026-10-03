@@ -112,6 +112,37 @@
 }
 
 /*
+ * Corner haze: the scene blurs softly toward three corners so the glass has a
+ * calm backdrop. Blur only, no darkening; it fades to nothing toward the centre.
+ */
+.haze {
+  position: absolute;
+  pointer-events: none;
+  /* The blur itself is set inline in overlay.tsx. */
+}
+.hazeTopLeft {
+  top: 0;
+  left: 0;
+  width: min(520px, 56vw);
+  height: min(280px, 36vh);
+  mask-image: radial-gradient(ellipse at 0% 0%, #000 30%, transparent 85%);
+}
+.hazeBottomLeft {
+  bottom: 0;
+  left: 0;
+  width: min(720px, 80vw);
+  height: min(400px, 50vh);
+  mask-image: radial-gradient(ellipse at 0% 100%, #000 40%, transparent 88%);
+}
+.hazeBottomRight {
+  bottom: 0;
+  right: 0;
+  width: min(300px, 34vw);
+  height: min(220px, 30vh);
+  mask-image: radial-gradient(ellipse at 100% 100%, #000 25%, transparent 85%);
+}
+
+/*
  * Liquid glass: a clear pane with white type. The lens
  * in glass.tsx (Chromium) bends the room in a deep band at the rim; here: a
  * whisper of tint, the lip and cast shadow, and a sparse rim that turns with
