@@ -16,10 +16,12 @@ export interface GuestbookMessage {
   message: string;
 }
 
-const day = new Intl.DateTimeFormat("en-GB", {
+const stamp = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
   year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
 });
 
 /**
@@ -178,7 +180,12 @@ export function GuestbookView({
       ) : (
         <ul className={styles.entries}>
           {messages.map((entry) => (
-            <li key={entry._id} className={styles.entry}>
+            <li
+              key={entry._id}
+              className={styles.entry}
+              tabIndex={0}
+              aria-label={`${entry.name}, ${stamp.format(entry._creationTime)}: ${entry.message}`}
+            >
               {entry.avatarUrl ? (
                 <Image
                   src={entry.avatarUrl}
@@ -193,18 +200,11 @@ export function GuestbookView({
                   {entry.name.trim().charAt(0).toUpperCase() || "?"}
                 </span>
               )}
-              <div className={styles.body}>
-                <p className={styles.who}>
-                  <span className={styles.name}>{entry.name}</span>
-                  <time
-                    className={styles.when}
-                    dateTime={new Date(entry._creationTime).toISOString()}
-                  >
-                    {day.format(entry._creationTime)}
-                  </time>
-                </p>
-                <p className={styles.message}>{entry.message}</p>
-              </div>
+              <p className={styles.message}>{entry.message}</p>
+              {/* Who and when, shown only while the row is hovered or focused. */}
+              <span className={styles.tip} role="tooltip">
+                {entry.name} · {stamp.format(entry._creationTime)}
+              </span>
             </li>
           ))}
         </ul>
