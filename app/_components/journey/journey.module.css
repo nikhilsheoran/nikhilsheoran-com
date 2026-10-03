@@ -742,25 +742,6 @@ button.glass:active {
   pointer-events: auto !important;
 }
 
-/* The line that plays as the camera comes down to the screen. */
-.creed {
-  position: absolute;
-  z-index: 5;
-  left: var(--edge);
-  bottom: var(--edge);
-  max-width: 420px;
-  margin: 0;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(22px, 2.4vw, 30px);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  color: #fff;
-  text-shadow: 0 1px 24px #0009;
-  pointer-events: none;
-  animation: rise 0.8s ease both;
-}
-
 /* Hover hints floating over the laptop and desk objects. */
 .eggLine {
   padding: 10px 18px;

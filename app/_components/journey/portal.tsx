@@ -68,7 +68,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [webglFailed, setWebglFailed] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
-  const [creed, setCreed] = useState(false);
   const [atClock, setAtClock] = useState(false);
   const [music, setMusic] = useState<MusicSnapshot | null>(null);
   const search = useSyncExternalStore(
@@ -124,14 +123,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         rangeRef.current.value = String(Math.round(progress * 1000));
       setMode(next);
       setNearScreen(progress >= runtime.beats.handoffStart);
-      // The closing line plays over the descent and clears before the screen arrives.
-      const { handoffStart } = runtime.beats;
-      setCreed(
-        next !== "focused" &&
-          progress >= handoffStart &&
-          progress < handoffStart + 0.55 * (1 - handoffStart),
-      );
-      const nextChapter = activeChapter(progress, runtime.beats);
+        const nextChapter = activeChapter(progress, runtime.beats);
       if (nextChapter !== lastChapterRef.current) {
         if (nextChapter >= 0) soundRef.current?.pass();
         lastChapterRef.current = nextChapter;
@@ -301,11 +293,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           >
             {atClock ? "Back to the room" : "Back to the desk"}
           </Glass>
-        )}
-        {creed && (
-          <p className={styles.creed}>
-            “Your only true moat is how bad you want it.”
-          </p>
         )}
         {webglFailed && (
           <div className={styles.fallback}>
