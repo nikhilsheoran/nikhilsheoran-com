@@ -13,7 +13,7 @@
   --edge: 32px;
   --control: 48px;
   --gap: 10px;
-  --column: min(560px, calc(100vw - 2 * var(--edge)));
+  --column: min(500px, calc(100vw - 2 * var(--edge)));
   --serif: var(--font-journey-serif), "Iowan Old Style", Georgia, serif;
   position: fixed;
   inset: 0;
@@ -235,33 +235,42 @@ button.glass:active {
   color: var(--ink-soft);
 }
 
-/* Dock, bottom centre: the work being read above a tab bar of years. */
+/* Dock, bottom left: the work being read above a tab bar of years. */
 .dock {
   position: absolute;
-  left: 50%;
+  left: var(--edge);
   bottom: var(--edge);
   width: var(--column);
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
+/* Two pills above the card: the date at the left end, the age at the right. */
+.tags {
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+}
 .tag {
-  align-self: flex-start;
-  margin: 0 0 -2px 16px;
+  margin: 0;
   padding: 7px 14px;
   font-size: 12px;
   color: var(--ink-soft);
+  white-space: nowrap;
+}
+.card {
+  align-self: stretch;
 }
 .now {
   --radius: 32px;
-  align-self: stretch;
   display: flex;
   align-items: center;
   gap: 16px;
   min-height: 76px;
-  padding: 16px 16px 16px 24px;
+  padding: 24px 16px 26px 24px;
 }
 .words {
   flex: 1;

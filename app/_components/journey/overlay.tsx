@@ -93,41 +93,50 @@ export function Overlay({
       </header>
 
       <div className={styles.dock}>
-        <Glass as="p" className={styles.tag} bezel={12}>
-          <span key={chapter} className={styles.swap}>
-            {work
-              ? `${when(work.date, work.year)}, age ${work.age}`
-              : "Hello, I’m Nikhil."}
-          </span>
-        </Glass>
-        <Glass
-          as="section"
-          className={`${styles.now} ${styles.pool}`}
-          aria-live="polite"
-        >
-          <div key={chapter} className={`${styles.words} ${styles.swap}`}>
-            <h1>{work ? work.title : "I wanted to fly planes."}</h1>
-            <p className={styles.line}>
-              {work
-                ? work.subtitle
-                : "That plan fell through. So I started building things instead, and I haven’t stopped since."}
-            </p>
-          </div>
+        <div className={styles.tags}>
+          <Glass as="p" className={styles.tag} bezel={12}>
+            <span key={chapter} className={styles.swap}>
+              {work ? when(work.date, work.year) : "Hello, I’m Nikhil."}
+            </span>
+          </Glass>
           {work && (
-            <Glass
-              as="a"
-              className={styles.go}
-              href={work.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${ACTION_LABEL[work.kind]} (opens in a new tab)`}
-              title={ACTION_LABEL[work.kind]}
-              bezel={14}
-            >
-              <ArrowUpRightIcon size={18} weight="bold" />
+            <Glass as="p" className={styles.tag} bezel={12}>
+              <span key={work.age} className={styles.swap}>
+                Age {work.age}
+              </span>
             </Glass>
           )}
-        </Glass>
+        </div>
+        <div className={styles.card}>
+          <Glass
+            as="section"
+            className={`${styles.now} ${styles.pool}`}
+            aria-live="polite"
+          >
+            <div key={chapter} className={`${styles.words} ${styles.swap}`}>
+              <h1>{work ? work.title : "I wanted to fly planes."}</h1>
+              <p className={styles.line}>
+                {work
+                  ? work.subtitle
+                  : "That plan fell through. So I started building things instead, and I haven’t stopped since."}
+              </p>
+            </div>
+            {work && (
+              <Glass
+                as="a"
+                className={styles.go}
+                href={work.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${ACTION_LABEL[work.kind]} (opens in a new tab)`}
+                title={ACTION_LABEL[work.kind]}
+                bezel={14}
+              >
+                <ArrowUpRightIcon size={18} weight="bold" />
+              </Glass>
+            )}
+          </Glass>
+        </div>
 
         <Glass
           as="footer"
