@@ -288,7 +288,6 @@ button.glass:active {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 16px;
 }
 .tag {
   margin: 0;
@@ -358,10 +357,12 @@ button.glass:active {
    edge goes first and the trailing edge catches up. */
 .tabs {
   --radius: 26px;
-  --tab: 76px;
+  /* Full width of the card above; each year takes an equal share. */
+  --tab: calc((100% - 10px) / var(--count));
+  align-self: stretch;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--count), var(--tab));
+  grid-template-columns: repeat(var(--count), 1fr);
   height: 52px;
   padding: 5px;
 }
@@ -617,9 +618,6 @@ button.glass:active {
   }
   .now h1 {
     font-size: 24px;
-  }
-  .tabs {
-    --tab: 60px;
   }
   .tabs button {
     font-size: 12px;
