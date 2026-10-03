@@ -770,6 +770,17 @@ button.glass:active {
   white-space: nowrap;
   animation: rise 0.5s ease-out both;
 }
+.emoji {
+  display: inline-block;
+  max-width: none;
+  width: 1.15em;
+  height: 1.15em;
+  margin-left: 0.18em;
+  vertical-align: -0.22em;
+}
+.emoji:first-of-type {
+  margin-left: 0.35em;
+}
 .laptopTooltip {
   /* A small glass capsule, cut from the same glass as the name pill. */
   padding: 7px 14px;

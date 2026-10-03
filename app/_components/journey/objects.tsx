@@ -338,6 +338,16 @@ export function ClockEgg({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
         <Html center position={clockEgg.label} style={{ pointerEvents: "none" }}>
           <Glass as="div" className={styles.eggLine} role="status">
             Hmm, #watdatmean
+            {/* The emoji as an image, so it looks the same on every device. */}
+            {[0, 1].map((n) => (
+              // eslint-disable-next-line @next/next/no-img-element -- A tiny inline glyph.
+              <img
+                key={n}
+                className={styles.emoji}
+                src="/journey/emoji/distorted-face.png"
+                alt="🫪"
+              />
+            ))}
           </Glass>
         </Html>
       )}
