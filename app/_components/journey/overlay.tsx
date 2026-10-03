@@ -12,7 +12,6 @@ import {
   ArrowUpRightIcon,
   EyeIcon,
   EyeSlashIcon,
-  HouseIcon,
   XLogoIcon,
 } from "@phosphor-icons/react";
 import { HANDOFF, INTRO } from "@/lib/journey/timeline";
@@ -166,9 +165,21 @@ export function Overlay({
 
       <header className={styles.identity}>
         <div className={styles.identityRow}>
-          <Glass as={Link} className={styles.namePill} href="/">
-            Nikhil Sheoran
-          </Glass>
+          <div className={styles.lead}>
+            <Glass
+              as="button"
+              className={`${styles.circle} ${styles.keep}`}
+              aria-pressed={clean}
+              aria-label={clean ? "Show the interface" : "Hide the interface"}
+              title={clean ? "Show the interface" : "Hide the interface"}
+              onClick={() => setClean(!clean)}
+            >
+              {clean ? <EyeIcon size={18} /> : <EyeSlashIcon size={18} />}
+            </Glass>
+            <Glass as={Link} className={styles.namePill} href="/">
+              Nikhil Sheoran
+            </Glass>
+          </div>
           <nav className={styles.socials} aria-label="Social profiles">
             {SOCIALS.map(({ label, href, Icon }) => (
               <Glass
@@ -184,16 +195,6 @@ export function Overlay({
                 <Icon size={18} />
               </Glass>
             ))}
-            <Glass
-              as="button"
-              className={`${styles.circle} ${styles.keep}`}
-              aria-pressed={clean}
-              aria-label={clean ? "Show the interface" : "Hide the interface"}
-              title={clean ? "Show the interface" : "Hide the interface"}
-              onClick={() => setClean(!clean)}
-            >
-              {clean ? <EyeIcon size={18} /> : <EyeSlashIcon size={18} />}
-            </Glass>
           </nav>
         </div>
         <Glass as="p" className={`${styles.tagline} ${styles.pool}`}>
@@ -262,10 +263,17 @@ export function Overlay({
             aria-current={chapter === INTRO ? "step" : undefined}
             onClick={() => onSlide(0)}
           >
-            <HouseIcon
-              size={19}
-              weight={chapter === INTRO ? "fill" : "regular"}
-            />
+            <span className={styles.homeMark}>
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+                <path
+                  d="M4 10.9 10.6 4.8a2.1 2.1 0 0 1 2.8 0L20 10.9v6.6a3 3 0 0 1-3 3h-2.2v-4.3a1.6 1.6 0 0 0-1.6-1.6h-2.4a1.6 1.6 0 0 0-1.6 1.6v4.3H7a3 3 0 0 1-3-3Z"
+                  fill={chapter === INTRO ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </Glass>
           <Glass
             as="footer"
