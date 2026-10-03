@@ -128,17 +128,20 @@
   border-radius: var(--radius);
   background: linear-gradient(
     180deg,
-    rgb(255 255 255 / 0.4),
-    rgb(255 255 255 / 0.22)
+    var(--glass-top, rgb(255 255 255 / 0.4)),
+    var(--glass-bottom, rgb(255 255 255 / 0.22))
   );
+  text-shadow: var(--glass-text-shadow, none);
   backdrop-filter: blur(10px) saturate(1.6) brightness(1.04);
   -webkit-backdrop-filter: blur(10px) saturate(1.6) brightness(1.04);
-  box-shadow:
+  box-shadow: var(
+    --glass-shadow,
     0 16px 36px -14px rgb(30 26 18 / 0.34),
     0 4px 10px -4px rgb(30 26 18 / 0.16),
     inset 0 1px 0.5px rgb(255 255 255 / 0.7),
     inset 0 -1px 0.5px rgb(255 255 255 / 0.22),
-    inset 0 0 14px rgb(255 255 255 / 0.18);
+    inset 0 0 14px rgb(255 255 255 / 0.18)
+  );
   color: var(--ink);
   pointer-events: auto;
   transition:
@@ -164,6 +167,7 @@
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
+  opacity: var(--glass-rim, 1);
   transition: --light 0.5s linear;
   pointer-events: none;
 }

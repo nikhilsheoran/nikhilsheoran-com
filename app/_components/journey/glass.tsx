@@ -59,6 +59,9 @@ function buildLens(
   radius: number,
   bezel: number,
   depth: number,
+  rimPower: number,
+  rimGain: number,
+  bevelGain: number,
 ): Lens {
   const r = Math.min(radius, width / 2, height / 2);
   const edge = Math.min(bezel, r, width / 2, height / 2);
@@ -109,7 +112,7 @@ function buildLens(
       const band = Math.max(0, 1 - inside / 2);
       // Mostly invisible: the rim only catches light where it faces the
       // source (and its echo opposite), in short arcs.
-      rim[k] = Math.pow(Math.abs(toward), 5) * band;
+      rim[k] = Math.pow(Math.abs(toward), rimPower) * band * rimGain;
       // A raised, rounded edge: brightest/darkest at the rim, easing inward.
       shade[k] = toward * Math.pow(u, 1.6);
     }
@@ -139,7 +142,7 @@ function buildLens(
   for (let k = 0; k < count; k++) {
     const lit = shade[k] > 0;
     image.data[k * 4] = image.data[k * 4 + 1] = image.data[k * 4 + 2] = lit ? 255 : 0;
-    image.data[k * 4 + 3] = Math.min(1, Math.abs(shade[k]) * (lit ? 0.26 : 0.3)) * 255;
+    image.data[k * 4 + 3] = Math.min(1, Math.abs(shade[k]) * (lit ? 0.26 : 0.3) * bevelGain) * 255;
   }
   ctx.putImageData(image, 0, 0);
   return {
@@ -164,12 +167,28 @@ type GlassProps<T extends ElementType> = {
   bezel?: number;
   /** Thickness of the pane; higher bends the rim harder. */
   depth?: number;
+  /** Frost inside the pane, in px. */
+  blur?: number;
+  saturate?: number;
+  /** How differently red and blue bend at the rim. */
+  fringe?: number;
+  /** Higher = shorter, sharper rim highlights. */
+  rimPower?: number;
+  rimGain?: number;
+  /** Strength of the raised-edge light and shade. */
+  bevelGain?: number;
 } & ComponentPropsWithoutRef<T>;
 
 export function Glass<T extends ElementType = "div">({
   as,
   bezel = 18,
   depth = 34,
+  blur = 3.2,
+  saturate = 1.55,
+  fringe = FRINGE,
+  rimPower = 5,
+  rimGain = 1,
+  bevelGain = 1,
   className,
   style,
   children,
@@ -190,14 +209,14 @@ export function Glass<T extends ElementType = "div">({
       setLens((current) =>
         current?.width === width && current.height === height
           ? current
-          : buildLens(width, height, radius, bezel, depth),
+          : buildLens(width, height, radius, bezel, depth, rimPower, rimGain, bevelGain),
       );
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [bezel, depth]);
+  }, [bezel, depth, rimPower, rimGain, bevelGain]);
 
   return (
     <>
@@ -232,7 +251,7 @@ export function Glass<T extends ElementType = "div">({
               primitiveUnits="userSpaceOnUse"
               colorInterpolationFilters="sRGB"
             >
-              <feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="soft" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation={Math.max(blur, 0.01)} result="soft" />
               <feImage
                 href={lens.map}
                 x="0"
@@ -247,7 +266,7 @@ export function Glass<T extends ElementType = "div">({
                   key={`bend-${name}`}
                   in="soft"
                   in2="map"
-                  scale={lens.scale * (1 + factor * FRINGE)}
+                  scale={lens.scale * (1 + factor * fringe)}
                   xChannelSelector="R"
                   yChannelSelector="G"
                   result={`bent-${name}`}
@@ -262,7 +281,7 @@ export function Glass<T extends ElementType = "div">({
               ])}
               <feBlend in="r" in2="g" mode="screen" result="rg" />
               <feBlend in="rg" in2="b" mode="screen" result="rgb" />
-              <feColorMatrix in="rgb" type="saturate" values="1.55" result="rich" />
+              <feColorMatrix in="rgb" type="saturate" values={String(saturate)} result="rich" />
               {/* Raised bevel: light on the edges facing the light, shade on the far ones. */}
               <feImage
                 href={lens.bevel}
