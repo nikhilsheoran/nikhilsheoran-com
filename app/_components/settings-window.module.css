@@ -51,16 +51,15 @@
 .sidebar {
   display: flex;
   flex-direction: column;
-  margin: 8px 0 8px 8px;
-  border-radius: 18px;
-  border: 0.5px solid rgb(0 0 0 / 0.06);
-  box-shadow: 
-    0 10px 26px -14px rgb(0 0 0 / 0.22),
-    inset 0 1px 0 rgb(255 255 255 / 0.85);
-  background: #f2f2f4;
+  margin: 0;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background: #f0f0f2;
   overflow: hidden;
   z-index: 100;
   min-height: 0;
+  border-right: 0.5px solid rgb(0 0 0 / 0.07);
 }
 
 .sidebarTop {

@@ -12,32 +12,30 @@ import {
 import { WindowControls } from "@/app/_components/window-controls";
 import { PinIcon } from "@/app/_components/shared/icons";
 import { createMdxComponents } from "@/app/_components/shared/mdx-components";
+import {
+  ExportIcon,
+  FolderIcon as PhFolderIcon,
+  UsersIcon,
+} from "@phosphor-icons/react";
 import styles from "./notes-window.module.css";
 
 // ── Notes-specific icons (unique to this window) ────────────────────────────
 
 function FolderIcon({ active }: { active: boolean }) {
-  const color = "#e9a100";
   return (
-    <svg className={styles.sidebarIcon} width="20" height="17" viewBox="0 0 20 16" fill="none" aria-hidden>
-      <path
-        d="M1.3 3.6C1.3 2.61 2.11 1.8 3.1 1.8H7.1L8.7 3.4H16.9C17.89 3.4 18.7 4.21 18.7 5.2V12.9C18.7 13.89 17.89 14.7 16.9 14.7H3.1C2.11 14.7 1.3 13.89 1.3 12.9V3.6Z"
-        stroke={color}
-        strokeWidth="1.35"
-        strokeLinejoin="round"
-        fill={active ? "rgba(233,161,0,0.14)" : "none"}
-      />
-    </svg>
+    <PhFolderIcon
+      className={styles.sidebarIcon}
+      size={19}
+      color="#e9a100"
+      weight={active ? "fill" : "regular"}
+      aria-hidden
+    />
   );
 }
 
-function SharedSidebarIcon({ active }: { active: boolean }) {
-  const color = "#0a7aff";
+function SharedSidebarIcon() {
   return (
-    <svg className={styles.sidebarIcon} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="5.2" r="2.3" stroke={color} strokeWidth="1.3" />
-      <path d="M3.5 13C4.2 10.9 5.9 9.6 8 9.6C10.1 9.6 11.8 10.9 12.5 13" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
+    <UsersIcon className={styles.sidebarIcon} size={19} color="#0a7aff" aria-hidden />
   );
 }
 
@@ -51,21 +49,11 @@ function SharedNoteIndicator() {
 }
 
 function NotesIcon() {
-  return (
-    <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden>
-      <path d="M1.25 3.1C1.25 2.27 1.92 1.6 2.75 1.6H6.45L7.75 2.9H15.25C16.08 2.9 16.75 3.57 16.75 4.4V11.25C16.75 12.08 16.08 12.75 15.25 12.75H2.75C1.92 12.75 1.25 12.08 1.25 11.25V3.1Z" stroke="#8D8D8D" strokeWidth="1.25" strokeLinejoin="round" />
-    </svg>
-  );
+  return <PhFolderIcon size={15} color="#8e8e93" aria-hidden />;
 }
 
 function ShareIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden>
-      <path d="M8.5 2V11.45" stroke="#676767" strokeWidth="1.25" strokeLinecap="round" />
-      <path d="M5.2 5.3L8.5 2L11.8 5.3" stroke="#676767" strokeWidth="1.25" strokeLinecap="round" />
-      <rect x="2.1" y="8.35" width="12.8" height="6.7" rx="1.65" stroke="#676767" strokeWidth="1.25" />
-    </svg>
-  );
+  return <ExportIcon size={18} color="#3a3a3c" aria-hidden />;
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -144,7 +132,7 @@ export function NotesWindow({
                 return (
                   <button key={item.id} type="button" data-window-drag-ignore onClick={() => onFolderSelect(item.folderId)} className={`${styles.quickRow} ${isActive ? styles.quickRowActive : ""}`}>
                     <span className={styles.quickLabel}>
-                      <SharedSidebarIcon active={isActive} />
+                      <SharedSidebarIcon />
                       <span>{item.label}</span>
                     </span>
                     <span className={styles.countBadge}>{item.count}</span>

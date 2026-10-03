@@ -1,105 +1,68 @@
+"use client";
+
+// Line icons come from Phosphor so every app shares one consistent, well-drawn set.
+import {
+  AppStoreLogoIcon,
+  ArrowCircleDownIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  ClockIcon,
+  CloudIcon,
+  DesktopIcon,
+  DotsThreeIcon,
+  FileIcon,
+  FolderIcon,
+  FolderUserIcon,
+  HouseIcon,
+  ImageIcon,
+  LaptopIcon,
+  ListBulletsIcon,
+  MagnifyingGlassIcon,
+} from "@phosphor-icons/react";
 import styles from "../finder-window.module.css";
 
 export function IconClock() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M8 4.5V8H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <ClockIcon size={18} aria-hidden />;
 }
 
 export function IconSharedFolder() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="5.6" r="2" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M4.2 13c.5-2 2-3.2 3.8-3.2s3.3 1.2 3.8 3.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
+  return <FolderUserIcon size={18} aria-hidden />;
 }
 
 export function IconAppGrid() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <rect x="2" y="2" width="4.5" height="4.5" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="9.5" y="2" width="4.5" height="4.5" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="2" y="9.5" width="4.5" height="4.5" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="9.5" y="9.5" width="4.5" height="4.5" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
-  );
+  return <AppStoreLogoIcon size={18} aria-hidden />;
 }
 
 export function IconDesktop() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <rect x="1.5" y="2.5" width="13" height="8.5" rx="1.3" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M5.5 13.5h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      <path d="M8 11v2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
+  return <DesktopIcon size={18} aria-hidden />;
 }
 
 export function IconDocument() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M4 2.5h5.5L13 6v7.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M9.5 2.5V6H13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <FileIcon size={18} aria-hidden />;
 }
 
 export function IconArrowDown() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 4.5v6M5.5 8.5 8 11l2.5-2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <ArrowCircleDownIcon size={18} aria-hidden />;
 }
 
 export function IconFolder() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M1.75 4.5c0-.69.56-1.25 1.25-1.25h3l1.5 1.5h5.5c.69 0 1.25.56 1.25 1.25v6c0 .69-.56 1.25-1.25 1.25H3c-.69 0-1.25-.56-1.25-1.25v-7.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-    </svg>
-  );
+  return <FolderIcon size={18} aria-hidden />;
 }
 
 export function IconImage() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.3" stroke="currentColor" strokeWidth="1.3" />
-      <circle cx="5" cy="6" r="1.25" stroke="currentColor" strokeWidth="1.1" />
-      <path d="M1.75 11l3.25-3 2.5 2 3-3.5 3.75 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <ImageIcon size={18} aria-hidden />;
 }
 
 export function IconCloud() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M4.5 12.5A3 3 0 0 1 3 6.8a4 4 0 0 1 7.8-1.1A3.5 3.5 0 0 1 12.5 12.5h-8Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-    </svg>
-  );
+  return <CloudIcon size={18} aria-hidden />;
 }
 
 export function IconHouse() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M2.5 7.5 8 3l5.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M3.75 8.5v4.75h8.5V8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-      <rect x="6.25" y="10" width="3.5" height="3.25" rx="0.4" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
+  return <HouseIcon size={18} aria-hidden />;
 }
 
 export function IconLaptop() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <rect x="3" y="3" width="10" height="7" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M1.5 12.5h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
+  return <LaptopIcon size={18} aria-hidden />;
 }
 
 // Map sidebar item name → { icon component, color }
@@ -189,45 +152,21 @@ export function BreadcrumbFolderIcon() {
 }
 
 export function ChevronLeft() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-      <path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <CaretLeftIcon size={17} weight="bold" aria-hidden />;
 }
 
 export function ChevronRight() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-      <path d="M7 4l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <CaretRightIcon size={17} weight="bold" aria-hidden />;
 }
 
 export function IconListView() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-      <path d="M3 4.5h12M3 9h12M3 13.5h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M15.5 4.5V4M15.5 9v-.5M15.5 13.5V13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
+  return <ListBulletsIcon size={17} weight="bold" aria-hidden />;
 }
 
 export function IconEllipsis() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-      <circle cx="4.5" cy="9" r="1.25" fill="currentColor" />
-      <circle cx="9" cy="9" r="1.25" fill="currentColor" />
-      <circle cx="13.5" cy="9" r="1.25" fill="currentColor" />
-    </svg>
-  );
+  return <DotsThreeIcon size={20} weight="bold" aria-hidden />;
 }
 
 export function IconSearch() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-      <circle cx="7.8" cy="7.8" r="5" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M11.5 11.5L15.5 15.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
+  return <MagnifyingGlassIcon size={17} weight="bold" aria-hidden />;
 }
