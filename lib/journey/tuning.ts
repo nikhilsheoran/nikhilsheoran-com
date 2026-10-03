@@ -15,7 +15,7 @@ export const DEFAULT_TUNING = {
     /** The orbit ends and the camera starts its approach to the screen. */
     handoffStart: 0.8,
     /** Fraction of the handoff after which forward motion glides into the Mac. */
-    settleArm: 0.32,
+    settleArm: 0.15,
     /** Fraction of the handoff by which every panel has faded out. */
     panelsGone: 0.35,
     /** Seconds for the direct approach when the laptop is clicked. */
