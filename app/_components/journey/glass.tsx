@@ -168,8 +168,8 @@ type GlassProps<T extends ElementType> = {
 
 export function Glass<T extends ElementType = "div">({
   as,
-  bezel = 16,
-  depth = 26,
+  bezel = 18,
+  depth = 34,
   className,
   style,
   children,
@@ -232,7 +232,7 @@ export function Glass<T extends ElementType = "div">({
               primitiveUnits="userSpaceOnUse"
               colorInterpolationFilters="sRGB"
             >
-              <feGaussianBlur in="SourceGraphic" stdDeviation="0.7" result="soft" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="soft" />
               <feImage
                 href={lens.map}
                 x="0"
@@ -262,7 +262,7 @@ export function Glass<T extends ElementType = "div">({
               ])}
               <feBlend in="r" in2="g" mode="screen" result="rg" />
               <feBlend in="rg" in2="b" mode="screen" result="rgb" />
-              <feColorMatrix in="rgb" type="saturate" values="1.3" result="rich" />
+              <feColorMatrix in="rgb" type="saturate" values="1.55" result="rich" />
               {/* Raised bevel: light on the edges facing the light, shade on the far ones. */}
               <feImage
                 href={lens.bevel}

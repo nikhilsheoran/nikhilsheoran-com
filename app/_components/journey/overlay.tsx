@@ -44,10 +44,10 @@ function when(date: string | null, year: string) {
 }
 
 /**
- * The glass layer over the scene, laid out like a visionOS window with its
- * ornaments: an identity pane (top left), and a story pane with a date tab
- * above it and one toolbar below it (bottom left). Capsules are controls,
- * the rounded rectangle is content, and everything shares one column.
+ * The glass layer, arranged the way Apple floats controls: small capsules and
+ * circles around the edges and along the bottom centre. A "now playing" bar
+ * carries the work being read, above a tab bar of years; the name is a pill
+ * with detached round buttons beside it.
  */
 export function Overlay({
   chapter,
@@ -74,106 +74,105 @@ export function Overlay({
       inert={hidden}
       aria-hidden={hidden}
     >
-      <Glass as="header" className={styles.identity}>
+      <header className={styles.identity}>
         <div className={styles.identityRow}>
-          <Link className={styles.wordmark} href="/">
+          <Glass as={Link} className={styles.namePill} href="/">
             Nikhil Sheoran
-          </Link>
+          </Glass>
           <nav className={styles.socials} aria-label="Social profiles">
             {SOCIALS.map(({ label, href, Icon }) => (
-              <a
+              <Glass
+                as="a"
                 key={label}
-                className={styles.well}
+                className={styles.circle}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${label} (opens in a new tab)`}
                 title={label}
+                bezel={14}
               >
-                <Icon size={17} />
-              </a>
+                <Icon size={18} />
+              </Glass>
             ))}
           </nav>
         </div>
-        <p className={styles.tagline}>
+        <Glass as="p" className={styles.tagline} bezel={14}>
           I’m 20, I love tech and my dream is to produce a movie someday.
-        </p>
-      </Glass>
-
-      <section className={styles.story} aria-live="polite">
-        <Glass as="p" className={styles.tab} bezel={11}>
-          <span key={chapter} className={styles.swap}>
-            {work
-              ? `${when(work.date, work.year)}, age ${work.age}`
-              : "Hello, I’m Nikhil."}
-          </span>
         </Glass>
+      </header>
 
-        <Glass className={styles.card} bezel={20} depth={30}>
-          <div key={chapter} className={styles.swap}>
+      <div className={styles.dock}>
+        <Glass as="section" className={styles.now} aria-live="polite" bezel={22} depth={36}>
+          {work && (
+            // eslint-disable-next-line @next/next/no-img-element -- A 56px thumbnail of artwork the scene already loaded.
+            <img className={styles.art} src={work.image} alt="" />
+          )}
+          <div key={chapter} className={`${styles.words} ${styles.swap}`}>
+            <p className={styles.when}>
+              {work
+                ? `${when(work.date, work.year)}, age ${work.age}`
+                : "Hello, I’m Nikhil."}
+            </p>
             <h1>{work ? work.title : "I wanted to fly planes."}</h1>
-            <p>
+            <p className={styles.line}>
               {work
                 ? work.subtitle
                 : "That plan fell through. So I started building things instead, and I haven’t stopped since."}
             </p>
           </div>
-        </Glass>
-
-        <Glass as="footer" className={styles.toolbar}>
-          {work ? (
+          {work && (
             <a
-              key={work.slug}
-              className={styles.action}
+              className={styles.go}
               href={work.url}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={`${ACTION_LABEL[work.kind]} (opens in a new tab)`}
+              title={ACTION_LABEL[work.kind]}
             >
-              {ACTION_LABEL[work.kind]}
-              <ArrowUpRightIcon size={13} aria-label="Opens in a new tab" />
+              <ArrowUpRightIcon size={18} weight="bold" />
             </a>
-          ) : (
-            <span className={styles.cue}>Scroll to begin</span>
           )}
-          <span className={styles.divider} aria-hidden />
-          <div
-            className={styles.years}
-            style={{ "--count": years.length, "--active": activeYear } as CSSProperties}
-            data-active={activeYear >= 0 ? "" : undefined}
-          >
-            <label className={styles.srOnly} htmlFor="journey-progress">
-              Move through the story
-            </label>
-            <input
-              ref={rangeRef}
-              id="journey-progress"
-              className={styles.srOnly}
-              type="range"
-              min="0"
-              max="1000"
-              defaultValue="0"
-              onChange={(event) => onSlide(Number(event.target.value) / 1000)}
-              aria-valuetext={
-                work
-                  ? `${work.year}: ${work.title}`
-                  : chapter === INTRO
-                    ? "The beginning"
-                    : "Opening the Mac"
-              }
-            />
-            <span className={styles.selection} aria-hidden />
-            {years.map(({ year, index }) => (
-              <button
-                key={year}
-                aria-current={work?.year === year ? "step" : undefined}
-                onClick={() => onChapter(index)}
-              >
-                {year}
-              </button>
-            ))}
-          </div>
         </Glass>
-      </section>
+
+        <Glass
+          as="footer"
+          className={styles.tabs}
+          style={{ "--count": years.length, "--active": activeYear } as CSSProperties}
+          data-active={activeYear >= 0 ? "" : undefined}
+        >
+          <label className={styles.srOnly} htmlFor="journey-progress">
+            Move through the story
+          </label>
+          <input
+            ref={rangeRef}
+            id="journey-progress"
+            className={styles.srOnly}
+            type="range"
+            min="0"
+            max="1000"
+            defaultValue="0"
+            onChange={(event) => onSlide(Number(event.target.value) / 1000)}
+            aria-valuetext={
+              work
+                ? `${work.year}: ${work.title}`
+                : chapter === INTRO
+                  ? "The beginning"
+                  : "Opening the Mac"
+            }
+          />
+          <span className={styles.selection} aria-hidden />
+          {years.map(({ year, index }) => (
+            <button
+              key={year}
+              aria-current={work?.year === year ? "step" : undefined}
+              onClick={() => onChapter(index)}
+            >
+              {year}
+            </button>
+          ))}
+        </Glass>
+      </div>
 
       <button className={styles.keyboardScreen} onClick={onFocusScreen}>
         Open my Mac
