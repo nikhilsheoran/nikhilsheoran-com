@@ -251,14 +251,14 @@ test("scrolling past the settle point glides into the Mac; a reverse scroll retu
   assert.ok(Math.abs(motion.progress - B.returnTo) < 0.005);
 });
 
-test("stopping partway down the descent never leaves the camera hanging", () => {
-  // A small overscroll past the last work eases back to it.
-  const overscroll = createMotion();
-  overscroll.progress = overscroll.target = B.handoffStart - 0.01;
-  nudge(overscroll, 0.02, B);
-  run(overscroll, 3);
-  assert.equal(overscroll.mode, "orbit");
-  assert.ok(Math.abs(overscroll.progress - B.returnTo) < 0.005);
+test("short of the hand-off the camera stays where the scroll leaves it", () => {
+  // Stopping a little past the last work stays there: no snap back, no snap in.
+  const partway = createMotion();
+  partway.progress = partway.target = B.handoffStart - 0.01;
+  nudge(partway, 0.02, B);
+  run(partway, 3);
+  assert.equal(partway.mode, "orbit");
+  assert.ok(Math.abs(partway.progress - (B.handoffStart + 0.01)) < 0.005);
 
   // Scrolling on past settleArm glides into the Mac.
   const forward = createMotion();
@@ -267,12 +267,13 @@ test("stopping partway down the descent never leaves the camera hanging", () => 
   run(forward, 5);
   assert.equal(forward.mode, "focused");
 
+  // Scrolling backward inside the descent also stays where it stops.
   const backward = createMotion();
   backward.progress = backward.target = 0.95;
   nudge(backward, -0.04, B);
   run(backward, 3);
   assert.equal(backward.mode, "orbit");
-  assert.ok(Math.abs(backward.progress - B.returnTo) < 0.005);
+  assert.ok(Math.abs(backward.progress - 0.91) < 0.005);
 });
 
 test("clicking the laptop flies in and leaving flies back to the same place", () => {

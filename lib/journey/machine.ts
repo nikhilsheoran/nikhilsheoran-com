@@ -29,8 +29,6 @@ export interface Motion {
 export type MotionEvent = "arrived" | "left" | null;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-const AT_REST_DISTANCE = 0.003;
-const AT_REST_SPEED = 0.03;
 
 export function createMotion(): Motion {
   return {
@@ -165,19 +163,10 @@ export function step(
     return null;
   }
 
-  // The descent to the screen is never a resting place: moving forward past
-  // settleArm glides in; coming to rest before it returns to the last work.
-  if (m.dragging || m.progress <= beat.handoffStart) return null;
-  const resting =
-    Math.abs(m.target - m.progress) < AT_REST_DISTANCE &&
-    Math.abs(m.velocity) < AT_REST_SPEED;
-  if (m.heading > 0 && m.progress >= beat.settleArm) {
-    m.mode = "settling";
-    m.target = 1;
-  } else if (resting) {
-    // Stopping short of settleArm, in either direction, eases back to the
-    // last work: a small overscroll is not a decision to open the Mac.
-    m.target = beat.returnTo;
-  }
+  // Past the last work the camera stays wherever the scroll leaves it. Only
+  // moving forward beyond settleArm hands over and glides into the Mac.
+  if (m.dragging || m.heading < 0 || m.progress < beat.settleArm) return null;
+  m.mode = "settling";
+  m.target = 1;
   return null;
 }
