@@ -156,15 +156,10 @@ function bezier(a: Vec3, b: Vec3, c: Vec3, d: Vec3, t: number): Vec3 {
   ) as Vec3;
 }
 
-/** Fraction of the descent where a laptop-click flight joins the rail. */
-const APPROACH_JOIN = 0.15;
-/** Share of the flight spent reaching the rail; the rest rides the rail in. */
-const APPROACH_SPLIT = 0.6;
-
 /**
- * Clicking the laptop from anywhere on the orbit: rise, fly to the rail's
- * over-the-shoulder descent and ride it in, so every arrival looks the same.
- * The flight meets the rail at the rail's own speed, so there is no kink.
+ * Clicking the laptop: no path, just the pose you are in eased into the Mac
+ * pose. Position and aim interpolate together on one ease, with a single soft
+ * rise in the middle so a move that starts behind the statue clears its head.
  */
 export function approachPose(
   fromProgress: number,
@@ -173,32 +168,18 @@ export function approachPose(
   fov: number,
   tuning: Tuning,
 ): Pose {
-  const handoff = tuning.timeline.handoffStart;
-  const join = handoff + APPROACH_JOIN * (1 - handoff);
-  const eased = smootherStep(t);
-  if (eased >= APPROACH_SPLIT) {
-    const along = (eased - APPROACH_SPLIT) / (1 - APPROACH_SPLIT);
-    return railPose(join + along * (1 - join), aspect, fov, tuning);
-  }
   const from = railPose(fromProgress, aspect, fov, tuning);
-  const meet = railPose(join, aspect, fov, tuning);
-  const e = 1e-4;
-  const ahead = railPose(join + e, aspect, fov, tuning).position;
-  // Rail velocity per unit of flight time, scaled into this segment's bezier.
-  const scale = ((1 - join) / (1 - APPROACH_SPLIT)) * (APPROACH_SPLIT / 3) / e;
-  const p2 = meet.position.map(
-    (v, i) => v - (ahead[i] - v) * scale,
-  ) as Vec3;
-  const p1: Vec3 = [
-    from.position[0],
-    Math.max(from.position[1], meet.position[1]) + 0.6,
-    from.position[2],
-  ];
-  const s = eased / APPROACH_SPLIT;
-  const aim = smootherStep(s);
+  const end = screenPose(aspect, fov);
+  const e = smootherStep(t);
+  const behind = smoothStep((from.position[2] - AXIS[1] - 1.2) / 1.2);
+  const lift = Math.sin(Math.PI * e) * (0.2 + 1.5 * behind);
   return {
-    position: bezier(from.position, p1, p2, meet.position, s),
-    target: from.target.map((v, i) => lerp(v, meet.target[i], aim)) as Vec3,
+    position: [
+      lerp(from.position[0], end.position[0], e),
+      lerp(from.position[1], end.position[1], e) + lift,
+      lerp(from.position[2], end.position[2], e),
+    ],
+    target: from.target.map((v, i) => lerp(v, end.target[i], e)) as Vec3,
   };
 }
 
@@ -225,6 +206,11 @@ function panelRadius(progress: number, tuning: Tuning) {
     tuning.panels.endRadius,
     clamp01(progress / tuning.timeline.handoffStart),
   );
+}
+
+/** Smooth max(x, 0): bends gently instead of clamping. */
+function softPlus(x: number, k: number) {
+  return k * Math.log1p(Math.exp(x / k));
 }
 
 function wrapAngle(angle: number) {
@@ -276,11 +262,15 @@ export function panelPose(
     p.orbitRadius * (1 + p.orbitSpread * Math.sin(index * 2.399));
   const angle = view.angle + offset - p.counterSpin * phase;
   const radius = lerp(panelRadius(progress, tuning), orbit, away);
+  // Clear air only: above the desk, laptop and seated figure, below the
+  // ceiling. Works arrive round the spiral, never up through the furniture.
+  const drift =
+    p.rise * phase + away * p.orbitSpread * 2.2 * Math.cos(index * 1.7);
+  const height =
+    p.floor + softPlus(readingHeight + drift - p.floor, 0.25);
   const position: Vec3 = [
     AXIS[0] + Math.sin(angle) * radius,
-    readingHeight +
-      p.rise * phase +
-      away * p.orbitSpread * 2.2 * Math.cos(index * 1.7),
+    Math.min(height, p.ceiling),
     AXIS[1] + Math.cos(angle) * radius,
   ];
   const facing = Math.atan2(camera[0] - position[0], camera[2] - position[2]);

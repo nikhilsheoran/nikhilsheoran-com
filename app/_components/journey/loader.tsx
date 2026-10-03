@@ -44,7 +44,7 @@ export function Loader({ sceneReady }: { sceneReady: boolean }) {
           />
         </div>
         <span className={styles.loaderLabel}>
-          {complete ? "Come in" : `Setting up the desk  ${shown}%`}
+          {complete ? "Come in" : `Setting up the desk, ${shown}%`}
         </span>
       </div>
     </div>

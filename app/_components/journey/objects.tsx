@@ -358,7 +358,7 @@ export function DeskLink({
           style={{ pointerEvents: "none" }}
         >
           <div className={styles.laptopTooltip} role="tooltip">
-            <span className={styles.tooltipDot} /> {link.label} ↗
+            <span className={styles.tooltipDot} /> {link.label}
           </div>
         </Html>
       )}

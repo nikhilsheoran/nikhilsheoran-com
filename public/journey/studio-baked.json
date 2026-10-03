@@ -31,7 +31,7 @@
       "atlas": 2048,
       "triangles": 114060,
       "px_per_metre": 290,
-      "kneed_texels_pct": 3.683
+      "kneed_texels_pct": 3.642
     },
     "foliage": {
       "atlas": 2048,

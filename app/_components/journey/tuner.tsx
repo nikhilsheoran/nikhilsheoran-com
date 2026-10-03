@@ -40,6 +40,8 @@ const RANGES: Record<string, Range> = {
   "panels.width": [0.6, 3, 0.05],
   "panels.maxViewFraction": [0.2, 1, 0.01],
   "panels.orbitRadius": [1, 6, 0.05],
+  "panels.floor": [1.5, 4, 0.05],
+  "panels.ceiling": [3, 6.4, 0.05],
   "panels.visibleChapters": [1, 6, 0.1],
   "panels.hazeNear": [0.5, 8, 0.1],
   "panels.hazeFar": [2, 16, 0.1],

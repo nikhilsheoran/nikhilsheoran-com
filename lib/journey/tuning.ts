@@ -19,7 +19,7 @@ export const DEFAULT_TUNING = {
     /** Fraction of the handoff by which every panel has faded out. */
     panelsGone: 0.35,
     /** Seconds for the direct approach when the laptop is clicked. */
-    approachSeconds: 1.7,
+    approachSeconds: 1.5,
   },
   camera: {
     /** Full turns from the opening frame to the Mac; the spin ends facing the screen. */
@@ -43,13 +43,16 @@ export const DEFAULT_TUNING = {
     startRadius: 2.3,
     endRadius: 1.65,
     /** Radius of the vortex a work drifts back out to between its moments. */
-    orbitRadius: 3.1,
+    orbitRadius: 3.2,
+    /** The band of clear air the works stay inside (above the statue, below the ceiling). */
+    floor: 2.9,
+    ceiling: 5.2,
     /** How much each work's orbit radius and height differ from its neighbours'. */
     orbitSpread: 0.18,
     /** World rotation per chapter, against the camera's direction. */
     counterSpin: 0.7,
     /** Height gained per chapter: upcoming works rise from below. */
-    rise: 0.5,
+    rise: 0.3,
     /** Where the reading panel sits in view, right of centre (radians). */
     viewOffset: 0.2,
     /** 0 = faces straight out from the axis, 1 = faces the camera. */
@@ -72,7 +75,7 @@ export const DEFAULT_TUNING = {
     hazeNear: 2.6,
     hazeFar: 8.5,
     /** Fold strength of the fabric (1 = the old heavy cloth). */
-    folds: 0.55,
+    folds: 1,
     /** Sheet inertia: lower = heavier, lags and overshoots more. */
     inertia: 9,
     /** How strongly a sheet banks into its own turns. */

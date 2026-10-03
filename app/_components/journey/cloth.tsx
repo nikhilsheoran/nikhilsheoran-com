@@ -20,19 +20,24 @@ const vertexShader = `
     vec3 p = position;
     vec3 rest = position;
     float x = uv.x, y = uv.y;
-    // Broad, soft folds and loose edges read as fabric without distorting the
-    // printed image with small, fast ripples. Scroll momentum pulls the sheet.
+    // A sheet of light cloth in moving air: the leading edge is held taut and
+    // waves travel across it, growing toward the free trailing edge, whose
+    // corners flap. Scroll momentum drags the whole sheet.
     float momentum = uVelocity * (1. - uHover * .35);
-    float edgeFreedom = .3 + .7 * pow(abs(x - .5) * 2., 1.5);
-    float wind = uTime * .5;
-    float fold = sin(x * 7.4 + y * 1.4 - wind) * .065;
-    float billow = sin(x * 2.8 - y * 3.6 + wind * .7) * .055;
-    float curl = pow(abs(x - .5) * 2., 3.) * sin(y * 4.2 + wind * .6) * .085;
+    float wind = uTime * 1.25;
+    float free = .22 + .78 * pow(x, 1.35);
+    float swell = sin(x * 6.5 - wind * 1.9 + y * 1.6) * .06 * free;
+    float ripple = sin(x * 13. - wind * 3.4 - y * 2.8) * .02 * free * free;
+    float corner = pow(x, 3.) * pow(abs(y - .5) * 2., 2.)
+      * sin(wind * 2.7 + y * 5. + x * 3.) * .1;
+    float calm = 1. - uHover * .45;
+    p.z += (cos((x - .5) * 2.) - 1.) * .1;
+    p.z += (swell + ripple + corner) * calm;
+    p.z += momentum * sin(x * 3.14159) * .09;
     p.x += momentum * (.48 * (y - .5) - .14 * sin(y * 3.14159));
-    p.z += (cos((x - .5) * 2.) - 1.) * .12;
-    p.z += ((fold + billow) * edgeFreedom + curl) * (1. - uHover * .25);
-    p.z += momentum * sin(x * 3.14159) * .075;
-    p.y -= sin(x * 3.14159) * (.025 + .012 * sin(wind + y * 2.));
+    // Gravity: the free edge hangs a little and lifts with each swell.
+    p.y -= pow(x, 2.) * (.05 + .035 * sin(wind * 1.9 - x * 4.)) * calm;
+    p.y -= sin(x * 3.14159) * .02;
     float touch = exp(-dot((uv-uTouch)*vec2(1.55,1.),(uv-uTouch)*vec2(1.55,1.))*20.);
     p.z -= touch * .045 * uHover;
     // Fold amplitudes were authored for a 2.8-unit sheet; keep them proportional.

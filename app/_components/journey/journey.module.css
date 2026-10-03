@@ -10,7 +10,6 @@
   /* Aviation amber: the one accent, used for the age stamp and the live beat. */
   --signal: #c2501b;
   --serif: var(--font-journey-serif), "Iowan Old Style", Georgia, serif;
-  --mono: var(--font-journey-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -86,41 +85,13 @@
   }
 }
 
-/* ── Overlay: a title card over the scene ───────────────────────────── */
+/* ── Overlay: floating liquid-glass cards ───────────────────────────── */
 .ui {
   position: absolute;
   inset: 0;
   z-index: 5;
   pointer-events: none;
   transition: opacity 0.45s ease;
-}
-/* Daylight washes behind the type; no blur, so the room stays crisp. */
-.ui::before,
-.ui::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-}
-.ui::before {
-  left: 0;
-  bottom: 0;
-  width: min(760px, 82vw);
-  height: min(560px, 74vh);
-  background: radial-gradient(
-    ellipse at 0% 100%,
-    #f3f0e9f2 0%,
-    #f3f0e9b8 34%,
-    #f3f0e94d 56%,
-    transparent 74%
-  );
-}
-.ui::after {
-  inset: 0 0 auto;
-  height: 150px;
-  background: linear-gradient(#f3f0e999, transparent);
-}
-.ui > * {
-  z-index: 1;
 }
 .ui button,
 .ui a,
@@ -135,127 +106,155 @@
   pointer-events: none !important;
 }
 
-/* Masthead */
-.masthead {
+/*
+ * Liquid glass, after visionOS: a neutral tinted pane the room shows through,
+ * with white type. The character is in the edges, not the frost:
+ *   - the backdrop is refracted at the rim (SVG displacement; Chromium only,
+ *     other browsers keep the plain blur declared first)
+ *   - ::before is a specular rim: a conic highlight on a masked 1px border,
+ *     brightest top-left and bottom-right like light crossing a thick pane
+ *   - inset shadows give the pane thickness; ::after is a soft sheen
+ */
+.glass {
+  --ink: #fff;
+  --ink-soft: rgb(255 255 255 / 0.84);
+  --ink-muted: rgb(255 255 255 / 0.62);
+  --radius: 999px;
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    180deg,
+    rgb(104 106 110 / 0.36),
+    rgb(70 72 76 / 0.44)
+  );
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: url(#journey-glass) blur(14px) saturate(1.5);
+  box-shadow:
+    0 22px 48px -18px rgb(20 18 12 / 0.45),
+    0 3px 10px -2px rgb(20 18 12 / 0.18),
+    inset 0 1.5px 1px rgb(255 255 255 / 0.32),
+    inset 0 -1.5px 1px rgb(0 0 0 / 0.18),
+    inset 0 0 22px rgb(255 255 255 / 0.06);
+  color: var(--ink);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.22);
+}
+.glass::before {
+  content: "";
   position: absolute;
-  top: 34px;
-  left: 44px;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from -50deg at 50% 50%,
+    rgb(255 255 255 / 0.85),
+    rgb(255 255 255 / 0.12) 9% 38%,
+    rgb(255 255 255 / 0.6) 50%,
+    rgb(255 255 255 / 0.1) 61% 91%,
+    rgb(255 255 255 / 0.85)
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    rgb(255 255 255 / 0.16),
+    transparent 32% 70%,
+    rgb(255 255 255 / 0.07)
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* Profile: three small cards, top left */
+.profile {
+  position: absolute;
+  top: 32px;
+  left: 40px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  align-items: flex-start;
+  gap: 8px;
 }
 .wordmark {
-  color: var(--ink);
+  padding: 9px 16px;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 .tagline {
+  max-width: 330px;
   margin: 0;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 15px;
-  line-height: 1.3;
+  --radius: 16px;
+  padding: 10px 16px;
+  font-size: 12.5px;
+  line-height: 1.5;
   color: var(--ink-soft);
 }
 .socials {
-  position: absolute;
-  top: 36px;
-  right: 168px;
   display: flex;
-  gap: 22px;
-}
-.socials a,
-.soundButton,
-.hint,
-.stamp,
-.cue,
-.beats span {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  gap: 2px;
+  padding: 4px 6px;
 }
 .socials a {
-  position: relative;
-  padding: 4px 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 32px;
+  border-radius: 999px;
   color: var(--ink-soft);
-  text-decoration: none;
-}
-.socials a::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s;
 }
 .socials a:hover {
+  background: rgb(255 255 255 / 0.18);
   color: var(--ink);
-}
-.socials a:hover::after {
-  transform: scaleX(1);
+  transform: translateY(-1px);
 }
 
-/* The beat being read */
+/* The work being read */
 .caption {
   position: absolute;
-  left: 44px;
-  bottom: 128px;
-  width: min(440px, calc(100vw - 88px));
+  left: 40px;
+  bottom: 104px;
+  width: min(420px, calc(100vw - 80px));
+  --radius: 20px;
+  padding: 24px 26px 24px;
   pointer-events: none;
+  animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
-.caption > * {
-  animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-.caption > :nth-child(2) {
-  animation-delay: 0.05s;
-}
-.caption > :nth-child(3) {
-  animation-delay: 0.11s;
-}
-.caption > :nth-child(4) {
-  animation-delay: 0.17s;
-}
-.stamp {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 18px;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--ink-soft);
-}
-.stamp span + span::before {
-  content: "";
-  display: inline-block;
-  width: 14px;
-  height: 1px;
-  margin-right: 12px;
-  vertical-align: middle;
-  background: #12151266;
-}
-.age {
-  color: var(--signal);
-  font-weight: 500;
+.when {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: var(--ink-muted);
 }
 .caption h1 {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   font-family: var(--serif);
-  font-size: clamp(38px, 4.6vw, 62px);
+  font-size: clamp(34px, 3.9vw, 52px);
   font-weight: 400;
-  line-height: 0.98;
+  line-height: 1;
   letter-spacing: -0.025em;
   text-wrap: balance;
-  color: var(--ink);
 }
 .body {
   margin: 0;
-  max-width: 38ch;
-  font-size: 15px;
+  font-size: 14.5px;
   line-height: 1.55;
   color: var(--ink-soft);
   text-wrap: pretty;
@@ -264,39 +263,34 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-top: 18px;
-  padding-bottom: 3px;
-  border-bottom: 1px solid #12151255;
-  font-size: 13px;
+  margin-top: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.92);
+  color: #121512;
+  text-shadow: none;
+  font-size: 12.5px;
   font-weight: 500;
-  color: var(--ink);
   text-decoration: none;
   pointer-events: auto;
-  transition: border-color 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
 }
 .readLink svg {
   transition: transform 0.25s ease;
 }
 .readLink:hover {
-  border-color: var(--ink);
+  background: #fff;
+  transform: translateY(-1px);
 }
 .readLink:hover svg {
   transform: translate(2px, -2px);
 }
 .cue {
-  margin: 20px 0 0;
+  margin: 16px 0 0;
+  font-size: 12.5px;
   color: var(--ink-muted);
-}
-.cue::before {
-  content: "";
-  display: inline-block;
-  width: 1px;
-  height: 22px;
-  margin-right: 12px;
-  vertical-align: middle;
-  background: var(--signal);
-  transform-origin: top;
-  animation: drop 1.8s ease-in-out infinite;
 }
 @keyframes rise {
   from {
@@ -304,117 +298,68 @@
     transform: translateY(10px);
   }
 }
-@keyframes drop {
-  0% {
-    transform: scaleY(0);
-  }
-  55%,
-  100% {
-    transform: scaleY(1);
-  }
-  100% {
-    opacity: 0;
-  }
-}
 
-/* The log: one tick per beat, ages marked, the Mac at the end */
-.log {
+/* Timeline: one slim pill of years */
+.timeline {
   position: absolute;
-  left: 44px;
-  bottom: 40px;
-  width: min(440px, calc(100vw - 88px));
+  left: 40px;
+  bottom: 36px;
+  width: min(420px, calc(100vw - 80px));
+  padding: 0 8px;
 }
-.log input {
+.timeline input {
   position: absolute;
-  inset: -6px 0 auto;
+  inset: 0;
   width: 100%;
-  height: 22px;
+  height: 100%;
   margin: 0;
   opacity: 0;
   cursor: ew-resize !important;
 }
-.log input:focus-visible + .beats {
-  outline: 2px solid var(--signal);
-  outline-offset: 8px;
+.timeline input:focus-visible ~ .years {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+  border-radius: 999px;
 }
-.beats {
+.years {
   position: relative;
   display: flex;
   justify-content: space-between;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid #1215123d;
   pointer-events: none;
 }
-.beats button {
-  position: relative;
-  display: block;
-  width: 22px;
-  height: 34px;
-  margin: 0 -11px;
-  padding: 0;
+.years button {
+  padding: 11px 12px;
   border: 0;
+  border-radius: 999px;
   background: none;
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
   color: var(--ink-muted);
   cursor: pointer !important;
+  transition: color 0.2s;
 }
-.beats button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 1px;
-  height: 7px;
-  background: #12151266;
-  transition:
-    height 0.3s ease,
-    background 0.3s;
-}
-.beats button:hover::before {
-  height: 11px;
-  background: var(--ink);
-}
-.beats button[aria-current]::before {
-  width: 2px;
-  height: 14px;
-  margin-left: -0.5px;
-  background: var(--signal);
-}
-.beats span {
-  position: absolute;
-  top: 17px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-.beats button[aria-current] span,
-.beats button:hover span {
+.years button:hover {
   color: var(--ink);
 }
-.destination span {
+.years button[aria-current] {
   color: var(--ink);
-}
-.hint {
-  position: absolute;
-  right: 44px;
-  bottom: 40px;
-  margin: 0;
-  color: var(--ink-muted);
+  font-weight: 600;
 }
 
 /* Keyboard users get a visible way into the screen. */
 .keyboardScreen {
   position: absolute;
-  left: 44px;
-  top: 96px;
+  left: 40px;
+  top: 190px;
   opacity: 0;
   pointer-events: none !important;
 }
 .keyboardScreen:focus-visible {
   opacity: 1;
-  padding: 9px 13px;
+  padding: 9px 14px;
   border: 0;
+  border-radius: 999px;
   background: var(--ink);
   color: #fff;
   font: inherit;
@@ -426,7 +371,7 @@
 .creed {
   position: absolute;
   z-index: 5;
-  left: 44px;
+  left: 40px;
   bottom: 44px;
   max-width: 420px;
   margin: 0;
@@ -446,20 +391,24 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 6px 9px;
-  border-radius: 3px;
-  background: #121512e6;
-  color: #f4f3ee;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(84 86 90 / 0.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  box-shadow:
+    0 8px 20px -8px rgb(20 18 12 / 0.5),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.4),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.25);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 500;
   white-space: nowrap;
   animation: rise 0.18s ease-out both;
 }
 .tooltipDot {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--signal);
 }
@@ -472,52 +421,36 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 0;
-  background: none;
-  color: var(--ink-soft);
+  bottom: 36px;
+  height: 40px;
+  font: inherit;
+  font-size: 12.5px;
   cursor: pointer !important;
+  transition: transform 0.2s;
+}
+.soundButton:hover,
+.returnButton:hover {
+  transform: translateY(-1px);
 }
 .soundButton {
-  top: 32px;
-  right: 44px;
-  padding: 6px 0;
+  right: 40px;
+  width: 40px;
+  justify-content: center;
+  padding: 0;
 }
-.soundButton:hover {
-  color: var(--ink);
+.soundButton span {
+  display: none;
 }
 .soundButton[aria-pressed="true"] {
   color: var(--signal);
 }
 .returnButton {
-  right: 28px;
-  bottom: 26px;
-  padding: 10px 14px;
-  border-radius: 3px;
-  background: #121512d9;
-  color: #f4f3ee;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  backdrop-filter: blur(12px);
+  right: 90px;
+  padding: 0 16px;
   animation: rise 0.4s ease both;
-  transition: background 0.2s;
-}
-.returnButton:hover {
-  background: #121512;
 }
 .returnHint {
   animation: exitNudge 0.8s ease-in-out 2;
-  box-shadow: 0 0 0 3px #ffffff66;
-}
-.journey:not([data-mode="orbit"]) .soundButton {
-  top: auto;
-  right: 196px;
-  bottom: 26px;
-  padding: 10px 14px;
-  border-radius: 3px;
-  background: #121512d9;
-  color: #f4f3ee;
 }
 @keyframes exitNudge {
   0%,
@@ -552,7 +485,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
 }
 .loaderName {
   font-family: var(--serif);
@@ -562,21 +495,19 @@
 }
 .loaderTrack {
   width: 200px;
-  height: 1px;
-  background: #12151226;
+  height: 2px;
+  border-radius: 2px;
+  background: #12151220;
   overflow: hidden;
 }
 .loaderFill {
   height: 100%;
-  background: var(--signal);
+  background: var(--ink);
   transform-origin: 0 50%;
   transition: transform 0.3s ease-out;
 }
 .loaderLabel {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: var(--ink-muted);
 }
@@ -598,58 +529,49 @@
 }
 .journey button:focus-visible,
 .journey a:focus-visible {
-  outline: 2px solid var(--signal);
-  outline-offset: 4px;
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
 }
 
 @media (max-width: 767px) {
-  .masthead {
-    top: 22px;
-    left: 22px;
-  }
-  .socials {
-    top: 70px;
-    left: 22px;
-    right: auto;
-    gap: 16px;
-  }
-  .soundButton {
+  .profile {
     top: 20px;
-    right: 22px;
+    left: 16px;
   }
-  .soundButton span {
-    display: none;
+  .tagline {
+    max-width: calc(100vw - 32px);
   }
   .caption {
-    left: 22px;
-    bottom: 104px;
-    width: calc(100vw - 44px);
+    left: 16px;
+    bottom: 88px;
+    width: calc(100vw - 32px);
+    padding: 20px;
   }
   .caption h1 {
-    font-size: 36px;
+    font-size: 32px;
   }
   .body {
     font-size: 14px;
   }
-  .log {
-    left: 22px;
-    bottom: 30px;
-    width: calc(100vw - 44px);
+  .timeline {
+    left: 16px;
+    bottom: 24px;
+    width: calc(100vw - 88px);
   }
-  .hint {
-    display: none;
+  .years button {
+    padding: 11px 6px;
   }
   .creed {
-    left: 22px;
+    left: 16px;
     bottom: 84px;
   }
-  .returnButton {
-    right: 14px;
-    bottom: 18px;
+  .soundButton {
+    right: 16px;
+    bottom: 24px;
   }
-  .journey:not([data-mode="orbit"]) .soundButton {
-    right: 176px;
-    bottom: 18px;
+  .returnButton {
+    right: 64px;
+    bottom: 24px;
   }
 }
 
