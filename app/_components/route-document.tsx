@@ -9,6 +9,8 @@ import { getFileSystem, type FSNode } from "@/lib/virtual-fs";
 import { jsonLdFromRouteMeta } from "@/lib/json-ld";
 import { getRouteMeta, type RouteMeta } from "@/lib/route-meta";
 import { accountInfo } from "@/lib/settings-data";
+import { story } from "@/lib/journey/story";
+import { works } from "@/lib/journey/works";
 import { JsonLd } from "@/app/_components/json-ld";
 import { Socials } from "@/app/_components/shared/mdx-components";
 import styles from "./route-document.module.css";
@@ -36,6 +38,34 @@ function SiteNav() {
         </a>
       ))}
     </nav>
+  );
+}
+
+/**
+ * The scroll story from the 3D room, as plain text: the same works and words
+ * the overlay shows (lib/journey), in order, each with its link.
+ */
+function JourneyDocument() {
+  return (
+    <section aria-label="The story so far">
+      <p>{story.tagline}</p>
+      <h2>{story.intro.title}</h2>
+      <ol className={styles.list}>
+        {works.map((work) => (
+          <li key={work.slug}>
+            <h3>
+              <a href={work.url} rel="noopener noreferrer">
+                {work.title}
+              </a>
+            </h3>
+            <p className={styles.meta}>
+              {work.year}, age {work.age}
+            </p>
+            <p>{work.subtitle}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -293,6 +323,7 @@ export async function RouteDocument({ pathname }: { pathname: string }) {
     <main className={`route-document ${styles.document}`}>
       <JsonLd data={jsonLdFromRouteMeta(meta)} />
       <SiteNav />
+      {pathname === "/" && <JourneyDocument />}
       <DocumentBody meta={meta} />
     </main>
   );

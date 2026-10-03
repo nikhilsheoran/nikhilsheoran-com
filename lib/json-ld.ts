@@ -1,3 +1,4 @@
+import { works } from "@/lib/journey/works";
 import { getAllNotes } from "@/lib/content";
 import { desktopApps } from "@/lib/desktop-apps";
 import { albums } from "@/lib/music-data";
@@ -135,6 +136,9 @@ export function getLlmsTxt(): string {
   const noteLines = notes
     .map((note) => `- [${note.frontmatter.title}](${siteUrl}/notes/${note.slug}): ${note.preview}`)
     .join("\n");
+  const storyLines = works
+    .map((work) => `- ${work.year} (age ${work.age}): [${work.title}](${work.url}). ${work.subtitle}`)
+    .join("\n");
   const appLines = desktopApps
     .map((app) => `- [${app.name}](${siteUrl}${app.route})`)
     .join("\n");
@@ -143,7 +147,11 @@ export function getLlmsTxt(): string {
 
 > ${getSiteTagline()}
 
-The HTML for every route is generated from the same content used by the desktop apps. JavaScript is not required to read the notes, music library, or TV list.
+The HTML for every route is generated from the same content used by the 3D room and the desktop apps. JavaScript is not required to read the story, notes, music library, or TV list.
+
+## The story so far
+
+${storyLines}
 
 ## Notes
 

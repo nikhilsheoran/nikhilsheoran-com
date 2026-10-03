@@ -15,6 +15,7 @@ import {
   XLogoIcon,
 } from "@phosphor-icons/react";
 import { HANDOFF, INTRO } from "@/lib/journey/timeline";
+import { story } from "@/lib/journey/story";
 import { works, yearStops } from "@/lib/journey/works";
 import { Glass } from "./glass";
 import { MiniPlayer } from "./mini-player";
@@ -198,7 +199,7 @@ export function Overlay({
           </nav>
         </div>
         <Glass as="p" className={`${styles.tagline} ${styles.pool}`}>
-          I love playing with tech, and my dream is to produce a movie someday.
+          {story.tagline}
         </Glass>
       </header>
 
@@ -208,7 +209,7 @@ export function Overlay({
         <div className={styles.tags}>
           <Glass as="p" className={styles.tag}>
             <span key={chapter} className={styles.swap}>
-              {work ? when(work.date, work.year) : "Hello, I’m Nikhil."}
+              {work ? when(work.date, work.year) : story.intro.tag}
             </span>
           </Glass>
           {work && (
@@ -231,11 +232,11 @@ export function Overlay({
               ref={measureWords}
               className={`${styles.words} ${styles.swap}`}
             >
-              <h1>{work ? work.title : "My little corner of the internet."}</h1>
+              <h1>{work ? work.title : story.intro.title}</h1>
               <p className={styles.line}>
                 {work
                   ? work.subtitle
-                  : "Scroll or drag to move through the years. The Mac on the desk opens everything else."}
+                  : story.intro.line}
               </p>
             </div>
             {work && (
