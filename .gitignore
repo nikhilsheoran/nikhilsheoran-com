@@ -51,3 +51,6 @@ __pycache__/
 # Supabase CLI working files
 supabase/.temp
 supabase/.branches
+
+# Local tool settings
+.claude/
