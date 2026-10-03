@@ -11,7 +11,7 @@ import { createActionTexture, createArtworkTexture } from "./textures";
 import type { SceneProps } from "./runtime";
 
 const vertexShader = `
-  uniform float uTime, uHover, uVelocity, uRevealTime, uAmp, uPin;
+  uniform float uTime, uHover, uVelocity, uRevealTime, uAmp, uPin, uBend;
   uniform vec2 uPointer, uTouch;
   varying vec2 vUv;
   varying vec3 vView;
@@ -44,13 +44,20 @@ const vertexShader = `
     // sways from the hem, and the hem trails behind when the sheet moves.
     float hang = pow(1. - y, 1.2);
     vec3 c = rest;
-    c.z += sin(x * 20. + sin(y * 3. + wind * .6) * .6) * .035 * (.35 + .65 * hang);
+    // Folds: a few broad drapes running down the cloth with finer pleats
+    // inside them, wandering a little so they never look ruled.
+    float wander = sin(y * 2.2 + wind * .5) * .9;
+    c.z += sin(x * 8.5 + wander + 1.3) * .06 * (.3 + .7 * hang);
+    c.z += sin(x * 21. + wander * .7) * .028 * (.35 + .65 * hang);
+    c.z += sin((x + y * .6) * 5. - wind * .4) * .025 * hang;
     c.z += sin(wind * 1.1 + x * 2.4) * .09 * hang * calm + momentum * hang * .12;
     c.x += sin(wind * .9 + y * 2.) * .03 * hang * calm + momentum * hang * .3;
     c.z -= touch * .045 * uHover;
     p = mix(p, c, uPin);
     // Fold amplitudes were authored for a 2.8-unit sheet; keep them proportional.
     p = rest + (p - rest) * uAmp;
+    // Bent round the spiral it hangs on: the edges fall back toward the desk.
+    p.z -= uBend * rest.x * rest.x;
     vec4 view = modelViewMatrix * vec4(p,1.);
     vView = view.xyz;
     gl_Position = projectionMatrix * view;
@@ -95,7 +102,7 @@ const fragmentShader = `
     float diffuse = abs(dot(n,light));
     // Soft diffuse folds with a broad textile sheen, never a hard specular glint.
     float sheen = pow(1. - abs(dot(n, normalize(-vView))), 3.);
-    color *= .88 + diffuse * .16;
+    color *= .8 + diffuse * .26;
     color += vec3(.035, .033, .029) * sheen;
     // Atmospheric depth, like Greta: distant sheets dissolve into the room's
     // warm daylight haze instead of turning transparent.
@@ -120,9 +127,6 @@ function visibleRaycast(
 }
 
 const ASPECT = 1000 / 1600;
-
-/** Works are not all one size: a product's page hangs larger than a post. */
-const KIND_SIZE = { web: 1.1, youtube: 0.95, x: 0.8 } as const;
 
 export function Cloth({
   work,
@@ -153,6 +157,7 @@ export function Cloth({
           uHazeFar: { value: tuning.panels.hazeFar },
           uAmp: { value: (tuning.panels.width / 2.8) * tuning.panels.folds },
           uPin: { value: 0 },
+          uBend: { value: 0 },
           uColor: { value: 0 },
           uBorder: { value: 0 },
           uRound: { value: 0 },
@@ -293,19 +298,18 @@ export function Cloth({
     group.rotation.z += body.bank + drift * 0.6 * Math.sin(t * 0.71 + index);
     group.rotation.x += body.pitch + drift * 0.4 * Math.sin(t * 0.43 + index * 1.9);
     const distance = toCamera.copy(group.position).sub(camera.position).length();
-    // A work's own size (by what it is) times its place in the blocking.
-    const own = KIND_SIZE[work.kind] * pose.scale;
     group.scale.setScalar(
-      own *
+      pose.scale *
         panelScale(
           distance,
           size.width / size.height,
           (camera as THREE.PerspectiveCamera).fov,
-          tuning.panels.width * own,
-          // The frame share it may take when read follows its size too.
-          (tuning.panels.maxViewFraction * KIND_SIZE[work.kind]) / 1.2,
+          tuning.panels.width * pose.scale,
+          tuning.panels.maxViewFraction,
         ),
     );
+    // Bend the sheet to the spiral it hangs on (in the sheet's own units).
+    material.uniforms.uBend.value = (group.scale.x * pose.curve) / 2;
     material.uniforms.uDefocus.value =
       pose.away *
       (tuning.lab.far === 2 ? 0 : tuning.panels.farBlur) *

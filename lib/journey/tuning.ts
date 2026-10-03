@@ -52,7 +52,7 @@ export const DEFAULT_TUNING = {
     /** World rotation per chapter, against the camera's direction. */
     counterSpin: 0.7,
     /** Height gained per chapter: upcoming works rise from below. */
-    rise: 0.3,
+    rise: 0.16,
     /** Where the reading panel sits in view, right of centre (radians). */
     viewOffset: 0.2,
     /** 0 = faces straight out from the axis, 1 = faces the camera. */
@@ -63,6 +63,8 @@ export const DEFAULT_TUNING = {
     width: 1.55,
     /** Largest share of the frame width a passing panel may cover. */
     maxViewFraction: 0.42,
+    /** Helix: the turn between one work and the next (radians). */
+    spacing: 0.9,
     /** How many chapters either side of the current one stay in the air. */
     visibleChapters: 3,
     /** Each work's own tumble while out in the vortex (radians); it squares up to be read. */
@@ -91,7 +93,7 @@ export const DEFAULT_TUNING = {
   },
   /** Panel variants under comparison; pick them in the lab (`?lab`). */
   lab: {
-    /** 0 vortex, 1 gallery, 2 carousel, 3 drop, 4 gust. */
+    /** 0 vortex, 1 gallery, 2 helix, 3 drop, 4 gust. */
     path: 2,
     /** 0 ink (colour on hover), 1 colour, 2 print (paper margin, round corners). */
     look: 0,

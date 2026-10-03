@@ -34,6 +34,7 @@ const RANGES: Record<string, Range> = {
   "panels.endRadius": [0.5, 5, 0.05],
   "panels.counterSpin": [-2, 2, 0.01],
   "panels.rise": [-1.5, 1.5, 0.01],
+  "panels.spacing": [0.3, 2, 0.01],
   "panels.viewOffset": [-0.6, 0.6, 0.01],
   "panels.faceCamera": [0, 1, 0.01],
   "panels.passRoll": [0, 1, 0.01],
@@ -59,7 +60,7 @@ const RANGES: Record<string, Range> = {
 
 /** The panel variants under comparison, as labelled choices. */
 const LAB: { key: keyof Tuning["lab"]; title: string; code: string; options: string[] }[] = [
-  { key: "path", title: "How they fly", code: "P", options: ["Vortex", "Gallery", "Carousel", "Drop", "Gust"] },
+  { key: "path", title: "How they fly", code: "P", options: ["Vortex", "Gallery", "Helix", "Drop", "Gust"] },
   { key: "cloth", title: "How the cloth moves", code: "C", options: ["Flag", "Curtain", "Calm", "Stiff"] },
   { key: "look", title: "How they are printed", code: "L", options: ["Ink", "Colour", "Print"] },
   { key: "far", title: "Far away", code: "F", options: ["Fade and blur", "Blur only", "Sharp"] },

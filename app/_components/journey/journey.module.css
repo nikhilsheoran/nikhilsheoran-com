@@ -131,10 +131,32 @@
   visibility: hidden;
 }
 .ui[data-ready] :is(.identity, .clock, .dock, .playing) {
-  animation: arrive 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay, 0s) both;
+  animation: arrive 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay, 0s) backwards;
 }
 .ui[data-ready] :is(.glass, .haze) {
-  animation: appear 0.7s ease var(--delay, 0s) both;
+  animation: appear 0.7s ease var(--delay, 0s) backwards;
+}
+/*
+ * Clearing the room: every pane fades out except the button that brings them
+ * back. Showing them again replays the arrival fade.
+ */
+.ui[data-clean] :is(.glass, .haze):not(.keep) {
+  animation: vanish 0.35s ease forwards;
+  pointer-events: none !important;
+}
+.ui[data-clean] :is(.glass, .haze):not(.keep) * {
+  pointer-events: none !important;
+}
+@keyframes vanish {
+  to {
+    opacity: 0;
+  }
+}
+.ui[data-clean] .keep {
+  opacity: 0.55;
+}
+.ui[data-clean] .keep:hover {
+  opacity: 1;
 }
 .identity {
   --from: -36px, -36px;
@@ -598,11 +620,28 @@ button.glass:active {
 
 /* Years: a tab bar. The selection slides with a liquid stretch: its leading
    edge goes first and the trailing edge catches up. */
+/* Home sits apart from the years, as a round button of its own. */
+.timeline {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+.home {
+  --radius: 26px;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  color: var(--ink-muted);
+}
+.home[aria-current] {
+  color: var(--ink);
+}
 .tabs {
   --radius: 26px;
   /* Narrower than the card above, and centred under it. */
   --tab: 72px;
-  align-self: center;
   position: relative;
   display: grid;
   grid-template-columns: repeat(var(--count), var(--tab));

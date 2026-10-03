@@ -8,7 +8,13 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import { ArrowUpRightIcon, XLogoIcon } from "@phosphor-icons/react";
+import {
+  ArrowUpRightIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  HouseIcon,
+  XLogoIcon,
+} from "@phosphor-icons/react";
 import { HANDOFF, INTRO } from "@/lib/journey/timeline";
 import { works, yearStops } from "@/lib/journey/works";
 import { Glass } from "./glass";
@@ -114,6 +120,8 @@ export function Overlay({
   if (activeYear !== travel.year)
     setTravel({ year: activeYear, forward: activeYear > travel.year });
   const forward = travel.forward;
+  // Clear the room: every pane fades away except the button that brings them back.
+  const [clean, setClean] = useState(false);
   // The card eases its height to fit each work's words instead of jumping:
   // measure the words, then let CSS transition the card to that height.
   const [cardHeight, setCardHeight] = useState(0);
@@ -129,15 +137,32 @@ export function Overlay({
     <div
       data-journey-ui
       data-ready={ready ? "" : undefined}
+      data-clean={clean ? "" : undefined}
       className={`${styles.ui} ${hidden ? styles.faded : ""}`}
       inert={hidden}
       aria-hidden={hidden}
     >
       {/* A soft blur pooled in three corners (not the top right), behind the glass. */}
-      <div className={`${styles.haze} ${styles.hazeTopLeft}`} style={HAZE} aria-hidden />
-      <div className={`${styles.haze} ${styles.hazeBottomLeft}`} style={HAZE} aria-hidden />
-      <div className={`${styles.haze} ${styles.hazeBottomRight}`} style={HAZE} aria-hidden />
-      <div className={`${styles.haze} ${styles.hazeTopRight}`} style={HAZE} aria-hidden />
+      <div
+        className={`${styles.haze} ${styles.hazeTopLeft}`}
+        style={HAZE}
+        aria-hidden
+      />
+      <div
+        className={`${styles.haze} ${styles.hazeBottomLeft}`}
+        style={HAZE}
+        aria-hidden
+      />
+      <div
+        className={`${styles.haze} ${styles.hazeBottomRight}`}
+        style={HAZE}
+        aria-hidden
+      />
+      <div
+        className={`${styles.haze} ${styles.hazeTopRight}`}
+        style={HAZE}
+        aria-hidden
+      />
 
       <header className={styles.identity}>
         <div className={styles.identityRow}>
@@ -159,6 +184,16 @@ export function Overlay({
                 <Icon size={18} />
               </Glass>
             ))}
+            <Glass
+              as="button"
+              className={`${styles.circle} ${styles.keep}`}
+              aria-pressed={clean}
+              aria-label={clean ? "Show the interface" : "Hide the interface"}
+              title={clean ? "Show the interface" : "Hide the interface"}
+              onClick={() => setClean(!clean)}
+            >
+              {clean ? <EyeIcon size={18} /> : <EyeSlashIcon size={18} />}
+            </Glass>
           </nav>
         </div>
         <Glass as="p" className={`${styles.tagline} ${styles.pool}`}>
@@ -218,44 +253,64 @@ export function Overlay({
           </Glass>
         </div>
 
-        <Glass
-          as="footer"
-          className={styles.tabs}
-          style={{ "--count": years.length, "--active": activeYear } as CSSProperties}
-          data-active={activeYear >= 0 ? "" : undefined}
-          data-forward={forward}
-        >
-          <label className={styles.srOnly} htmlFor="journey-progress">
-            Move through the story
-          </label>
-          <input
-            ref={rangeRef}
-            id="journey-progress"
-            className={styles.srOnly}
-            type="range"
-            min="0"
-            max="1000"
-            defaultValue="0"
-            onChange={(event) => onSlide(Number(event.target.value) / 1000)}
-            aria-valuetext={
-              work
-                ? `${work.year}: ${work.title}`
-                : chapter === INTRO
-                  ? "The beginning"
-                  : "Opening the Mac"
+        <div className={styles.timeline}>
+          <Glass
+            as="button"
+            className={styles.home}
+            aria-label="Back to the start"
+            title="Start"
+            aria-current={chapter === INTRO ? "step" : undefined}
+            onClick={() => onSlide(0)}
+          >
+            <HouseIcon
+              size={19}
+              weight={chapter === INTRO ? "fill" : "regular"}
+            />
+          </Glass>
+          <Glass
+            as="footer"
+            className={styles.tabs}
+            style={
+              {
+                "--count": years.length,
+                "--active": activeYear,
+              } as CSSProperties
             }
-          />
-          <span className={styles.selection} aria-hidden />
-          {years.map(({ year, index }) => (
-            <button
-              key={year}
-              aria-current={work?.year === year ? "step" : undefined}
-              onClick={() => onChapter(index)}
-            >
-              {year}
-            </button>
-          ))}
-        </Glass>
+            data-active={activeYear >= 0 ? "" : undefined}
+            data-forward={forward}
+          >
+            <label className={styles.srOnly} htmlFor="journey-progress">
+              Move through the story
+            </label>
+            <input
+              ref={rangeRef}
+              id="journey-progress"
+              className={styles.srOnly}
+              type="range"
+              min="0"
+              max="1000"
+              defaultValue="0"
+              onChange={(event) => onSlide(Number(event.target.value) / 1000)}
+              aria-valuetext={
+                work
+                  ? `${work.year}: ${work.title}`
+                  : chapter === INTRO
+                    ? "The beginning"
+                    : "Opening the Mac"
+              }
+            />
+            <span className={styles.selection} aria-hidden />
+            {years.map(({ year, index }) => (
+              <button
+                key={year}
+                aria-current={work?.year === year ? "step" : undefined}
+                onClick={() => onChapter(index)}
+              >
+                {year}
+              </button>
+            ))}
+          </Glass>
+        </div>
       </div>
 
       <MiniPlayer music={music} onCommand={onMusic} />
