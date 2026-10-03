@@ -124,6 +124,16 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
       lastChapterRef.current = nextChapter;
     }
     setChapter(nextChapter);
+    // Rim light on the glass comes from the window wall (+z): as the camera
+    // orbits, the highlight swings round every pane.
+    const [px, , pz] = runtime.cameraPosition;
+    const facing = Math.atan2(-px, -0.44 - pz);
+    const toWindow = Math.atan2(-px, 9 - pz);
+    const turn = Math.atan2(Math.sin(toWindow - facing), Math.cos(toWindow - facing));
+    surfaceRef.current?.style.setProperty(
+      "--light",
+      `${Math.round((-turn * 180) / Math.PI / 2 - 20)}deg`,
+    );
     // The window wall is at +z; the city gets louder as the camera nears it.
     soundRef.current?.setWindowProximity((runtime.cameraPosition[2] - 1) / 5);
     if (next !== "focused") setExitHint(false);

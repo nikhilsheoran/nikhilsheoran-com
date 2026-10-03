@@ -8,6 +8,7 @@ import {
   useState,
   type ComponentPropsWithoutRef,
   type ElementType,
+  type PointerEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import styles from "./journey.module.css";
@@ -106,7 +107,9 @@ function buildLens(
 
       const toward = nx * lx + ny * ly;
       const band = Math.max(0, 1 - inside / 2);
-      rim[k] = Math.pow(Math.abs(toward), 1.6) * band + 0.22 * band;
+      // Mostly invisible: the rim only catches light where it faces the
+      // source (and its echo opposite), in short arcs.
+      rim[k] = Math.pow(Math.abs(toward), 5) * band;
       // A raised, rounded edge: brightest/darkest at the rim, easing inward.
       shade[k] = toward * Math.pow(u, 1.6);
     }
@@ -136,7 +139,7 @@ function buildLens(
   for (let k = 0; k < count; k++) {
     const lit = shade[k] > 0;
     image.data[k * 4] = image.data[k * 4 + 1] = image.data[k * 4 + 2] = lit ? 255 : 0;
-    image.data[k * 4 + 3] = Math.min(1, Math.abs(shade[k]) * (lit ? 0.42 : 0.34)) * 255;
+    image.data[k * 4 + 3] = Math.min(1, Math.abs(shade[k]) * (lit ? 0.26 : 0.3)) * 255;
   }
   ctx.putImageData(image, 0, 0);
   return {
@@ -205,6 +208,11 @@ export function Glass<T extends ElementType = "div">({
           ref,
           className: `${styles.glass} ${className ?? ""}`,
           "data-lens": lens ? "" : undefined,
+          onPointerMove: (event: PointerEvent<HTMLElement>) => {
+            const box = event.currentTarget.getBoundingClientRect();
+            event.currentTarget.style.setProperty("--mx", `${event.clientX - box.left}px`);
+            event.currentTarget.style.setProperty("--my", `${event.clientY - box.top}px`);
+          },
           style: lens
             ? { ...style, backdropFilter: `url(#${id})` }
             : style,

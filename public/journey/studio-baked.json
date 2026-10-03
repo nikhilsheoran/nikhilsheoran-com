@@ -29,9 +29,9 @@
     },
     "decor": {
       "atlas": 2048,
-      "triangles": 114060,
+      "triangles": 112248,
       "px_per_metre": 290,
-      "kneed_texels_pct": 3.642
+      "kneed_texels_pct": 3.612
     },
     "foliage": {
       "atlas": 2048,
@@ -46,7 +46,7 @@
       "kneed_texels_pct": 5.929
     }
   },
-  "triangles": 394649,
+  "triangles": 392837,
   "windowView": true,
   "statue": true,
   "bakeSamples": 512,
