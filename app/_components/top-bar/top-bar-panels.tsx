@@ -597,8 +597,8 @@ export function ControlCenterPanel({
             <Image
               src={nowPlaying.artworkUrl}
               alt=""
-              width={50}
-              height={50}
+              width={46}
+              height={46}
               className={styles.ccNpArt}
               unoptimized
             />
@@ -624,7 +624,7 @@ export function ControlCenterPanel({
             aria-label="Previous"
             disabled={!nowPlaying}
           >
-            <RewindIcon size={17} weight="fill" />
+            <RewindIcon size={19} weight="fill" />
           </button>
           <button
             type="button"
@@ -634,9 +634,9 @@ export function ControlCenterPanel({
             disabled={!nowPlaying}
           >
             {nowPlaying?.isPlaying ? (
-              <PauseIcon size={21} weight="fill" />
+              <PauseIcon size={24} weight="fill" />
             ) : (
-              <PlayIcon size={21} weight="fill" />
+              <PlayIcon size={24} weight="fill" />
             )}
           </button>
           <button
@@ -646,7 +646,7 @@ export function ControlCenterPanel({
             aria-label="Next"
             disabled={!nowPlaying}
           >
-            <FastForwardIcon size={17} weight="fill" />
+            <FastForwardIcon size={19} weight="fill" />
           </button>
         </div>
       </Glass>

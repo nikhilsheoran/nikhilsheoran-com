@@ -472,21 +472,22 @@
   flex-direction: column;
   justify-content: space-between;
   min-height: 0;
-  padding: 12px 12px 8px;
+  padding: 12px 12px 4px;
   border-radius: 22px;
 }
 
 .ccNpHead {
+  /* Artwork on the left, the song beside it, as in the room's own player. */
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
 }
 
 .ccNpArt,
 .ccNpArtFallback {
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   /* Concentric with the tile: 22px outer radius minus the 12px inset. */
   border-radius: 10px;
   flex-shrink: 0;
@@ -507,7 +508,7 @@
 
 .ccNpMeta {
   min-width: 0;
-  margin-top: 6px;
+  flex: 1;
 }
 
 .ccNpTitle {
@@ -535,9 +536,10 @@
 .ccNpControls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
-  padding: 0 4px;
+  justify-content: space-around;
+  /* Centred in the space left under the artwork. */
+  margin: auto 0;
+  padding: 0 2px;
   color: #1d1d1f;
 }
 
@@ -550,8 +552,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
   border-radius: 50%;
