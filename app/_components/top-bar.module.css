@@ -8,59 +8,34 @@
   z-index: 199;
 }
 
-/* ── Liquid glass primitives ──────────────────────────────────── */
-/* Translucent glass that picks up wallpaper colors via heavy saturation
-   and a subtle white-tinted overlay. Reads as "frosted lift", not dark mode. */
-.glassDark {
-  position: relative;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.22) 0%,
-      rgba(255, 255, 255, 0.08) 50%,
-      rgba(255, 255, 255, 0.14) 100%
-    );
-  background-color: rgba(50, 50, 55, 0.35);
-  backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
-  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
+/* ── Menu glass ───────────────────────────────────────────────── */
+/*
+ * Menus are panes of the same liquid glass as the Control Center and the
+ * room's overlay (journey/glass.tsx): milky and frosted inside, with a
+ * refracting rim, a lit top lip and dark type.
+ */
+.panel .menuGlass,
+.wifiPanel .menuGlass {
+  --tint: linear-gradient(180deg, rgb(255 255 255 / 0.74), rgb(255 255 255 / 0.6));
+  --radius: 14px;
+  padding: 5px;
+  color: #1d1d1f;
+  text-shadow: none;
   box-shadow:
-    /* outer soft drop */
-    0 12px 36px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.15),
-    /* outer rim — extremely subtle */
-    0 0 0 0.5px rgba(0, 0, 0, 0.15),
-    /* inner top highlight (the "lensed" edge) */
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
-    inset 0 0.5px 0 0 rgba(255, 255, 255, 0.5),
-    /* inner side rims */
-    inset 1px 0 0 0 rgba(255, 255, 255, 0.08),
-    inset -1px 0 0 0 rgba(255, 255, 255, 0.08),
-    /* inner bottom subtle dark */
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.15);
+    0 20px 44px -16px rgb(0 0 0 / 0.38),
+    0 2px 8px -2px rgb(0 0 0 / 0.1),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.95),
+    inset 0 -1px 0.5px rgb(0 0 0 / 0.04);
 }
-
-/* Light glass — Wi-Fi panel: properly translucent + fluidy */
-.glassLight {
-  position: relative;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.4) 0%,
-      rgba(255, 255, 255, 0.18) 45%,
-      rgba(255, 255, 255, 0.28) 100%
-    );
-  background-color: rgba(220, 220, 230, 0.32);
-  backdrop-filter: blur(60px) saturate(220%) brightness(1.08);
-  -webkit-backdrop-filter: blur(60px) saturate(220%) brightness(1.08);
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.25),
-    0 4px 12px rgba(0, 0, 0, 0.12),
-    0 0 0 0.5px rgba(0, 0, 0, 0.08),
-    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95),
-    inset 0 0.5px 0 0 rgba(255, 255, 255, 0.6),
-    inset 1px 0 0 0 rgba(255, 255, 255, 0.5),
-    inset -1px 0 0 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 0 rgba(255, 255, 255, 0.3);
+.wifiPanel .menuGlass {
+  --radius: 18px;
+  padding: 8px 6px 6px;
+}
+/* A steady rim (see the Control Center tiles). */
+.menuGlass::before {
+  --light: -45deg;
+  filter: none;
+  transition: none;
 }
 
 @keyframes panelIn {
@@ -74,15 +49,12 @@
   }
 }
 
-/* ── Apple / app menus (kept dark) ───────────────────────────── */
+/* ── Apple / app menus ───────────────────────────────────────── */
 .panel {
   position: absolute;
   top: 30px;
   z-index: 200;
-  border-radius: 12px;
-  color: #f5f5f7;
   font-size: 13px;
-  padding: 6px;
   min-width: 240px;
   animation: panelIn 0.16s ease-out;
   transform-origin: top center;
@@ -91,7 +63,6 @@
 .appleMenu {
   left: 6px;
   min-width: 230px;
-  padding: 4px;
 }
 
 .menuItem {
@@ -100,9 +71,9 @@
   justify-content: space-between;
   gap: 16px;
   padding: 5px 10px;
-  border-radius: 5px;
+  border-radius: 8px;
   font-size: 13px;
-  color: #f5f5f7;
+  color: #1d1d1f;
   width: 100%;
   text-align: left;
   line-height: 1.3;
@@ -112,34 +83,38 @@
 }
 
 .menuItem:hover {
-  background: rgba(59, 130, 246, 0.85);
+  background: #0a7aff;
+  color: #fff;
+}
+
+.menuItemDisabled .menuItemShortcut {
+  color: rgb(0 0 0 / 0.26);
 }
 
 .menuItemDisabled {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgb(0 0 0 / 0.3);
   pointer-events: none;
 }
 
 .menuItemShortcut {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgb(0 0 0 / 0.42);
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 .menuItem:hover .menuItemShortcut {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(255 255 255 / 0.8);
 }
 
 .menuDivider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(0 0 0 / 0.1);
   margin: 4px 10px;
 }
 
 .appMenu {
   min-width: 220px;
-  padding: 4px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -151,13 +126,10 @@
   right: 72px;
   z-index: 200;
   width: 290px;
-  padding: 4px;
-  border-radius: 18px;
   color: #1a1a1a;
   font-size: 13px;
   animation: panelIn 0.16s ease-out;
   transform-origin: top right;
-  overflow: hidden;
 }
 
 .wifiHeader {
@@ -248,8 +220,8 @@
 }
 
 .wifiRow:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
+  background: rgb(0 0 0 / 0.06);
+  border-radius: 8px;
 }
 
 .wifiIconCircle {
@@ -285,8 +257,8 @@
 }
 
 .wifiDivider {
-  height: 0.5px;
-  background: rgba(0, 0, 0, 0.18);
+  height: 1px;
+  background: rgb(0 0 0 / 0.1);
   margin: 0 12px;
   position: relative;
   z-index: 1;
@@ -310,8 +282,8 @@
 }
 
 .wifiSettingsRow:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
+  background: rgb(0 0 0 / 0.06);
+  border-radius: 8px;
 }
 
 .wifiChevron {

@@ -107,6 +107,9 @@ export function Toggle({
   );
 }
 
+/** Frost inside a menu pane: enough to keep a long list readable over anything. */
+const MENU_FROST = 16;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Apple menu panel
 // ─────────────────────────────────────────────────────────────────────────────
@@ -116,74 +119,76 @@ export function AppleMenuPanel({
   onAction: (action: string) => void;
 }) {
   return (
-    <div className={`${styles.panel} ${styles.glassDark} ${styles.appleMenu}`}>
-      <button
-        type="button"
-        className={styles.menuItem}
-        onClick={() => onAction("about")}
-      >
-        <span>About This Mac</span>
-      </button>
-      <div className={styles.menuDivider} />
-      <button
-        type="button"
-        className={styles.menuItem}
-        onClick={() => onAction("settings")}
-      >
-        <span>System Settings...</span>
-      </button>
-      <div className={styles.menuDivider} />
-      <button
-        type="button"
-        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
-      >
-        <span>Recent Items</span>
-        <span className={styles.menuItemShortcut}>
-          <ChevronRight />
-        </span>
-      </button>
-      <div className={styles.menuDivider} />
-      <button
-        type="button"
-        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
-      >
-        <span>Force Quit...</span>
-        <span className={styles.menuItemShortcut}>&#x2325;&#x2318;Esc</span>
-      </button>
-      <div className={styles.menuDivider} />
-      <button
-        type="button"
-        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
-      >
-        <span>Sleep</span>
-      </button>
-      <button
-        type="button"
-        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
-      >
-        <span>Restart...</span>
-      </button>
-      <button
-        type="button"
-        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
-      >
-        <span>Shut Down...</span>
-      </button>
-      <div className={styles.menuDivider} />
-      <button
-        type="button"
-        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
-      >
-        <span>Lock Screen</span>
-        <span className={styles.menuItemShortcut}>&#x2303;&#x2318;Q</span>
-      </button>
-      <button
-        type="button"
-        className={`${styles.menuItem} ${styles.menuItemDisabled}`}
-      >
-        <span>Log Out Nikhil Sheoran...</span>
-        <span className={styles.menuItemShortcut}>&#x21E7;&#x2318;Q</span>
-      </button>
+    <div className={`${styles.panel} ${styles.appleMenu}`}>
+      <Glass as="div" coreBlur={MENU_FROST} className={styles.menuGlass}>
+        <button
+          type="button"
+          className={styles.menuItem}
+          onClick={() => onAction("about")}
+        >
+          <span>About This Mac</span>
+        </button>
+        <div className={styles.menuDivider} />
+        <button
+          type="button"
+          className={styles.menuItem}
+          onClick={() => onAction("settings")}
+        >
+          <span>System Settings...</span>
+        </button>
+        <div className={styles.menuDivider} />
+        <button
+          type="button"
+          className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+        >
+          <span>Recent Items</span>
+          <span className={styles.menuItemShortcut}>
+            <ChevronRight />
+          </span>
+        </button>
+        <div className={styles.menuDivider} />
+        <button
+          type="button"
+          className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+        >
+          <span>Force Quit...</span>
+          <span className={styles.menuItemShortcut}>&#x2325;&#x2318;Esc</span>
+        </button>
+        <div className={styles.menuDivider} />
+        <button
+          type="button"
+          className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+        >
+          <span>Sleep</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+        >
+          <span>Restart...</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+        >
+          <span>Shut Down...</span>
+        </button>
+        <div className={styles.menuDivider} />
+        <button
+          type="button"
+          className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+        >
+          <span>Lock Screen</span>
+          <span className={styles.menuItemShortcut}>&#x2303;&#x2318;Q</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles.menuItem} ${styles.menuItemDisabled}`}
+        >
+          <span>Log Out Nikhil Sheoran...</span>
+          <span className={styles.menuItemShortcut}>&#x21E7;&#x2318;Q</span>
+        </button>
+      </Glass>
     </div>
   );
 }
@@ -248,34 +253,36 @@ export function AppMenuPanel({
   const items = APP_MENUS[menuId] ?? [];
   return (
     <div
-      className={`${styles.panel} ${styles.glassDark} ${styles.appMenu}`}
+      className={`${styles.panel} ${styles.appMenu}`}
       style={{ left: leftOffset }}
     >
-      {items.map((item, i) => {
-        if (item.label === "" && item.dividerAfter) {
-          return <div key={`divider-${i}`} className={styles.menuDivider} />;
-        }
-        return (
-          <div key={item.label}>
-            <button
-              type="button"
-              className={`${styles.menuItem} ${item.disabled ? styles.menuItemDisabled : ""}`}
-              onClick={() => {
-                if (item.label === "Close Window") onClose();
-              }}
-            >
-              <span>{item.label}</span>
-              {item.shortcut && (
-                <span
-                  className={styles.menuItemShortcut}
-                  dangerouslySetInnerHTML={{ __html: item.shortcut }}
-                />
-              )}
-            </button>
-            {item.dividerAfter && <div className={styles.menuDivider} />}
-          </div>
-        );
-      })}
+      <Glass as="div" coreBlur={MENU_FROST} className={styles.menuGlass}>
+        {items.map((item, i) => {
+          if (item.label === "" && item.dividerAfter) {
+            return <div key={`divider-${i}`} className={styles.menuDivider} />;
+          }
+          return (
+            <div key={item.label}>
+              <button
+                type="button"
+                className={`${styles.menuItem} ${item.disabled ? styles.menuItemDisabled : ""}`}
+                onClick={() => {
+                  if (item.label === "Close Window") onClose();
+                }}
+              >
+                <span>{item.label}</span>
+                {item.shortcut && (
+                  <span
+                    className={styles.menuItemShortcut}
+                    dangerouslySetInnerHTML={{ __html: item.shortcut }}
+                  />
+                )}
+              </button>
+              {item.dividerAfter && <div className={styles.menuDivider} />}
+            </div>
+          );
+        })}
+      </Glass>
     </div>
   );
 }
@@ -287,153 +294,159 @@ export function WiFiPanel() {
   const [wifiEnabled, setWifiEnabled] = useState(true);
 
   return (
-    <div className={`${styles.wifiPanel} ${styles.glassLight}`}>
-      <div className={styles.wifiHeader}>
-        <span className={styles.wifiHeaderTitle}>Wi-Fi</span>
-        <Toggle
-          checked={wifiEnabled}
-          onClick={() => setWifiEnabled((v) => !v)}
-        />
-      </div>
-
-      {wifiEnabled ? (
-        <>
-          <div className={styles.wifiConnectedRow}>
-            <span>Unsecured Network...</span>
-            <WarningIcon />
-          </div>
-
-          <div className={styles.wifiDivider} />
-
-          <div className={styles.wifiSection}>
-            <p className={styles.wifiSectionLabel}>Personal Hotspot</p>
-            <button type="button" className={styles.wifiRow}>
-              <span
-                className={`${styles.wifiIconCircle} ${styles.wifiIconCircleGray}`}
-              >
-                <HotspotIcon />
-              </span>
-              <span className={styles.wifiRowText}>{wifiInfo.hotspotName}</span>
-              <span className={styles.wifiRowMeta}>
-                <svg
-                  width="14"
-                  height="11"
-                  viewBox="0 0 14 11"
-                  fill="none"
-                  aria-hidden
-                >
-                  <rect
-                    x="0"
-                    y="8"
-                    width="2.4"
-                    height="3"
-                    rx="0.5"
-                    fill="currentColor"
-                  />
-                  <rect
-                    x="3.6"
-                    y="6"
-                    width="2.4"
-                    height="5"
-                    rx="0.5"
-                    fill="currentColor"
-                  />
-                  <rect
-                    x="7.2"
-                    y="3.5"
-                    width="2.4"
-                    height="7.5"
-                    rx="0.5"
-                    fill="currentColor"
-                    opacity="0.3"
-                  />
-                  <rect
-                    x="10.8"
-                    y="0.5"
-                    width="2.4"
-                    height="10.5"
-                    rx="0.5"
-                    fill="currentColor"
-                    opacity="0.3"
-                  />
-                </svg>
-                <span style={{ fontWeight: 600 }}>4G</span>
-                <svg
-                  width="22"
-                  height="11"
-                  viewBox="0 0 22 11"
-                  fill="none"
-                  aria-hidden
-                >
-                  <rect
-                    x="0.5"
-                    y="0.5"
-                    width="18"
-                    height="10"
-                    rx="2.5"
-                    stroke="currentColor"
-                    opacity="0.4"
-                  />
-                  <rect
-                    x="2"
-                    y="2"
-                    width="5"
-                    height="7"
-                    rx="1"
-                    fill="currentColor"
-                  />
-                  <rect
-                    x="19.5"
-                    y="3.5"
-                    width="1.5"
-                    height="4"
-                    rx="0.5"
-                    fill="currentColor"
-                    opacity="0.4"
-                  />
-                </svg>
-              </span>
-            </button>
-          </div>
-
-          <div className={styles.wifiDivider} />
-
-          <div className={styles.wifiSection}>
-            <p className={styles.wifiSectionLabel}>Known Network</p>
-            <button type="button" className={styles.wifiRow}>
-              <span className={styles.wifiIconCircle}>
-                <WifiIconSm size={14} />
-              </span>
-              <span className={styles.wifiRowText}>{wifiInfo.networkName}</span>
-            </button>
-          </div>
-
-          <div className={styles.wifiDivider} />
-
-          <button type="button" className={styles.wifiSettingsRow}>
-            <span>Other Networks</span>
-            <span className={styles.wifiChevron}>
-              <ChevronRight />
-            </span>
-          </button>
-
-          <div className={styles.wifiDivider} />
-
-          <button type="button" className={styles.wifiSettingsRow}>
-            <span>Wi-Fi Settings...</span>
-          </button>
-        </>
-      ) : (
-        <div
-          style={{
-            padding: "8px 16px 12px",
-            color: "rgba(0,0,0,0.45)",
-            fontSize: 13,
-          }}
-        >
-          Wi-Fi is turned off
+    <div className={styles.wifiPanel}>
+      <Glass as="div" coreBlur={MENU_FROST} className={styles.menuGlass}>
+        <div className={styles.wifiHeader}>
+          <span className={styles.wifiHeaderTitle}>Wi-Fi</span>
+          <Toggle
+            checked={wifiEnabled}
+            onClick={() => setWifiEnabled((v) => !v)}
+          />
         </div>
-      )}
+
+        {wifiEnabled ? (
+          <>
+            <div className={styles.wifiConnectedRow}>
+              <span>Unsecured Network...</span>
+              <WarningIcon />
+            </div>
+
+            <div className={styles.wifiDivider} />
+
+            <div className={styles.wifiSection}>
+              <p className={styles.wifiSectionLabel}>Personal Hotspot</p>
+              <button type="button" className={styles.wifiRow}>
+                <span
+                  className={`${styles.wifiIconCircle} ${styles.wifiIconCircleGray}`}
+                >
+                  <HotspotIcon />
+                </span>
+                <span className={styles.wifiRowText}>
+                  {wifiInfo.hotspotName}
+                </span>
+                <span className={styles.wifiRowMeta}>
+                  <svg
+                    width="14"
+                    height="11"
+                    viewBox="0 0 14 11"
+                    fill="none"
+                    aria-hidden
+                  >
+                    <rect
+                      x="0"
+                      y="8"
+                      width="2.4"
+                      height="3"
+                      rx="0.5"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="3.6"
+                      y="6"
+                      width="2.4"
+                      height="5"
+                      rx="0.5"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="7.2"
+                      y="3.5"
+                      width="2.4"
+                      height="7.5"
+                      rx="0.5"
+                      fill="currentColor"
+                      opacity="0.3"
+                    />
+                    <rect
+                      x="10.8"
+                      y="0.5"
+                      width="2.4"
+                      height="10.5"
+                      rx="0.5"
+                      fill="currentColor"
+                      opacity="0.3"
+                    />
+                  </svg>
+                  <span style={{ fontWeight: 600 }}>4G</span>
+                  <svg
+                    width="22"
+                    height="11"
+                    viewBox="0 0 22 11"
+                    fill="none"
+                    aria-hidden
+                  >
+                    <rect
+                      x="0.5"
+                      y="0.5"
+                      width="18"
+                      height="10"
+                      rx="2.5"
+                      stroke="currentColor"
+                      opacity="0.4"
+                    />
+                    <rect
+                      x="2"
+                      y="2"
+                      width="5"
+                      height="7"
+                      rx="1"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="19.5"
+                      y="3.5"
+                      width="1.5"
+                      height="4"
+                      rx="0.5"
+                      fill="currentColor"
+                      opacity="0.4"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </div>
+
+            <div className={styles.wifiDivider} />
+
+            <div className={styles.wifiSection}>
+              <p className={styles.wifiSectionLabel}>Known Network</p>
+              <button type="button" className={styles.wifiRow}>
+                <span className={styles.wifiIconCircle}>
+                  <WifiIconSm size={14} />
+                </span>
+                <span className={styles.wifiRowText}>
+                  {wifiInfo.networkName}
+                </span>
+              </button>
+            </div>
+
+            <div className={styles.wifiDivider} />
+
+            <button type="button" className={styles.wifiSettingsRow}>
+              <span>Other Networks</span>
+              <span className={styles.wifiChevron}>
+                <ChevronRight />
+              </span>
+            </button>
+
+            <div className={styles.wifiDivider} />
+
+            <button type="button" className={styles.wifiSettingsRow}>
+              <span>Wi-Fi Settings...</span>
+            </button>
+          </>
+        ) : (
+          <div
+            style={{
+              padding: "8px 16px 12px",
+              color: "rgba(0,0,0,0.45)",
+              fontSize: 13,
+            }}
+          >
+            Wi-Fi is turned off
+          </div>
+        )}
+      </Glass>
     </div>
   );
 }
