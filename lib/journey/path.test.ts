@@ -167,7 +167,7 @@ test("a direct approach starts on the rail and arrives at the resting pose", () 
   }
 });
 
-test("the helix keeps every work above the floor and the reading one is nearest", () => {
+test("the vortex holds a handful of works at once and the reading one is nearest", () => {
   for (let i = 0; i <= 2000; i++) {
     const progress = i / 2000;
     const camera = railPose(progress, 16 / 9, 40, T).position;
@@ -175,6 +175,7 @@ test("the helix keeps every work above the floor and the reading one is nearest"
       panelPose(index, progress, B, T, camera),
     );
     const visible = poses.filter((pose) => pose.opacity > 0.02);
+    assert.ok(visible.length <= 7, `${visible.length} visible at ${progress}`);
     for (const pose of visible)
       assert.ok(pose.position[1] > 0.4, "visible panels stay above the floor");
   }
@@ -192,7 +193,7 @@ test("the helix keeps every work above the floor and the reading one is nearest"
   });
 });
 
-test("each work is framed in the centre and in front of the camera at its reading moment", () => {
+test("each work is framed right of centre and in front of the camera at its reading moment", () => {
   for (const aspect of [16 / 9, 4 / 3, 0.46]) {
     B.chapters.forEach((reading, index) => {
       const pose = railPose(reading, aspect, viewFov(aspect, T), T);
@@ -204,7 +205,7 @@ test("each work is framed in the centre and in front of the camera at its readin
       );
       assert.ok(view.z < -0.5, `panel ${index} is in front of the camera`);
       assert.ok(Math.abs(ndc.x) < 0.7 && Math.abs(ndc.y) < 0.7, `panel ${index} at ${ndc.x.toFixed(2)},${ndc.y.toFixed(2)}`);
-      assert.ok(Math.abs(ndc.x) < 0.1, `panel ${index} sits in the centre`);
+      if (aspect > 1) assert.ok(ndc.x > 0, `panel ${index} sits right of centre`);
     });
   }
 });

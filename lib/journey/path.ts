@@ -332,78 +332,41 @@ function gallery(
 }
 
 /**
- * The ring the helix is wound on at `progress`. Early on it is wide and
- * centred between the person and the desk, so the works go round both; as the
- * camera closes in it tightens and its centre slides onto the Mac, always
- * leaving `clearance` between the camera and the sheet in front of it.
- */
-function helixRing(progress: number, tuning: Tuning) {
-  const p = tuning.panels;
-  const c = tuning.camera;
-  const view = helixPose(progress, 16 / 9, c.fov, tuning);
-  const wide = clamp01((view.radius - c.endRadius) / (c.startRadius - c.endRadius));
-  const shift = p.around * smoothStep(wide * 1.6);
-  return {
-    view,
-    centre: [AXIS[0], AXIS[1] + shift] as const,
-    radius: Math.min(
-      p.startRadius,
-      Math.max(p.endRadius, view.radius - shift - p.clearance),
-    ),
-  };
-}
-
-/**
- * The helix. The works hang evenly round one ring that encloses the person
- * and the desk, each a step lower than the one before, and the ring tightens
- * as you scroll, the sheets shrinking with it. Scrolling turns it like a
- * screw. Positions are worked backwards from the screen: the work being read
- * is placed where the camera's line of sight meets the ring, so it is dead
- * centre, and the others follow round from there. Every sheet lies along the
- * ring (bent to its curve), so the neighbours are seen at a slant and those
- * across the desk from behind, far off.
+ * The helix. The works hang on one spiral round the person at the desk, a
+ * fixed turn apart, and the spiral tightens as it goes: each later work sits
+ * closer in and is smaller in proportion. Scrolling turns the whole spiral
+ * like a screw, so the next work comes round to the reading spot. Every sheet
+ * lies along the spiral (its face square to the desk, bent to the curve), so
+ * the one in front is seen flat on, its neighbours at a slant to either side,
+ * and anything on the far side of the desk from behind and at a distance.
  */
 function helix(
+  index: number,
   progress: number,
   phase: number,
   beat: Beats,
   tuning: Tuning,
 ): Flight & { scale: number; curve: number } {
   const p = tuning.panels;
-  const { view, centre, radius } = helixRing(
-    Math.min(Math.max(0, progress), beat.handoffStart),
-    tuning,
-  );
-  // Where the line of sight (camera to its target, seen from above) first
-  // crosses the ring.
-  const eye = [view.position[0], view.position[2]];
-  const reach = Math.hypot(view.target[0] - eye[0], view.target[2] - eye[1]) || 1;
-  const sight = [(view.target[0] - eye[0]) / reach, (view.target[2] - eye[1]) / reach];
-  const toCentre = [centre[0] - eye[0], centre[1] - eye[1]];
-  const along = toCentre[0] * sight[0] + toCentre[1] * sight[1];
-  const off = Math.hypot(toCentre[0] - along * sight[0], toCentre[1] - along * sight[1]);
-  const front = along - Math.sqrt(Math.max(0, radius * radius - off * off));
-  const hero = [eye[0] + sight[0] * front, eye[1] + sight[1] * front];
-  // Evenly round the ring, so it is balanced whichever work is in front.
-  const turn = -((Math.PI * 2) / beat.chapters.length) * phase;
-  const angle = Math.atan2(hero[0] - centre[0], hero[1] - centre[1]) + turn;
-  // On the line of sight at its own moment; each next work hangs lower.
-  const height =
-    lerp(view.position[1], view.target[1], front / reach) + p.descent * phase;
+  const now = readingSpot(Math.min(Math.max(0, progress), beat.handoffStart), tuning);
+  const turn = -p.spacing * phase;
+  const angle = now.angle + turn;
+  const radius = panelRadius(beat.chapters[index], tuning);
+  // Works to come sit a little higher up the spiral and descend as they arrive.
+  const height = now.height - p.rise * phase;
   // How far round from the front it is: 0 facing you, 1 across the desk.
   // Distance, and with it haze, blur and dimness, all grow with this.
-  const round = Math.abs(wrapAngle(turn));
-  const away = smoothStep((1 - Math.cos(round)) / 1.2);
+  const away = smoothStep((1 - Math.cos(Math.min(Math.PI, Math.abs(turn)))) / 1.7);
   return {
-    position: [
-      centre[0] + Math.sin(angle) * radius,
+    position: onAxis(
+      angle,
+      radius,
       Math.min(p.ceiling, p.floor + softPlus(height - p.floor, 0.25)),
-      centre[1] + Math.cos(angle) * radius,
-    ],
+    ),
     rotation: [-0.04, angle, 0],
     away,
     presence: 1 - smoothStep((Math.abs(phase) - p.visibleChapters + 0.5) / 0.6),
-    scale: radius / 2,
+    scale: radius / p.startRadius,
     curve: 1 / radius,
   };
 }
@@ -509,7 +472,7 @@ export function panelPose(
     tuning.lab.path === 1
       ? gallery(index, phase, beat, tuning)
       : tuning.lab.path === 2
-        ? helix(progress, phase, beat, tuning)
+        ? helix(index, progress, phase, beat, tuning)
         : tuning.lab.path === 3
           ? drop(index, progress, phase, beat, tuning, camera)
           : tuning.lab.path === 4
