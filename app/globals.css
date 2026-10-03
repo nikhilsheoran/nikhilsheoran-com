@@ -3,6 +3,11 @@
 @layer base {
   * {
     box-sizing: border-box;
+  }
+
+  /* The desktop keeps macOS's plain arrow everywhere. The 3D journey sets its
+     own cursors (grab, pointer), so it is left out of this rule. */
+  *:not(.portfolio-journey, .portfolio-journey *) {
     cursor: default !important;
   }
 

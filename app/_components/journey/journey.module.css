@@ -22,6 +22,22 @@
   color: var(--ink);
   touch-action: none;
 }
+/*
+ * The cursor says what the pointer can do where it is:
+ *   open hand   – empty scene: drag (or scroll) to move along the story
+ *   closed hand – while dragging
+ *   pointer     – a cloth panel, the laptop or the cube (set from the 3D
+ *                 scene through --journey-cursor), and every button and link
+ *   arrow       – glass that only shows text, and the room around the Mac
+ */
+.journey {
+  cursor: var(--journey-cursor, grab);
+}
+.journey[data-mode="focused"],
+.journey[data-mode="approaching"],
+.journey[data-mode="settling"] {
+  cursor: default;
+}
 .journey[data-dragging="true"],
 .journey[data-dragging="true"] * {
   cursor: grabbing !important;
@@ -37,7 +53,6 @@
 }
 .canvasLayer canvas {
   outline: none;
-  cursor: var(--journey-cursor, grab);
 }
 .liveScreen {
   position: absolute;
@@ -184,7 +199,14 @@
     0 1px 2px rgb(0 0 0 / 0.4),
     0 0 14px rgb(0 0 0 / 0.28);
   pointer-events: auto;
+  cursor: default;
   transition: transform 0.18s ease;
+}
+a.glass,
+button.glass,
+.journey a,
+.journey button {
+  cursor: pointer;
 }
 .pool {
   background:
