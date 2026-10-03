@@ -23,6 +23,7 @@ import { Overlay } from "./overlay";
 import { Loader } from "./loader";
 import { RoomSound } from "./sound";
 import { journeySerif } from "./fonts";
+import { Glass } from "./glass";
 import styles from "./journey.module.css";
 
 const Scene = dynamic(() => import("./scene").then((m) => m.JourneyScene), {
@@ -33,11 +34,6 @@ const Tuner = dynamic(() => import("./tuner").then((m) => m.Tuner), {
 });
 
 const noSubscription = () => () => {};
-
-/** Displacement map: neutral (0.5) in the middle, ramping at the four edges. */
-const GLASS_MAP = `data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><defs><linearGradient id="x"><stop offset="0" stop-color="#ff0000"/><stop offset=".14" stop-color="#800000"/><stop offset=".86" stop-color="#800000"/><stop offset="1" stop-color="#000000"/></linearGradient><linearGradient id="y" x2="0" y2="1"><stop offset="0" stop-color="#00ff00"/><stop offset=".22" stop-color="#008000"/><stop offset=".78" stop-color="#008000"/><stop offset="1" stop-color="#000000"/></linearGradient></defs><rect width="100" height="100" fill="url(#x)"/><rect width="100" height="100" fill="url(#y)" style="mix-blend-mode:screen"/></svg>`,
-)}`;
 
 class SceneBoundary extends Component<
   { children: ReactNode; onFail: () => void },
@@ -194,36 +190,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         data-testid="journey"
         data-mode={mode}
       >
-        {/* Edge refraction for the glass cards: red and green ramps push the
-            backdrop inward along each edge, like light bending through a rim. */}
-        <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
-          <filter
-            id="journey-glass"
-            x="0"
-            y="0"
-            width="100%"
-            height="100%"
-            colorInterpolationFilters="sRGB"
-            primitiveUnits="objectBoundingBox"
-          >
-            <feImage
-              href={GLASS_MAP}
-              x="0"
-              y="0"
-              width="1"
-              height="1"
-              preserveAspectRatio="none"
-              result="map"
-            />
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="map"
-              scale="0.16"
-              xChannelSelector="R"
-              yChannelSelector="G"
-            />
-          </filter>
-        </svg>
         <div
           ref={screenRef}
           className={styles.liveScreen}
@@ -283,12 +249,14 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
           onFocusScreen={focusScreen}
         />
         {uiHidden && (
-          <button
-            className={`${styles.glass} ${styles.returnButton} ${exitHint ? styles.returnHint : ""}`}
+          <Glass
+            as="button"
+            bezel={12}
+            className={`${styles.returnButton} ${exitHint ? styles.returnHint : ""}`}
             onClick={backToDesk}
           >
             Back to the desk
-          </button>
+          </Glass>
         )}
         {creed && (
           <p className={styles.creed}>
@@ -303,8 +271,10 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             />
           </div>
         )}
-        <button
-          className={`${styles.glass} ${styles.soundButton}`}
+        <Glass
+          as="button"
+          bezel={12}
+          className={styles.soundButton}
           aria-pressed={soundOn}
           aria-label={soundOn ? "Turn sound off" : "Turn sound on"}
           onClick={() => {
@@ -316,7 +286,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         >
           {soundOn ? <SpeakerHighIcon size={16} /> : <SpeakerSlashIcon size={16} />}
           <span>{soundOn ? "Sound on" : "Sound off"}</span>
-        </button>
+        </Glass>
         {tuning && <Tuner />}
       </div>
     </>

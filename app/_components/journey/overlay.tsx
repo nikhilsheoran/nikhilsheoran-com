@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { HANDOFF, INTRO } from "@/lib/journey/timeline";
 import { works, yearStops } from "@/lib/journey/works";
+import { Glass } from "./glass";
 import styles from "./journey.module.css";
 
 const SOCIALS = [
@@ -67,15 +68,17 @@ export function Overlay({
       aria-hidden={hidden}
     >
       <header className={styles.profile}>
-        <Link className={`${styles.glass} ${styles.wordmark}`} href="/">
+        <Glass as={Link} className={styles.wordmark} href="/" bezel={12}>
           Nikhil Sheoran
-        </Link>
-        <p className={`${styles.glass} ${styles.tagline}`}>
+        </Glass>
+        <Glass as="p" className={styles.tagline} bezel={12}>
           I’m 20, I love tech and my dream is to produce a movie someday.
-        </p>
-        <nav
-          className={`${styles.glass} ${styles.socials}`}
+        </Glass>
+        <Glass
+          as="nav"
+          className={styles.socials}
           aria-label="Social profiles"
+          bezel={12}
         >
           {SOCIALS.map(({ label, href, Icon }) => (
             <a
@@ -89,38 +92,40 @@ export function Overlay({
               <Icon size={18} />
             </a>
           ))}
-        </nav>
+        </Glass>
       </header>
 
       {chapter !== HANDOFF && (
-        <section
-          key={chapter}
-          className={`${styles.glass} ${styles.caption}`}
-          aria-live="polite"
-        >
-          <p className={styles.when}>
+        <section key={chapter} className={styles.caption} aria-live="polite">
+          <Glass as="p" className={styles.when} bezel={10}>
             {work
               ? `${when(work.date, work.year)}, age ${work.age}`
               : "Hello, I’m Nikhil."}
-          </p>
-          <h1>{work ? work.title : "I wanted to fly planes."}</h1>
-          <p className={styles.body}>
+          </Glass>
+          <Glass as="h1" className={styles.title}>
+            {work ? work.title : "I wanted to fly planes."}
+          </Glass>
+          <Glass as="p" className={styles.body}>
             {work
               ? work.subtitle
               : "That plan fell through. So I started building things instead, and I haven’t stopped since."}
-          </p>
+          </Glass>
           {work ? (
-            <a
+            <Glass
+              as="a"
               className={styles.readLink}
               href={work.url}
               target="_blank"
               rel="noopener noreferrer"
+              bezel={10}
             >
               {ACTION_LABEL[work.kind]}
               <ArrowUpRightIcon size={13} aria-label="Opens in a new tab" />
-            </a>
+            </Glass>
           ) : (
-            <p className={styles.cue}>Scroll to begin</p>
+            <Glass as="p" className={styles.cue} bezel={10}>
+              Scroll to begin
+            </Glass>
           )}
         </section>
       )}
@@ -129,7 +134,7 @@ export function Overlay({
         Open my Mac
       </button>
 
-      <footer className={`${styles.glass} ${styles.timeline}`}>
+      <Glass as="footer" className={styles.timeline} bezel={12}>
         <label className={styles.srOnly} htmlFor="journey-progress">
           Move through the story
         </label>
@@ -160,7 +165,7 @@ export function Overlay({
             </button>
           ))}
         </div>
-      </footer>
+      </Glass>
     </div>
   );
 }
