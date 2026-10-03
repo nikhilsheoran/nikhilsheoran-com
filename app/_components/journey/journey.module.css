@@ -27,8 +27,9 @@
  *   open hand   – empty scene: drag (or scroll) to move along the story
  *   closed hand – while dragging
  *   pointer     – a cloth panel, the laptop or the cube (set from the 3D
- *                 scene through --journey-cursor), and every button and link
- *   arrow       – glass that only shows text, and the room around the Mac
+ *                 scene through --journey-cursor)
+ *   arrow       – all glass, buttons and links (as on a Mac), and the room
+ *                 around the Mac
  */
 .journey {
   cursor: var(--journey-cursor, grab);
@@ -202,11 +203,10 @@
   cursor: default;
   transition: transform 0.18s ease;
 }
-a.glass,
-button.glass,
+/* Controls keep the plain arrow, as on a Mac. */
 .journey a,
 .journey button {
-  cursor: pointer;
+  cursor: default;
 }
 .pool {
   background:
@@ -468,7 +468,6 @@ button.glass:active {
   font-variant-numeric: tabular-nums;
   color: var(--ink-muted);
   text-shadow: inherit;
-  cursor: pointer !important;
   transition:
     color 0.25s,
     transform 0.18s ease;
@@ -562,7 +561,6 @@ button.glass:active {
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  cursor: pointer !important;
 }
 .soundButton {
   --radius: 26px;
