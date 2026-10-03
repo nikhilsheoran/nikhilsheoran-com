@@ -384,7 +384,29 @@
 /* Shared indicator — right side of title row */
 .sharedNoteIndicator {
   flex-shrink: 0;
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(10 122 255 / 0.12);
+  color: #0a6fe0;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* The same message at the top of a shared note. */
+.sharedBanner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 16px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(10 122 255 / 0.1);
+  color: #0a6fe0;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .noteCardMeta {

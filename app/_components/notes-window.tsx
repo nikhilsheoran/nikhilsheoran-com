@@ -51,24 +51,13 @@ function SharedSidebarIcon() {
   );
 }
 
+/** A clear "Shared" badge on a note in the list. */
 function SharedNoteIndicator() {
   return (
-    <svg
-      className={styles.sharedNoteIndicator}
-      width="13"
-      height="13"
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-label="Shared note"
-    >
-      <circle cx="8" cy="5.2" r="2.3" stroke="#3d82e0" strokeWidth="1.4" />
-      <path
-        d="M3.5 13C4.2 10.9 5.9 9.6 8 9.6C10.1 9.6 11.8 10.9 12.5 13"
-        stroke="#3d82e0"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
+    <span className={styles.sharedNoteIndicator}>
+      <UsersIcon size={12} weight="fill" aria-hidden />
+      Shared
+    </span>
   );
 }
 
@@ -334,6 +323,12 @@ export function NotesWindow({
                   : ""}
               </p>
               <h1 className={styles.editorTitle}>{selectedNote.title}</h1>
+              {isSharedNote && (
+                <p className={styles.sharedBanner}>
+                  <UsersIcon size={16} weight="fill" aria-hidden />
+                  Shared note. Anyone can add to it.
+                </p>
+              )}
               <div className={styles.editorBody}>
                 {selectedNote.mdxSource ? (
                   <MDXRemote
