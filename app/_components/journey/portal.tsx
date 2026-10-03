@@ -11,7 +11,6 @@ import {
   useSyncExternalStore,
 } from "react";
 import dynamic from "next/dynamic";
-import { SpeakerHighIcon, SpeakerSlashIcon } from "@phosphor-icons/react";
 import { DesktopShell } from "@/app/_components/desktop-shell";
 import type { NotesData } from "@/lib/mock-desktop-data";
 import { focus, leave, seek, type Mode } from "@/lib/journey/machine";
@@ -24,6 +23,7 @@ import { Loader } from "./loader";
 import { RoomSound } from "./sound";
 import { journeySerif } from "./fonts";
 import { Glass } from "./glass";
+import type { MusicCommand, MusicSnapshot } from "./music-bridge";
 import styles from "./journey.module.css";
 
 const Scene = dynamic(() => import("./scene").then((m) => m.JourneyScene), {
@@ -68,8 +68,8 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [webglFailed, setWebglFailed] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
-  const [soundOn, setSoundOn] = useState(false);
   const [creed, setCreed] = useState(false);
+  const [music, setMusic] = useState<MusicSnapshot | null>(null);
   const search = useSyncExternalStore(
     noSubscription,
     () => window.location.search,
@@ -145,6 +145,14 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     focus(runtime.motion, runtime.beats);
   }, []);
 
+  /** The mini player is a remote: commands go to the desktop's own player. */
+  const sendMusic = useCallback((command: MusicCommand) => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "journey:music-command", ...command },
+      window.location.origin,
+    );
+  }, []);
+
   const backToDesk = useCallback(() => {
     const runtime = runtimeRef.current;
     leave(runtime.motion, runtime.beats);
@@ -167,6 +175,9 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         case "journey:inside":
           runtime.pointerOnScreen = true;
           setExitHint(false);
+          break;
+        case "journey:music":
+          setMusic(event.data.snapshot as MusicSnapshot);
           break;
         case "journey:key":
           soundRef.current?.key();
@@ -257,6 +268,8 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             )
           }
           onFocusScreen={focusScreen}
+          music={music}
+          onMusic={sendMusic}
         />
         {uiHidden && (
           <Glass
@@ -280,21 +293,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             />
           </div>
         )}
-        <Glass
-          as="button"
-          className={styles.soundButton}
-          aria-pressed={soundOn}
-          aria-label={soundOn ? "Turn sound off" : "Turn sound on"}
-          onClick={() => {
-            const sound = (soundRef.current ??= new RoomSound());
-            if (soundOn) sound.stop();
-            else void sound.start();
-            setSoundOn(!soundOn);
-          }}
-        >
-          {soundOn ? <SpeakerHighIcon size={16} /> : <SpeakerSlashIcon size={16} />}
-          <span>{soundOn ? "Sound on" : "Sound off"}</span>
-        </Glass>
         {tuning && <Tuner />}
       </div>
     </>

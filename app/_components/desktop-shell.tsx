@@ -8,6 +8,7 @@ import { TopBar } from "@/app/_components/top-bar";
 import { MobileNotes } from "@/app/_components/mobile-notes";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useMusicPlayer } from "@/lib/use-music-player";
+import { useJourneyMusicBridge } from "@/app/_components/journey/music-bridge";
 import { isDesktopAppId, type DesktopAppId } from "@/lib/desktop-apps";
 import { useDesktopStore, useSyncFolderToNote } from "@/lib/stores/desktop-store";
 import type { NotesData } from "@/lib/mock-desktop-data";
@@ -83,6 +84,8 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
 
   // ── Music player (lifted for TopBar now-playing) ──
   const musicPlayer = useMusicPlayer();
+  // When embedded in the 3D journey, its mini player drives this same player.
+  useJourneyMusicBridge(musicPlayer);
   const isMusicOpen = windowStack.includes("music");
 
   // Pause music when window closes

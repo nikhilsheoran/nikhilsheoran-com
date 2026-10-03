@@ -12,6 +12,8 @@ import { ArrowUpRightIcon, XLogoIcon } from "@phosphor-icons/react";
 import { HANDOFF, INTRO } from "@/lib/journey/timeline";
 import { works, yearStops } from "@/lib/journey/works";
 import { Glass } from "./glass";
+import { MiniPlayer } from "./mini-player";
+import type { MusicCommand, MusicSnapshot } from "./music-bridge";
 import styles from "./journey.module.css";
 
 const SOCIALS = [
@@ -89,7 +91,11 @@ export function Overlay({
   onSlide,
   onChapter,
   onFocusScreen,
+  music,
+  onMusic,
 }: {
+  music: MusicSnapshot | null;
+  onMusic: (command: MusicCommand) => void;
   chapter: number;
   hidden: boolean;
   rangeRef: RefObject<HTMLInputElement | null>;
@@ -247,6 +253,8 @@ export function Overlay({
           ))}
         </Glass>
       </div>
+
+      <MiniPlayer music={music} onCommand={onMusic} />
 
       <button className={styles.keyboardScreen} onClick={onFocusScreen}>
         Open my Mac
