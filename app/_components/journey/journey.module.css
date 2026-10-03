@@ -761,7 +761,7 @@ button.glass:active {
 }
 /* Hints over small desk objects: three quarters the size, so they sit level
    with the label on the Mac's lid. */
-.deskTooltip {
+.laptopTooltip.deskTooltip {
   gap: 4px;
   padding: 5px 11px;
   font-size: 9px;
