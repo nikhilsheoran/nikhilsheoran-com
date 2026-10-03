@@ -22,6 +22,7 @@
  *   captureUrl  (web)   page to screenshot when it differs from the click target
  *   frameLabel  (web)   text shown in the frame's address pill (default: url host)
  *   settleMs    (web)   extra wait after load before the screenshot (default 6000)
+ *   hideMedia   (x)     draw the post as text only, without its photo or video
  *   youtubeFit  (youtube) "contain" (default: whole frame on a blurred copy) or "cover" (crop to 16:10)
  *
  * Needs Google Chrome (override with CHROME_PATH) and `sharp` (already in node_modules).
@@ -60,6 +61,7 @@ type Work = {
   frameLabel?: string;
   settleMs?: number;
   youtubeFit?: "contain" | "cover";
+  hideMedia?: boolean;
 };
 
 // ---------------------------------------------------------------- utilities
@@ -398,7 +400,7 @@ async function buildTweet(work: Work, chrome: Chrome, tmp: string) {
   work.tweetText = text;
 
   const avatar = await fetchBuffer(t.user.profile_image_url_https.replace("_normal", "_400x400"));
-  const mediaUrl = t.mediaDetails?.[0]?.media_url_https;
+  const mediaUrl = work.hideMedia ? undefined : t.mediaDetails?.[0]?.media_url_https;
   const media = mediaUrl ? await fetchBuffer(`${mediaUrl}?name=large`) : null;
   const mediaMeta = media ? await sharp(media).metadata() : null;
   const isVideo = t.mediaDetails?.[0]?.type === "video" || t.mediaDetails?.[0]?.type === "animated_gif";
