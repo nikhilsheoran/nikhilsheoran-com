@@ -123,12 +123,39 @@
 }
 .tabs {
   --radius: 26px;
+  position: relative;
   display: grid;
   grid-template-columns: repeat(5, 76px);
   height: 52px;
   padding: 5px;
 }
+/* Leading edge first, trailing edge after: the pill stretches, then settles. */
+.selection {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: calc(5px + var(--i) * 76px);
+  right: calc(5px + (4 - var(--i)) * 76px);
+  border-radius: 21px;
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.45),
+    inset 0 -1px 0.5px rgb(0 0 0 / 0.12),
+    0 2px 6px -2px rgb(0 0 0 / 0.25);
+  transition:
+    left var(--lead) cubic-bezier(0.3, 1.4, 0.5, 1),
+    right var(--trail) cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.tabs[data-forward="true"] .selection {
+  --lead: 0.62s;
+  --trail: 0.34s;
+}
+.tabs[data-forward="false"] .selection {
+  --lead: 0.34s;
+  --trail: 0.62s;
+}
 .tabs button {
+  position: relative;
   border: 0;
   border-radius: 21px;
   background: none;
@@ -137,10 +164,14 @@
   color: var(--ink-muted);
   text-shadow: inherit;
   cursor: pointer;
-  transition: background 0.3s;
+  transition:
+    color 0.25s,
+    transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.tabs button:active {
+  transform: scale(0.9);
 }
 .tabs button[aria-current] {
-  background: color-mix(in srgb, var(--ink) 14%, transparent);
   color: var(--ink);
   font-weight: 600;
 }

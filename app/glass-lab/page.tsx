@@ -7,8 +7,8 @@ import { journeySerif } from "@/app/_components/journey/fonts";
 import styles from "./lab.module.css";
 
 /**
- * Material lab: the same four elements in eight liquid-glass recipes, over the
- * room. Pick a letter; that recipe becomes the site's glass. Chromium only
+ * Material lab: the same four elements in a set of liquid-glass recipes, over
+ * the room. Pick a letter; that recipe becomes the site's glass. Chromium only
  * (the lens needs backdrop-filter: url()).
  */
 interface Recipe {
@@ -38,105 +38,129 @@ const WHITE_TEXT = {
 const SOFT_SHADOW =
   "0 16px 36px -14px rgb(30 26 18 / 0.36), 0 4px 10px -4px rgb(30 26 18 / 0.16)";
 
+const CLEAR = (shadow: string, tint = 0.03): Record<string, string> => ({
+  ...WHITE_TEXT,
+  "--glass-top": `rgb(255 255 255 / ${tint + 0.02})`,
+  "--glass-bottom": `rgb(255 255 255 / ${tint})`,
+  "--glass-shadow": shadow,
+});
+const FLAT = `${SOFT_SHADOW}, inset 0 0 0 0.5px rgb(255 255 255 / 0.18)`;
+const DROP =
+  "0 18px 30px -12px rgb(20 18 12 / 0.5), inset 0 2px 1px rgb(255 255 255 / 0.5), inset 0 -3px 6px rgb(0 0 0 / 0.14)";
+const HALF =
+  "0 17px 32px -13px rgb(20 18 12 / 0.44), inset 0 1.5px 1px rgb(255 255 255 / 0.34), inset 0 -2px 4px rgb(0 0 0 / 0.08)";
+
 const RECIPES: Recipe[] = [
   {
     id: "A",
-    name: "Clear lens",
-    note: "No frost, no tint. Only the rim bends the room.",
+    name: "Clear lens (reference)",
+    note: "No frost, no tint; a thin bending rim.",
     lens: { bezel: 22, depth: 44, blur: 0.4, saturate: 1.2, fringe: 0.05, rimPower: 6, rimGain: 1, bevelGain: 0.6 },
-    vars: {
-      ...WHITE_TEXT,
-      "--glass-top": "rgb(255 255 255 / 0.03)",
-      "--glass-bottom": "rgb(255 255 255 / 0.03)",
-      "--glass-shadow": `${SOFT_SHADOW}, inset 0 0 0 0.5px rgb(255 255 255 / 0.18)`,
-      "--glass-rim": "0.7",
-    },
-  },
-  {
-    id: "B",
-    name: "Clear, dimmed",
-    note: "A with a faint smoke so white text holds anywhere.",
-    lens: { bezel: 22, depth: 44, blur: 0.8, saturate: 1.25, fringe: 0.05, rimPower: 6, rimGain: 1, bevelGain: 0.8 },
-    vars: {
-      ...WHITE_TEXT,
-      "--glass-top": "rgb(40 42 46 / 0.2)",
-      "--glass-bottom": "rgb(30 32 36 / 0.3)",
-      "--glass-shadow": `${SOFT_SHADOW}, inset 0 1px 0.5px rgb(255 255 255 / 0.25)`,
-      "--glass-rim": "0.8",
-    },
-  },
-  {
-    id: "C",
-    name: "iOS light",
-    note: "Luminous, lightly frosted, dark text.",
-    lens: { bezel: 18, depth: 34, blur: 3.2, saturate: 1.55, fringe: 0.05, rimPower: 5, rimGain: 1, bevelGain: 1 },
-    vars: {},
-  },
-  {
-    id: "D",
-    name: "Milk glass",
-    note: "Heavier frost and a thicker, softer edge.",
-    lens: { bezel: 26, depth: 30, blur: 9, saturate: 1.7, fringe: 0.03, rimPower: 3, rimGain: 0.8, bevelGain: 1.2 },
-    vars: {
-      "--glass-top": "rgb(255 255 255 / 0.56)",
-      "--glass-bottom": "rgb(255 255 255 / 0.36)",
-    },
-  },
-  {
-    id: "E",
-    name: "visionOS",
-    note: "Deep frost, grey tint, even hairline rim, white text.",
-    lens: { bezel: 10, depth: 14, blur: 16, saturate: 1.5, fringe: 0, rimPower: 1, rimGain: 0.35, bevelGain: 0.3 },
-    vars: {
-      ...WHITE_TEXT,
-      "--glass-top": "rgb(128 128 132 / 0.42)",
-      "--glass-bottom": "rgb(96 96 100 / 0.48)",
-      "--glass-shadow":
-        "0 24px 50px -20px rgb(0 0 0 / 0.5), inset 0 1px 0.5px rgb(255 255 255 / 0.4), inset 0 0 0 0.5px rgb(255 255 255 / 0.22)",
-      "--glass-rim": "0.35",
-      "--glass-text-shadow": "none",
-    },
+    vars: { ...CLEAR(FLAT), "--glass-rim": "0.7" },
   },
   {
     id: "F",
-    name: "Water drop",
+    name: "Water drop (reference)",
     note: "Very deep bezel, strong magnifying rim, colour fringe.",
     lens: { bezel: 30, depth: 70, blur: 0.3, saturate: 1.35, fringe: 0.14, rimPower: 4, rimGain: 1.4, bevelGain: 1.3 },
+    vars: CLEAR(DROP),
+  },
+  {
+    id: "1",
+    name: "A leaning to F",
+    note: "A, with a slightly deeper rim and a touch more fringe.",
+    lens: { bezel: 24, depth: 50, blur: 0.4, saturate: 1.25, fringe: 0.07, rimPower: 5.5, rimGain: 1.1, bevelGain: 0.8 },
+    vars: { ...CLEAR(FLAT), "--glass-rim": "0.8" },
+  },
+  {
+    id: "2",
+    name: "Halfway",
+    note: "Even blend of A and F.",
+    lens: { bezel: 26, depth: 57, blur: 0.35, saturate: 1.28, fringe: 0.095, rimPower: 5, rimGain: 1.2, bevelGain: 0.95 },
+    vars: CLEAR(HALF),
+  },
+  {
+    id: "3",
+    name: "F leaning to A",
+    note: "F, a little shallower and calmer.",
+    lens: { bezel: 28, depth: 64, blur: 0.3, saturate: 1.32, fringe: 0.12, rimPower: 4.5, rimGain: 1.3, bevelGain: 1.15 },
+    vars: CLEAR(DROP),
+  },
+  {
+    id: "4",
+    name: "A body, F rim",
+    note: "A's flat clear pane with F's bright, fringed rim.",
+    lens: { bezel: 22, depth: 48, blur: 0.4, saturate: 1.25, fringe: 0.14, rimPower: 4, rimGain: 1.4, bevelGain: 0.7 },
+    vars: CLEAR(FLAT),
+  },
+  {
+    id: "5",
+    name: "F depth, no rainbow",
+    note: "F's deep magnifying bezel with A's faint fringe.",
+    lens: { bezel: 30, depth: 70, blur: 0.3, saturate: 1.3, fringe: 0.03, rimPower: 5, rimGain: 1.1, bevelGain: 1.1 },
+    vars: CLEAR(DROP),
+  },
+  {
+    id: "6",
+    name: "Halfway, dimmed",
+    note: "Blend 2 with a faint smoke so white text always reads.",
+    lens: { bezel: 26, depth: 57, blur: 0.5, saturate: 1.28, fringe: 0.095, rimPower: 5, rimGain: 1.2, bevelGain: 0.95 },
     vars: {
-      ...WHITE_TEXT,
-      "--glass-top": "rgb(255 255 255 / 0.05)",
-      "--glass-bottom": "rgb(255 255 255 / 0.02)",
-      "--glass-shadow":
-        "0 18px 30px -12px rgb(20 18 12 / 0.5), inset 0 2px 1px rgb(255 255 255 / 0.5), inset 0 -3px 6px rgb(0 0 0 / 0.14)",
+      ...CLEAR(HALF),
+      "--glass-top": "rgb(30 32 36 / 0.14)",
+      "--glass-bottom": "rgb(22 24 28 / 0.24)",
     },
   },
   {
-    id: "G",
-    name: "Smoked",
-    note: "Dark tint, light frost, bright rim arcs.",
-    lens: { bezel: 18, depth: 34, blur: 4, saturate: 1.3, fringe: 0.04, rimPower: 6, rimGain: 1.3, bevelGain: 0.8 },
-    vars: {
-      ...WHITE_TEXT,
-      "--glass-top": "rgb(18 20 22 / 0.42)",
-      "--glass-bottom": "rgb(10 12 14 / 0.56)",
-      "--glass-shadow":
-        "0 18px 36px -14px rgb(0 0 0 / 0.55), inset 0 1px 0.5px rgb(255 255 255 / 0.28), inset 0 -1px 0.5px rgb(0 0 0 / 0.4)",
-      "--glass-text-shadow": "none",
-    },
+    id: "7",
+    name: "Wide soft bezel",
+    note: "A broad, gentle bending band instead of a tight one.",
+    lens: { bezel: 36, depth: 54, blur: 0.35, saturate: 1.28, fringe: 0.08, rimPower: 5, rimGain: 1.1, bevelGain: 0.9 },
+    vars: CLEAR(HALF),
   },
   {
-    id: "H",
-    name: "Crystal",
-    note: "Clear with a raised, sculpted bevel and inner glow.",
-    lens: { bezel: 20, depth: 46, blur: 1.4, saturate: 1.45, fringe: 0.07, rimPower: 3, rimGain: 1.3, bevelGain: 2.2 },
-    vars: {
-      "--glass-top": "rgb(255 255 255 / 0.2)",
-      "--glass-bottom": "rgb(255 255 255 / 0.08)",
-      "--glass-shadow":
-        "0 20px 34px -14px rgb(20 18 12 / 0.5), 0 2px 3px rgb(20 18 12 / 0.2), inset 0 2px 1px rgb(255 255 255 / 0.85), inset 0 -2px 1px rgb(0 0 0 / 0.16), inset 0 0 20px rgb(255 255 255 / 0.3)",
-    },
+    id: "8",
+    name: "Halfway, wet rim",
+    note: "Blend 2 with longer, brighter specular arcs.",
+    lens: { bezel: 26, depth: 57, blur: 0.35, saturate: 1.3, fringe: 0.1, rimPower: 2.6, rimGain: 1.7, bevelGain: 1.2 },
+    vars: CLEAR(DROP),
   },
 ];
+
+/** Years as a tab bar. The selection slides: its leading edge goes first and
+ * the trailing edge catches up, so the pill stretches like liquid, then settles. */
+function Tabs({
+  recipe,
+  style,
+}: {
+  recipe: Recipe;
+  style: CSSProperties;
+}) {
+  const [year, setYear] = useState(2);
+  const [forward, setForward] = useState(true);
+  return (
+    <Glass
+      className={styles.tabs}
+      style={{ ...style, "--i": year } as CSSProperties}
+      data-forward={forward}
+      {...recipe.lens}
+    >
+      <span className={styles.selection} aria-hidden />
+      {[2022, 2023, 2024, 2025, 2026].map((y, index) => (
+        <button
+          key={y}
+          aria-current={year === index ? "step" : undefined}
+          onClick={() => {
+            setForward(index > year);
+            setYear(index);
+          }}
+        >
+          {y}
+        </button>
+      ))}
+    </Glass>
+  );
+}
 
 const BACKDROPS = [
   ["Room", "/journey/lab-room.jpg"],
@@ -146,7 +170,6 @@ const BACKDROPS = [
 
 export default function GlassLab() {
   const [backdrop, setBackdrop] = useState(0);
-  const [year, setYear] = useState(2);
   return (
     <main
       className={`${styles.lab} ${journeySerif.variable}`}
@@ -199,17 +222,7 @@ export default function GlassLab() {
                   <ArrowUpRightIcon size={18} weight="bold" />
                 </span>
               </Glass>
-              <Glass className={styles.tabs} style={style} {...recipe.lens}>
-                {[2022, 2023, 2024, 2025, 2026].map((y, index) => (
-                  <button
-                    key={y}
-                    aria-current={year === index ? "step" : undefined}
-                    onClick={() => setYear(index)}
-                  >
-                    {y}
-                  </button>
-                ))}
-              </Glass>
+              <Tabs recipe={recipe} style={style} />
             </section>
           );
         })}

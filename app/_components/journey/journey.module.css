@@ -168,20 +168,21 @@
     linear-gradient(#000 0 0);
   mask-composite: exclude;
   opacity: var(--glass-rim, 1);
-  transition: --light 0.5s linear;
+  transition:
+    --light 0.35s ease-out,
+    filter 0.3s;
   pointer-events: none;
 }
+/* Hover: the pane lifts, its shadow deepens and its rim brightens. No glow blob. */
 .glass::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: radial-gradient(
-    circle 130px at var(--mx, 50%) var(--my, 0%),
-    rgb(255 255 255 / 0.5),
-    transparent 70%
-  );
+  box-shadow:
+    0 26px 44px -16px rgb(20 18 12 / 0.45),
+    inset 0 0 0 1px rgb(255 255 255 / 0.22);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -189,14 +190,17 @@
 .glass:hover::after {
   opacity: 1;
 }
-/* Pills and circles you can press lift a little and squish on press. */
+.glass:hover::before {
+  opacity: 1;
+  filter: brightness(1.4);
+}
 a.glass:hover,
 button.glass:hover {
-  transform: scale(1.04);
+  transform: translateY(-1.5px) scale(1.025);
 }
 a.glass:active,
 button.glass:active {
-  transform: scale(0.94);
+  transform: scale(0.95);
   transition-duration: 0.12s;
 }
 

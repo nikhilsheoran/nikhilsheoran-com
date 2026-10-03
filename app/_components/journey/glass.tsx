@@ -227,10 +227,18 @@ export function Glass<T extends ElementType = "div">({
           ref,
           className: `${styles.glass} ${className ?? ""}`,
           "data-lens": lens ? "" : undefined,
+          // The rim light swings toward the pointer while it is over the pane.
           onPointerMove: (event: PointerEvent<HTMLElement>) => {
             const box = event.currentTarget.getBoundingClientRect();
-            event.currentTarget.style.setProperty("--mx", `${event.clientX - box.left}px`);
-            event.currentTarget.style.setProperty("--my", `${event.clientY - box.top}px`);
+            const dx = event.clientX - (box.left + box.width / 2);
+            const dy = event.clientY - (box.top + box.height / 2);
+            event.currentTarget.style.setProperty(
+              "--light",
+              `${Math.round((Math.atan2(dx, -dy) * 180) / Math.PI)}deg`,
+            );
+          },
+          onPointerLeave: (event: PointerEvent<HTMLElement>) => {
+            event.currentTarget.style.removeProperty("--light");
           },
           style: lens
             ? { ...style, backdropFilter: `url(#${id})` }
