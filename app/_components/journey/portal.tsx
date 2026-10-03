@@ -76,13 +76,23 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
     () => "",
   );
   const params = new URLSearchParams(search);
-  const tuning = process.env.NODE_ENV !== "production" && params.has("tune");
+  const dev = process.env.NODE_ENV !== "production";
+  const tuning = dev && params.has("tune");
+  const lab = dev && params.has("lab");
   const flags = useMemo(
     () => ({
       live: new URLSearchParams(search).has("live"),
     }),
     [search],
   );
+
+  // The glass arrives as the loader lifts off the room.
+  const [arrived, setArrived] = useState(false);
+  useEffect(() => {
+    if (!sceneReady && !webglFailed) return;
+    const timer = window.setTimeout(() => setArrived(true), 450);
+    return () => window.clearTimeout(timer);
+  }, [sceneReady, webglFailed]);
 
   const focused = mode === "focused";
   const uiHidden = mode !== "orbit" || nearScreen;
@@ -255,6 +265,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         <Loader sceneReady={sceneReady || webglFailed} />
         <Overlay
           chapter={chapter}
+          ready={arrived}
           hidden={uiHidden}
           rangeRef={rangeRef}
           onSlide={(value) =>
@@ -293,7 +304,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
             />
           </div>
         )}
-        {tuning && <Tuner />}
+        {(tuning || lab) && <Tuner lab={lab && !tuning} />}
       </div>
     </>
   );

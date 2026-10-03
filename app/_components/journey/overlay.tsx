@@ -86,6 +86,7 @@ function AgeClock() {
  */
 export function Overlay({
   chapter,
+  ready,
   hidden,
   rangeRef,
   onSlide,
@@ -97,6 +98,8 @@ export function Overlay({
   music: MusicSnapshot | null;
   onMusic: (command: MusicCommand) => void;
   chapter: number;
+  /** The room is on screen: the glass may arrive. */
+  ready: boolean;
   hidden: boolean;
   rangeRef: RefObject<HTMLInputElement | null>;
   onSlide: (value: number) => void;
@@ -125,6 +128,7 @@ export function Overlay({
   return (
     <div
       data-journey-ui
+      data-ready={ready ? "" : undefined}
       className={`${styles.ui} ${hidden ? styles.faded : ""}`}
       inert={hidden}
       aria-hidden={hidden}
@@ -191,11 +195,11 @@ export function Overlay({
               ref={measureWords}
               className={`${styles.words} ${styles.swap}`}
             >
-              <h1>{work ? work.title : "I wanted to fly planes."}</h1>
+              <h1>{work ? work.title : "My little corner of the internet."}</h1>
               <p className={styles.line}>
                 {work
                   ? work.subtitle
-                  : "That plan fell through. So I started building things instead, and I haven’t stopped since."}
+                  : "Scroll or drag to move through the years. The Mac on the desk opens everything else."}
               </p>
             </div>
             {work && (
@@ -257,7 +261,7 @@ export function Overlay({
       <MiniPlayer music={music} onCommand={onMusic} />
 
       <button className={styles.keyboardScreen} onClick={onFocusScreen}>
-        Open my Mac
+        Jump to Mac
       </button>
     </div>
   );

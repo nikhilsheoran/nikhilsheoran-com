@@ -11,7 +11,7 @@ import { createActionTexture, createArtworkTexture } from "./textures";
 import type { SceneProps } from "./runtime";
 
 const vertexShader = `
-  uniform float uTime, uHover, uVelocity, uRevealTime, uAmp;
+  uniform float uTime, uHover, uVelocity, uRevealTime, uAmp, uPin;
   uniform vec2 uPointer, uTouch;
   varying vec2 vUv;
   varying vec3 vView;
@@ -40,6 +40,15 @@ const vertexShader = `
     p.y -= sin(x * 3.14159) * .02;
     float touch = exp(-dot((uv-uTouch)*vec2(1.55,1.),(uv-uTouch)*vec2(1.55,1.))*20.);
     p.z -= touch * .045 * uHover;
+    // Curtain: pinned along the top edge instead. It hangs in soft pleats,
+    // sways from the hem, and the hem trails behind when the sheet moves.
+    float hang = pow(1. - y, 1.2);
+    vec3 c = rest;
+    c.z += sin(x * 20. + sin(y * 3. + wind * .6) * .6) * .035 * (.35 + .65 * hang);
+    c.z += sin(wind * 1.1 + x * 2.4) * .09 * hang * calm + momentum * hang * .12;
+    c.x += sin(wind * .9 + y * 2.) * .03 * hang * calm + momentum * hang * .3;
+    c.z -= touch * .045 * uHover;
+    p = mix(p, c, uPin);
     // Fold amplitudes were authored for a 2.8-unit sheet; keep them proportional.
     p = rest + (p - rest) * uAmp;
     vec4 view = modelViewMatrix * vec4(p,1.);
@@ -50,11 +59,17 @@ const vertexShader = `
 const fragmentShader = `
   uniform sampler2D uMap, uActionMap;
   uniform float uHover, uOpacity, uRevealTime, uDefocus, uHazeNear, uHazeFar;
+  uniform float uColor, uBorder, uRound;
+  const float ASPECT = .625;
   uniform vec2 uPointer;
   varying vec2 vUv;
   varying vec3 vView;
   void main() {
-    vec2 coord = gl_FrontFacing ? vUv : vec2(1.-vUv.x,vUv.y);
+    vec2 face = gl_FrontFacing ? vUv : vec2(1.-vUv.x,vUv.y);
+    // Print look: the artwork sits inside a paper margin.
+    vec2 margin = vec2(uBorder, uBorder / ASPECT);
+    vec2 coord = (face - margin) / (1. - 2. * margin);
+    vec2 inset = step(vec2(0.), coord) * step(coord, vec2(1.));
     vec2 delta = (vUv-uPointer)*vec2(1.55,1.);
     float d = length(delta);
     float front = uRevealTime * 5.;
@@ -69,10 +84,11 @@ const fragmentShader = `
     float gray = dot(ink,vec3(.2126,.7152,.0722));
     float reveal = (1.-smoothstep(front-.18,front+.12,d))*uHover;
     vec3 monochrome = mix(vec3(gray * .95), vec3(.26,.275,.25), .12);
-    vec3 color = mix(monochrome, mix(ink, monochrome, .06), reveal);
+    vec3 color = mix(monochrome, mix(ink, monochrome, .06), max(reveal, uColor));
     // Printed controls deform, occlude, blur and receive light with the cloth itself.
     vec4 action = texture2D(uActionMap, coord + vec2(0., (1.-uHover)*.012), bias);
     color = mix(color, action.rgb, action.a * smoothstep(.12,.8,uHover));
+    color = mix(vec3(.95,.94,.91), color, inset.x * inset.y);
     vec3 n = normalize(cross(dFdx(vView),dFdy(vView)));
     if(!gl_FrontFacing) n=-n;
     vec3 light = normalize(vec3(-.4,.7,1.));
@@ -85,7 +101,9 @@ const fragmentShader = `
     // warm daylight haze instead of turning transparent.
     float haze = smoothstep(uHazeNear, uHazeFar, -vView.z);
     color = mix(color, vec3(.86,.84,.8), haze * .15);
-    float edge = smoothstep(0.,.004,min(min(vUv.x,1.-vUv.x),min(vUv.y,1.-vUv.y)));
+    // Edge of the sheet, with corners rounded by uRound (in sheet widths).
+    vec2 q = abs(vUv - .5) * vec2(1., ASPECT) - (vec2(.5, .5 * ASPECT) - uRound);
+    float edge = 1. - smoothstep(-.004, 0., length(max(q, 0.)) + min(max(q.x, q.y), 0.) - uRound);
     gl_FragColor = vec4(color,uOpacity*edge*(1. - haze * .5));
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
@@ -131,6 +149,10 @@ export function Cloth({
           uHazeNear: { value: tuning.panels.hazeNear },
           uHazeFar: { value: tuning.panels.hazeFar },
           uAmp: { value: (tuning.panels.width / 2.8) * tuning.panels.folds },
+          uPin: { value: 0 },
+          uColor: { value: 0 },
+          uBorder: { value: 0 },
+          uRound: { value: 0 },
           uPointer: { value: new THREE.Vector2(0.5, 0.5) },
           uTouch: { value: new THREE.Vector2(0.5, 0.5) },
         },
@@ -197,7 +219,16 @@ export function Cloth({
     const focusFade = motion.mode === "focused" ? 0 : 1;
     const opacity = pose.opacity * approachFade * focusFade;
     material.uniforms.uOpacity.value = opacity;
-    material.uniforms.uAmp.value = (tuning.panels.width / 2.8) * tuning.panels.folds;
+    // Lab variants: how the cloth moves and how the sheet is printed.
+    const { cloth, look, far } = tuning.lab;
+    material.uniforms.uAmp.value =
+      (tuning.panels.width / 2.8) *
+      tuning.panels.folds *
+      (cloth === 3 ? 0 : cloth === 2 ? 0.3 : 1);
+    material.uniforms.uPin.value = cloth === 1 ? 1 : 0;
+    material.uniforms.uColor.value = look === 0 ? 0 : 1;
+    material.uniforms.uBorder.value = look === 2 ? 0.03 : 0;
+    material.uniforms.uRound.value = look === 2 ? 0.035 : 0;
     material.uniforms.uHazeNear.value = tuning.panels.hazeNear;
     material.uniforms.uHazeFar.value = tuning.panels.hazeFar;
     group.visible = opacity > 0.012;
@@ -269,7 +300,9 @@ export function Cloth({
       ),
     );
     material.uniforms.uDefocus.value =
-      pose.away * tuning.panels.farBlur * (hoveredRef.current ? 0.2 : 1);
+      pose.away *
+      (tuning.lab.far === 2 ? 0 : tuning.panels.farBlur) *
+      (hoveredRef.current ? 0.2 : 1);
     material.uniforms.uTouch.value.lerp(
       touchTarget.current,
       1 - Math.exp(-14 * delta),

@@ -226,13 +226,218 @@ export interface PanelPose {
   away: number;
 }
 
+/** Where a work is read from the camera pose at `progress`: just right of centre. */
+function readingSpot(progress: number, tuning: Tuning) {
+  const p = tuning.panels;
+  const view = helixPose(progress, 16 / 9, tuning.camera.fov, tuning);
+  const radius = panelRadius(progress, tuning);
+  const reach = Math.min(1, (Math.sin(p.viewOffset) * view.radius) / radius);
+  const offset = Math.asin(reach) - p.viewOffset;
+  const depth = (view.radius - radius * Math.cos(offset)) / view.radius;
+  return {
+    view,
+    angle: view.angle + offset,
+    radius,
+    height: lerp(view.position[1], view.target[1], depth),
+  };
+}
+
+interface Flight {
+  position: Vec3;
+  rotation: Vec3;
+  away: number;
+  /** Presence, before the handoff and far fades are applied. */
+  presence: number;
+}
+
+const onAxis = (angle: number, radius: number, height: number): Vec3 => [
+  AXIS[0] + Math.sin(angle) * radius,
+  height,
+  AXIS[1] + Math.cos(angle) * radius,
+];
+const facingFrom = (position: Vec3, eye: readonly number[]) =>
+  Math.atan2(eye[0] - position[0], eye[2] - position[2]);
+
 /**
  * Greta's vortex: every work hangs in one slow spiral around the desk, turning
  * against the camera and rising as the story advances. Far from its moment a
- * work drifts on its own wider orbit, fogged into the room; as its moment
- * arrives it swoops in to a reading spot just right of centre, facing the
- * camera, and then drifts back out. Depth comes from haze (in the shader),
- * not transparency, so several works share the air without ghosting.
+ * work drifts on its own wider orbit; as its moment arrives it swoops in to
+ * the reading spot, facing the camera, and then drifts back out.
+ */
+function vortex(
+  index: number,
+  progress: number,
+  phase: number,
+  beat: Beats,
+  tuning: Tuning,
+  camera: readonly number[],
+): Flight {
+  const p = tuning.panels;
+  const spot = readingSpot(beat.chapters[index], tuning);
+  // 0 at the reading moment, 1 once the work is back out in the vortex.
+  const away = smoothStep((Math.abs(phase) - 0.25) / 1.1);
+  const orbit =
+    p.orbitRadius * (1 + p.orbitSpread * Math.sin(index * 2.399));
+  const angle = spot.angle - p.counterSpin * phase;
+  const radius = lerp(panelRadius(progress, tuning), orbit, away);
+  // Clear air only: above the desk, laptop and seated figure, below the
+  // ceiling. Works arrive round the spiral, never up through the furniture.
+  const drift =
+    p.rise * phase + away * p.orbitSpread * 2.2 * Math.cos(index * 1.7);
+  const height = p.floor + softPlus(spot.height + drift - p.floor, 0.25);
+  const position = onAxis(angle, radius, Math.min(height, p.ceiling));
+  // Out in the vortex every work tumbles its own way (a fixed personality per
+  // index); it squares up to the camera only as it swoops in to be read.
+  const tumble = p.tumble * away;
+  const yaw =
+    angle +
+    p.faceCamera * wrapAngle(facingFrom(position, camera) - angle) +
+    tumble * Math.sin(index * 1.93 + 0.4);
+  const roll =
+    -Math.max(-0.3, Math.min(0.3, phase * p.passRoll)) *
+      Math.cos(index * 2.2) +
+    tumble * 0.45 * Math.cos(index * 2.71);
+  const pitch = -0.05 + tumble * 0.35 * Math.sin(index * 3.17 + 1.1);
+  const presence =
+    1 - smoothStep((Math.abs(phase) - p.visibleChapters + 0.5) / 0.6);
+  return { position, rotation: [pitch, yaw, roll], away, presence };
+}
+
+/**
+ * Gallery: nothing flies. Each work hangs still at its own reading spot and
+ * the camera's orbit carries you past them, one after another.
+ */
+function gallery(
+  index: number,
+  phase: number,
+  beat: Beats,
+  tuning: Tuning,
+): Flight {
+  const p = tuning.panels;
+  const spot = readingSpot(beat.chapters[index], tuning);
+  const height = p.floor + softPlus(spot.height - p.floor, 0.25);
+  const position = onAxis(spot.angle, spot.radius, height);
+  const yaw =
+    facingFrom(position, spot.view.position) + 0.1 * Math.sin(index * 1.93);
+  return {
+    position,
+    rotation: [-0.05, yaw, 0.03 * Math.cos(index * 2.2)],
+    away: smoothStep((Math.abs(phase) - 0.3) / 1),
+    presence: 1,
+  };
+}
+
+/**
+ * Carousel: the works sit evenly round one ring that turns as you scroll, so
+ * the next one always comes round from the same side.
+ */
+function carousel(
+  progress: number,
+  phase: number,
+  beat: Beats,
+  tuning: Tuning,
+  camera: readonly number[],
+): Flight {
+  const p = tuning.panels;
+  const now = readingSpot(Math.min(progress, beat.handoffStart), tuning);
+  const step = (Math.PI * 2) / Math.max(4, beat.chapters.length);
+  const angle = now.angle - step * phase;
+  const height = p.floor + softPlus(now.height - p.floor, 0.25);
+  const position = onAxis(angle, now.radius + 0.25, height);
+  const away = smoothStep((Math.abs(phase) - 0.2) / 0.8);
+  const yaw =
+    angle +
+    (1 - away) * p.faceCamera * wrapAngle(facingFrom(position, camera) - angle);
+  return { position, rotation: [-0.05, yaw, 0], away, presence: 1 };
+}
+
+/**
+ * Drop: each work is let down from above like a banner as its moment comes,
+ * then stays where it was read while the camera moves on.
+ */
+function drop(
+  index: number,
+  progress: number,
+  phase: number,
+  beat: Beats,
+  tuning: Tuning,
+  camera: readonly number[],
+): Flight {
+  const p = tuning.panels;
+  const spot = readingSpot(beat.chapters[index], tuning);
+  const now = phase < 0 ? readingSpot(Math.max(0, progress), tuning) : spot;
+  const fall = phase < 0 ? 1 - smoothStep(1 + phase) : 0;
+  const base = p.floor + softPlus(now.height - p.floor, 0.25);
+  const position = onAxis(
+    now.angle,
+    now.radius,
+    base + 2.4 * fall + (phase > 0 ? 0.25 * smoothStep(phase) : 0),
+  );
+  const eye = phase < 0 ? camera : spot.view.position;
+  // It swings a little as it comes down and steadies as it arrives.
+  const swing = fall * Math.sin(phase * 5 + index);
+  return {
+    position,
+    rotation: [-0.05 + 0.12 * swing, facingFrom(position, eye), 0.1 * swing],
+    away: smoothStep((Math.abs(phase) - 0.25) / 0.9),
+    presence:
+      phase < 0
+        ? 1 - smoothStep((-phase - 0.45) / 0.5)
+        : 1 - smoothStep((phase - 0.6) / 0.7),
+  };
+}
+
+/**
+ * Gust: a sheet caught by the wind. It tumbles in from deep on the right,
+ * steadies in front of you to be read, and is blown past your left shoulder.
+ */
+function gust(
+  index: number,
+  progress: number,
+  phase: number,
+  beat: Beats,
+  tuning: Tuning,
+  camera: readonly number[],
+): Flight {
+  const p = tuning.panels;
+  const now = readingSpot(Math.min(Math.max(0, progress), beat.handoffStart), tuning);
+  const spot = onAxis(now.angle, now.radius, now.height);
+  const eye = now.view.position;
+  // The camera's own right and forward, flat on the floor plane.
+  const fx = now.view.target[0] - eye[0];
+  const fz = now.view.target[2] - eye[2];
+  const length = Math.hypot(fx, fz) || 1;
+  const forward = [fx / length, fz / length];
+  const right = [-forward[1], forward[0]];
+  // Hold still around the reading moment, then let go.
+  const loose = Math.sign(phase) * smoothStep((Math.abs(phase) - 0.15) / 0.85);
+  const side = -1.9 * loose;
+  const deep = phase < 0 ? 2.2 * -loose : -0.9 * loose;
+  const position: Vec3 = [
+    spot[0] + right[0] * side + forward[0] * deep,
+    Math.min(
+      p.ceiling,
+      p.floor + softPlus(spot[1] + 0.55 * loose * loose - p.floor, 0.25),
+    ),
+    spot[2] + right[1] * side + forward[1] * deep,
+  ];
+  const spin = Math.sin(index * 1.93 + 0.4) > 0 ? 1 : -1;
+  return {
+    position,
+    rotation: [
+      -0.05 + 0.5 * loose * Math.sin(index * 3.17 + 1.1),
+      facingFrom(position, camera) + 1.1 * loose * spin,
+      0.45 * loose,
+    ],
+    away: Math.abs(loose),
+    presence: 1 - smoothStep((Math.abs(phase) - 0.75) / 0.45),
+  };
+}
+
+/**
+ * Where a work is at `progress`. The way it travels is one of the lab's
+ * variants (tuning.lab.path); all of them bring it to the same reading spot,
+ * just right of centre and facing the camera, at its own moment.
  */
 export function panelPose(
   index: number,
@@ -242,66 +447,31 @@ export function panelPose(
   camera: readonly number[],
 ): PanelPose {
   const p = tuning.panels;
-  const reading = beat.chapters[index];
   const phase = chapterPhase(progress, index, beat);
-
-  const view = helixPose(reading, 16 / 9, tuning.camera.fov, tuning);
-  const readingRadius = panelRadius(reading, tuning);
-  const reach = Math.min(
-    1,
-    (Math.sin(p.viewOffset) * view.radius) / readingRadius,
-  );
-  const offset = Math.asin(reach) - p.viewOffset;
-  const depth =
-    (view.radius - readingRadius * Math.cos(offset)) / view.radius;
-  const readingHeight = lerp(view.position[1], view.target[1], depth);
-
-  // 0 at the reading moment, 1 once the work is back out in the vortex.
-  const away = smoothStep((Math.abs(phase) - 0.25) / 1.1);
-  const orbit =
-    p.orbitRadius * (1 + p.orbitSpread * Math.sin(index * 2.399));
-  const angle = view.angle + offset - p.counterSpin * phase;
-  const radius = lerp(panelRadius(progress, tuning), orbit, away);
-  // Clear air only: above the desk, laptop and seated figure, below the
-  // ceiling. Works arrive round the spiral, never up through the furniture.
-  const drift =
-    p.rise * phase + away * p.orbitSpread * 2.2 * Math.cos(index * 1.7);
-  const height =
-    p.floor + softPlus(readingHeight + drift - p.floor, 0.25);
-  const position: Vec3 = [
-    AXIS[0] + Math.sin(angle) * radius,
-    Math.min(height, p.ceiling),
-    AXIS[1] + Math.cos(angle) * radius,
-  ];
-  const facing = Math.atan2(camera[0] - position[0], camera[2] - position[2]);
-  // Out in the vortex every work tumbles its own way (a fixed personality per
-  // index); it squares up to the camera only as it swoops in to be read.
-  const tumble = p.tumble * away;
-  const yaw =
-    angle +
-    p.faceCamera * wrapAngle(facing - angle) +
-    tumble * Math.sin(index * 1.93 + 0.4);
-  const roll =
-    -Math.max(-0.3, Math.min(0.3, phase * p.passRoll)) *
-      Math.cos(index * 2.2) +
-    tumble * 0.45 * Math.cos(index * 2.71);
-  const pitch = -0.05 + tumble * 0.35 * Math.sin(index * 3.17 + 1.1);
-
-  // Present for a few chapters either side; the shader's haze does the rest.
-  const distance = Math.abs(phase);
-  const window = 1 - smoothStep((distance - p.visibleChapters + 0.5) / 0.6);
+  const flight =
+    tuning.lab.path === 1
+      ? gallery(index, phase, beat, tuning)
+      : tuning.lab.path === 2
+        ? carousel(progress, phase, beat, tuning, camera)
+        : tuning.lab.path === 3
+          ? drop(index, progress, phase, beat, tuning, camera)
+          : tuning.lab.path === 4
+            ? gust(index, progress, phase, beat, tuning, camera)
+            : vortex(index, progress, phase, beat, tuning, camera);
   const handoff =
     1 -
     smoothStep(
       (progress - beat.handoffStart) / (beat.panelsGone - beat.handoffStart),
     );
+  // Far works fade toward farOpacity (unless the lab keeps them solid) and
+  // the shader blurs them by `away`.
+  const farOpacity = tuning.lab.far === 0 ? p.farOpacity : 1;
   return {
-    position,
-    rotation: [pitch, yaw, roll],
+    position: flight.position,
+    rotation: flight.rotation,
     phase,
-    // Far works fade toward farOpacity; the shader blurs them by `away`.
-    opacity: window * handoff * lerp(1, p.farOpacity, away),
-    away,
+    opacity: flight.presence * handoff * lerp(1, farOpacity, flight.away),
+    away: flight.away,
   };
 }
 

@@ -57,15 +57,25 @@ const RANGES: Record<string, Range> = {
   "motion.dragSpring": [5, 60, 0.5],
 };
 
+/** The panel variants under comparison, as labelled choices. */
+const LAB: { key: keyof Tuning["lab"]; title: string; code: string; options: string[] }[] = [
+  { key: "path", title: "How they fly", code: "P", options: ["Vortex", "Gallery", "Carousel", "Drop", "Gust"] },
+  { key: "cloth", title: "How the cloth moves", code: "C", options: ["Flag", "Curtain", "Calm", "Stiff"] },
+  { key: "look", title: "How they are printed", code: "L", options: ["Ink", "Colour", "Print"] },
+  { key: "far", title: "Far away", code: "F", options: ["Fade and blur", "Blur only", "Sharp"] },
+];
+
 function rangeFor(key: string, value: number): Range {
   return RANGES[key] ?? [0, Math.max(1, value * 2), Math.max(1, value * 2) / 200];
 }
 
-export function Tuner() {
+export function Tuner({ lab = false }: { lab?: boolean }) {
   const [, redraw] = useState(0);
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(true);
-  const groups = Object.keys(DEFAULT_TUNING) as (keyof Tuning)[];
+  const groups = (Object.keys(DEFAULT_TUNING) as (keyof Tuning)[]).filter(
+    (group) => group !== "lab" && !lab,
+  );
 
   const set = (group: keyof Tuning, key: string, value: number) => {
     setTuningValue(group, key, value);
@@ -75,7 +85,7 @@ export function Tuner() {
   return (
     <aside className={styles.tuner} data-tuner aria-label="Choreography tuner">
       <header>
-        <strong>Tuner</strong>
+        <strong>{lab ? "Panel lab" : "Tuner"}</strong>
         <button onClick={() => setOpen(!open)}>{open ? "Hide" : "Show"}</button>
       </header>
       {open && (
@@ -103,6 +113,23 @@ export function Tuner() {
               Reset
             </button>
           </div>
+          {LAB.map(({ key, title, code, options }) => (
+            <fieldset key={key}>
+              <legend>{title}</legend>
+              <div className={styles.choices}>
+                {options.map((option, value) => (
+                  <button
+                    key={option}
+                    aria-pressed={tuning.lab[key] === value}
+                    onClick={() => set("lab", key, value)}
+                  >
+                    {code}
+                    {value + 1} {option}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          ))}
           {groups.map((group) => (
             <fieldset key={group}>
               <legend>{group}</legend>

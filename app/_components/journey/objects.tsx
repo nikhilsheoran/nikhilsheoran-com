@@ -10,12 +10,14 @@ import {
   SCREEN_TILT,
   SCREEN_WIDTH,
   SCREEN_HEIGHT,
+  SCREEN_POSITION,
   SCREEN_LOCAL_POSITION,
 } from "@/lib/journey/anchors";
 import type { DeskLink as DeskLinkData } from "@/lib/journey/desk-links";
 import { createScreenTexture } from "./textures";
 import { useStaticModel } from "./static-model";
 import baked from "@/public/journey/studio-baked.json";
+import { Glass } from "./glass";
 import styles from "./journey.module.css";
 import type { JourneyRuntime, SceneProps } from "./runtime";
 
@@ -164,6 +166,7 @@ export function Laptop({
       size,
     };
   }, [model]);
+  const labelRef = useRef<THREE.Group>(null);
   useEffect(
     () => () => {
       highlight.material.dispose();
@@ -180,6 +183,15 @@ export function Laptop({
       camera.position.distanceTo(highlight.worldCenter),
       size.height,
     );
+    // The label lies in the lid's plane; turn it to read from whichever side
+    // of the lid the camera is on.
+    if (labelRef.current) {
+      const behind =
+        (camera.position.z - SCREEN_POSITION[2]) * Math.cos(SCREEN_TILT) -
+          (camera.position.y - SCREEN_POSITION[1]) * Math.sin(SCREEN_TILT) <
+        0;
+      labelRef.current.rotation.y = behind ? Math.PI : 0;
+    }
     const inviting = laptopInviting(runtimeRef.current);
     const active = hovered && inviting;
     if (hovered && !inviting) setHovered(false);
@@ -209,20 +221,19 @@ export function Laptop({
         center={highlight.center}
         size={highlight.size}
       />
-      {hovered && (
-        <Html
-          center
-          position={[0.23, 0.47, -0.32]}
-          style={{ pointerEvents: "none" }}
-        >
-          <div className={styles.laptopTooltip} role="tooltip">
-            <span className={styles.tooltipDot} /> Open my Mac
-          </div>
-        </Html>
-      )}
       <primitive object={highlight.object} />
       <primitive object={highlight.outline} />
       <group position={SCREEN_LOCAL_POSITION} rotation={[SCREEN_TILT, 0, 0]}>
+        {/* A small label floating just above the lid's top edge, in the lid's own plane. */}
+        <group ref={labelRef} position={[0, SCREEN_HEIGHT / 2 + 0.11, 0]}>
+          {hovered && (
+            <Html transform scale={0.1} style={{ pointerEvents: "none" }}>
+              <Glass as="div" className={styles.laptopTooltip} role="tooltip">
+                Jump to Mac
+              </Glass>
+            </Html>
+          )}
+        </group>
         <mesh>
           <planeGeometry args={[SCREEN_WIDTH, SCREEN_HEIGHT]} />
           <meshBasicMaterial
@@ -357,9 +368,9 @@ export function DeskLink({
           position={[0, link.size[1] * 1.3, 0]}
           style={{ pointerEvents: "none" }}
         >
-          <div className={styles.laptopTooltip} role="tooltip">
-            <span className={styles.tooltipDot} /> {link.label}
-          </div>
+          <Glass as="div" className={styles.laptopTooltip} role="tooltip">
+            {link.label}
+          </Glass>
         </Html>
       )}
     </group>

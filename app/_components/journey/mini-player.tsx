@@ -30,7 +30,11 @@ export function MiniPlayer({
   const { title, artist, artworkUrl, isPlaying, volume } = music;
   const muted = volume === 0;
   return (
-    <Glass as="section" className={styles.player} aria-label="Music">
+    <div className={styles.playing}>
+      <Glass as="p" className={styles.tag}>
+        Now playing
+      </Glass>
+      <Glass as="section" className={styles.player} aria-label="Music">
       {/* eslint-disable-next-line @next/next/no-img-element -- Remote album art from the song data. */}
       <img className={styles.cover} src={artworkUrl} alt="" />
       <div className={styles.playerBody}>
@@ -83,6 +87,7 @@ export function MiniPlayer({
           />
         </div>
       </div>
-    </Glass>
+      </Glass>
+    </div>
   );
 }

@@ -23,7 +23,8 @@
     "subtitle": "A senior paid me to edit his video. It was the first money I ever made, and I posted about it like I’d won the lottery.",
     "source": "tweet card",
     "tweetText": "Today, for the first time in my life, I earned money and it’s the best feeling. 🥳\n\nI am 16 btw. 😄",
-    "age": 16
+    "age": 16,
+    "hidden": true
   },
   {
     "slug": "hostel-life",
@@ -36,7 +37,8 @@
     "subtitle": "I landed in an electronics degree I had zero interest in. So I kept making videos.",
     "source": "YouTube thumbnail",
     "videoTitle": "BITS Goa Hostel life | My experience | Nikhil Sheoran",
-    "age": 17
+    "age": 17,
+    "hidden": true
   },
   {
     "slug": "media-groww",
@@ -50,7 +52,8 @@
     "title": "Media Groww",
     "subtitle": "Editing for one senior turned into an agency with Jeet. Five creators on retainer, run from a hostel room.",
     "source": "homepage screenshot (Wayback Machine, Feb 2025)",
-    "age": 17
+    "age": 17,
+    "hidden": true
   },
   {
     "slug": "fastcut",
@@ -87,7 +90,8 @@
     "title": "SpotTheScam",
     "subtitle": "That project became a real tool, built with BITS Pilani and Goa Police. The Chief Minister launched it. The Times of India wrote about it.",
     "source": "homepage screenshot",
-    "age": 19
+    "age": 19,
+    "hidden": true
   },
   {
     "slug": "first-job",

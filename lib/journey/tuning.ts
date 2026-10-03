@@ -89,6 +89,17 @@ export const DEFAULT_TUNING = {
     wheelSensitivity: 1 / 7800,
     maxWheelStep: 0.045,
   },
+  /** Panel variants under comparison; pick them in the lab (`?lab`). */
+  lab: {
+    /** 0 vortex, 1 gallery, 2 carousel, 3 drop, 4 gust. */
+    path: 0,
+    /** 0 ink (colour on hover), 1 colour, 2 print (paper margin, round corners). */
+    look: 0,
+    /** Far panels: 0 fade and blur, 1 blur only, 2 sharp and solid. */
+    far: 0,
+    /** 0 flag, 1 curtain, 2 calm, 3 stiff card. */
+    cloth: 0,
+  },
 };
 
 export type Tuning = typeof DEFAULT_TUNING;

@@ -70,3 +70,12 @@
   margin: 12px 0 2px;
   color: #aab5ad;
 }
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.tuner .choices button[aria-pressed="true"] {
+  background: #e9eee9;
+  color: #101512;
+}
