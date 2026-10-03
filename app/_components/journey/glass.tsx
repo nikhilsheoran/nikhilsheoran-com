@@ -206,7 +206,7 @@ export function Glass<T extends ElementType = "div">({
   fringe = FRINGE,
   rimPower = 5,
   rimGain = 1.2,
-  bevelGain = 0.95,
+  bevelGain = 0.45,
   coreBlur = 0,
   className,
   style,
@@ -227,7 +227,19 @@ export function Glass<T extends ElementType = "div">({
       setLens((current) =>
         current?.width === width && current.height === height
           ? current
-          : buildLens(width, height, radius, bezel, depth, rimPower, rimGain, bevelGain),
+          : buildLens(
+              width,
+              height,
+              radius,
+              // One material at every size: the rim is at most a third of the
+              // pane's short side, and its depth shrinks with it, so a small
+              // pill bends and fringes in proportion to a large card.
+              Math.min(bezel, Math.min(width, height) * 0.32),
+              depth * Math.min(1, (Math.min(width, height) * 0.32) / bezel),
+              rimPower,
+              rimGain,
+              bevelGain,
+            ),
       );
     };
     measure();

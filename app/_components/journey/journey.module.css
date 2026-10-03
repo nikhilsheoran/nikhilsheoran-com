@@ -134,6 +134,13 @@
   height: min(400px, 50vh);
   mask-image: radial-gradient(ellipse at 0% 100%, #000 40%, transparent 88%);
 }
+.hazeTopRight {
+  top: 0;
+  right: 0;
+  width: min(520px, 56vw);
+  height: min(280px, 36vh);
+  mask-image: radial-gradient(ellipse at 100% 0%, #000 30%, transparent 85%);
+}
 .hazeBottomRight {
   bottom: 0;
   right: 0;
@@ -170,8 +177,8 @@
   -webkit-backdrop-filter: blur(2px) saturate(1.28);
   box-shadow:
     0 17px 32px -13px rgb(20 18 12 / 0.44),
-    inset 0 1.5px 1px rgb(255 255 255 / 0.34),
-    inset 0 -2px 4px rgb(0 0 0 / 0.08);
+    inset 0 1px 0.5px rgb(255 255 255 / 0.3),
+    inset 0 -1px 0.5px rgb(0 0 0 / 0.06);
   color: var(--ink);
   text-shadow:
     0 1px 2px rgb(0 0 0 / 0.4),
@@ -271,6 +278,34 @@ button.glass:active {
   color: var(--ink-soft);
 }
 
+/* Age clock, top right: a small label above a live readout. */
+.clock {
+  position: absolute;
+  top: var(--edge);
+  right: var(--edge);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--gap);
+}
+.age {
+  display: flex;
+  align-items: center;
+  height: var(--control);
+  margin: 0;
+  padding: 0 20px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.unit {
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
 /* Dock, bottom left: the work being read above a tab bar of years. */
 .dock {
   position: absolute;
@@ -306,10 +341,15 @@ button.glass:active {
   gap: 16px;
   min-height: 76px;
   padding: 24px 16px 26px 24px;
+  /* Height is set from the words' measured size and eases between works. */
+  transition:
+    height 0.5s cubic-bezier(0.3, 1.15, 0.4, 1),
+    transform 0.18s ease;
 }
 .words {
   flex: 1;
   min-width: 0;
+  align-self: flex-start;
 }
 .now h1 {
   margin: 0 0 5px;
@@ -357,12 +397,12 @@ button.glass:active {
    edge goes first and the trailing edge catches up. */
 .tabs {
   --radius: 26px;
-  /* Full width of the card above; each year takes an equal share. */
-  --tab: calc((100% - 10px) / var(--count));
-  align-self: stretch;
+  /* Narrower than the card above, and centred under it. */
+  --tab: 72px;
+  align-self: center;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--count), 1fr);
+  grid-template-columns: repeat(var(--count), var(--tab));
   height: 52px;
   padding: 5px;
 }
@@ -618,6 +658,9 @@ button.glass:active {
   }
   .now h1 {
     font-size: 24px;
+  }
+  .tabs {
+    --tab: 58px;
   }
   .tabs button {
     font-size: 12px;

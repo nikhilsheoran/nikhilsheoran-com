@@ -261,7 +261,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         {uiHidden && (
           <Glass
             as="button"
-            bezel={12}
             className={`${styles.returnButton} ${exitHint ? styles.returnHint : ""}`}
             onClick={backToDesk}
           >
@@ -283,7 +282,6 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         )}
         <Glass
           as="button"
-          bezel={12}
           className={styles.soundButton}
           aria-pressed={soundOn}
           aria-label={soundOn ? "Turn sound off" : "Turn sound on"}

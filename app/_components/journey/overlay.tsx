@@ -1,6 +1,12 @@
 "use client";
 
-import { type CSSProperties, type RefObject, useState } from "react";
+import {
+  type CSSProperties,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { ArrowUpRightIcon, XLogoIcon } from "@phosphor-icons/react";
 import { HANDOFF, INTRO } from "@/lib/journey/timeline";
@@ -34,6 +40,42 @@ function when(date: string | null, year: string) {
   });
 }
 
+/** Top plus bottom padding of the story card (see .now). */
+const CARD_PADDING = 50;
+
+/** Born 22 February 2006 (local time). */
+const BORN = new Date(2006, 1, 22).getTime();
+const YEAR_MS = 365.2425 * 24 * 60 * 60 * 1000;
+
+/** Top right: a small label and a live age, to nine decimal places. */
+function AgeClock() {
+  const digits = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    let frame = 0;
+    const tick = () => {
+      if (digits.current)
+        digits.current.textContent = (
+          (performance.timeOrigin + performance.now() - BORN) /
+          YEAR_MS
+        ).toFixed(9);
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return (
+    <div className={styles.clock}>
+      <Glass as="p" className={styles.tag}>
+        Age clock
+      </Glass>
+      <Glass as="p" className={styles.age} aria-label="My age in years">
+        <span ref={digits}>20.000000000</span>
+        <span className={styles.unit}>years</span>
+      </Glass>
+    </div>
+  );
+}
+
 /**
  * The glass layer, arranged the way Apple floats controls: small capsules and
  * circles around the edges and along the bottom centre. A "now playing" bar
@@ -63,6 +105,17 @@ export function Overlay({
   if (activeYear !== travel.year)
     setTravel({ year: activeYear, forward: activeYear > travel.year });
   const forward = travel.forward;
+  // The card eases its height to fit each work's words instead of jumping:
+  // measure the words, then let CSS transition the card to that height.
+  const [cardHeight, setCardHeight] = useState(0);
+  const measureWords = (node: HTMLDivElement | null) => {
+    if (!node) return;
+    const fit = () => setCardHeight(node.offsetHeight + CARD_PADDING);
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(node);
+    return () => observer.disconnect();
+  };
   return (
     <div
       data-journey-ui
@@ -74,6 +127,7 @@ export function Overlay({
       <div className={`${styles.haze} ${styles.hazeTopLeft}`} style={HAZE} aria-hidden />
       <div className={`${styles.haze} ${styles.hazeBottomLeft}`} style={HAZE} aria-hidden />
       <div className={`${styles.haze} ${styles.hazeBottomRight}`} style={HAZE} aria-hidden />
+      <div className={`${styles.haze} ${styles.hazeTopRight}`} style={HAZE} aria-hidden />
 
       <header className={styles.identity}>
         <div className={styles.identityRow}>
@@ -91,27 +145,28 @@ export function Overlay({
                 rel="noopener noreferrer"
                 aria-label={`${label} (opens in a new tab)`}
                 title={label}
-                bezel={14}
               >
                 <Icon size={18} />
               </Glass>
             ))}
           </nav>
         </div>
-        <Glass as="p" className={`${styles.tagline} ${styles.pool}`} bezel={16}>
-          I’m 20, I love tech and my dream is to produce a movie someday.
+        <Glass as="p" className={`${styles.tagline} ${styles.pool}`}>
+          I love playing with tech, and my dream is to produce a movie someday.
         </Glass>
       </header>
 
+      <AgeClock />
+
       <div className={styles.dock}>
         <div className={styles.tags}>
-          <Glass as="p" className={styles.tag} bezel={12}>
+          <Glass as="p" className={styles.tag}>
             <span key={chapter} className={styles.swap}>
               {work ? when(work.date, work.year) : "Hello, I’m Nikhil."}
             </span>
           </Glass>
           {work && (
-            <Glass as="p" className={styles.tag} bezel={12}>
+            <Glass as="p" className={styles.tag}>
               <span key={work.age} className={styles.swap}>
                 Age {work.age}
               </span>
@@ -123,8 +178,13 @@ export function Overlay({
             as="section"
             className={`${styles.now} ${styles.pool}`}
             aria-live="polite"
+            style={cardHeight ? { height: cardHeight } : undefined}
           >
-            <div key={chapter} className={`${styles.words} ${styles.swap}`}>
+            <div
+              key={chapter}
+              ref={measureWords}
+              className={`${styles.words} ${styles.swap}`}
+            >
               <h1>{work ? work.title : "I wanted to fly planes."}</h1>
               <p className={styles.line}>
                 {work
@@ -141,7 +201,6 @@ export function Overlay({
                 rel="noopener noreferrer"
                 aria-label={`${ACTION_LABEL[work.kind]} (opens in a new tab)`}
                 title={ACTION_LABEL[work.kind]}
-                bezel={14}
               >
                 <ArrowUpRightIcon size={18} weight="bold" />
               </Glass>
