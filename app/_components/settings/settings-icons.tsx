@@ -1,314 +1,161 @@
 "use client";
 
 import Image from "next/image";
+import {
+  AddressBookIcon,
+  AppStoreLogoIcon,
+  AppleLogoIcon,
+  ArrowsClockwiseIcon,
+  BluetoothIcon,
+  CalendarBlankIcon,
+  ChatCircleIcon,
+  ClockIcon,
+  CloudIcon,
+  CompassIcon,
+  CreditCardIcon,
+  CrosshairIcon,
+  EnvelopeSimpleIcon,
+  FlowerIcon,
+  GameControllerIcon,
+  GearSixIcon,
+  GlobeIcon,
+  HardDriveIcon,
+  HouseIcon,
+  InfoIcon,
+  KeyIcon,
+  ListChecksIcon,
+  LockIcon,
+  MusicNoteIcon,
+  NoteIcon,
+  PersonArmsSpreadIcon,
+  PhoneIcon,
+  ScribbleIcon,
+  ShieldCheckIcon,
+  TelevisionSimpleIcon,
+  TranslateIcon,
+  UserIcon,
+  WaveformIcon,
+  WifiHighIcon,
+} from "@phosphor-icons/react";
+
 import type { IconKey } from "@/lib/settings-data";
 
 // ---------------------------------------------------------------------------
-// SVG icons
+// Glyphs for the coloured tiles, from Phosphor so they are one consistent set.
 // ---------------------------------------------------------------------------
 export function IconWifi() {
-  return (
-    <svg width="14" height="12" viewBox="0 0 14 12" fill="none" aria-hidden>
-      <path d="M7 9.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z" fill="white" />
-      <path d="M4.3 7.6a3.8 3.8 0 0 1 5.4 0" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-      <path d="M1.6 5a7.2 7.2 0 0 1 10.8 0" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
+  return <WifiHighIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconBluetooth() {
-  return (
-    <svg width="10" height="14" viewBox="0 0 10 14" fill="none" aria-hidden>
-      <path d="M2 3.5L8 8 5 11V1l3 3.5L2 9.5" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <BluetoothIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconGear() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-      <circle cx="6.5" cy="6.5" r="2" stroke="white" strokeWidth="1.2" />
-      <path d="M6.5 1v1.2M6.5 10.8V12M1 6.5h1.2M10.8 6.5H12M2.6 2.6l.85.85M9.55 9.55l.85.85M9.55 3.45l-.85.85M3.45 9.55l-.85.85" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
+  return <GearSixIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconAccessibility() {
-  return (
-    <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden>
-      <circle cx="6" cy="2" r="1.3" fill="white" />
-      <path d="M1 4.5h10" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M6 4.5V8.5M4 13l2-4.5 2 4.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <PersonArmsSpreadIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconInfo() {
-  return (
-    <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden>
-      <circle cx="6" cy="3" r="1.1" fill="white" />
-      <path d="M6 6v5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
+  return <InfoIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconPerson() {
-  return (
-    <svg width="13" height="14" viewBox="0 0 13 14" fill="none" aria-hidden>
-      <circle cx="6.5" cy="4" r="2.2" stroke="white" strokeWidth="1.2" />
-      <path d="M1 13c.7-2.8 2.9-4.5 5.5-4.5S11.3 10.2 12 13" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
+  return <UserIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconShield() {
-  return (
-    <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden>
-      <path d="M6 1.2L11 3v4c0 3-2.5 5-5 5.8C3.5 12 1 10 1 7V3l5-1.8Z" stroke="white" strokeWidth="1.2" strokeLinejoin="round" />
-    </svg>
-  );
+  return <ShieldCheckIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconCard() {
-  return (
-    <svg width="14" height="11" viewBox="0 0 14 11" fill="none" aria-hidden>
-      <rect x="1" y="1.5" width="12" height="8" rx="1.5" stroke="white" strokeWidth="1.2" />
-      <path d="M1 4.5h12" stroke="white" strokeWidth="1.2" />
-      <path d="M3 7.5h3" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
+  return <CreditCardIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconCloud() {
-  return (
-    <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden>
-      <path d="M4 9.5A2.8 2.8 0 0 1 2.4 4.2a3.7 3.7 0 0 1 7.2-1A3.2 3.2 0 0 1 11.4 9.5H4Z" stroke="white" strokeWidth="1.2" strokeLinejoin="round" />
-    </svg>
-  );
+  return <CloudIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconStore() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-      <path d="M1.5 5.5V11a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M0.5 3l1 2.5h10L12.5 3H0.5Z" stroke="white" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M4.5 5.5v1a2 2 0 0 1-4 0v-1M8.5 5.5v1a2 2 0 0 1-4 0v-1M12.5 5.5v1a2 2 0 0 1-4 0v-1" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
+  return <AppStoreLogoIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconApple() {
-  return (
-    <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden>
-      <path d="M9.8 7.4c0-2 1.6-2.9 1.7-3-0.9-1.4-2.4-1.5-2.9-1.6-1.3-.1-2.4.7-3.1.7-.6 0-1.6-.7-2.7-.7C1.3 2.9 0 4.2 0 6.7c0 1.5.6 3.1 1.3 4.2.7.9 1.3 1.8 2.2 1.8.9 0 1.2-.6 2.3-.6 1.1 0 1.4.6 2.3.6.9 0 1.6-.9 2.2-1.8.3-.4.5-.9.7-1.4-1.6-.7-1.9-2.7-1.2-3.7-.1.6-0.0.1 0 0" fill="white" />
-      <path d="M7.5 1C7.6.3 8.3-.2 9 0c.1.8-.7 1.6-1.5 1.5C7.5 1.3 7.5 1.1 7.5 1Z" fill="white" />
-    </svg>
-  );
+  return <AppleLogoIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconNetwork() {
-  return (
-    <svg width="14" height="12" viewBox="0 0 14 12" fill="none" aria-hidden>
-      <circle cx="7" cy="6" r="1.3" stroke="white" strokeWidth="1.1" />
-      <circle cx="1.5" cy="6" r="1.3" stroke="white" strokeWidth="1.1" />
-      <circle cx="12.5" cy="6" r="1.3" stroke="white" strokeWidth="1.1" />
-      <path d="M2.8 6h2.9M8.3 6h2.9" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
+  return <GlobeIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconStorage() {
-  return (
-    <svg width="14" height="12" viewBox="0 0 14 12" fill="none" aria-hidden>
-      <rect x="1" y="2" width="12" height="4" rx="1.5" stroke="white" strokeWidth="1.1" />
-      <rect x="1" y="7.5" width="12" height="2.5" rx="1.2" stroke="white" strokeWidth="1.1" />
-      <circle cx="11" cy="4" r="0.8" fill="white" />
-      <circle cx="11" cy="8.75" r="0.8" fill="white" />
-    </svg>
-  );
+  return <HardDriveIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconDate() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-      <rect x="1" y="2.5" width="11" height="9" rx="1.5" stroke="white" strokeWidth="1.1" />
-      <path d="M1 5.5h11" stroke="white" strokeWidth="1.1" />
-      <path d="M4.2 1v2.5M8.8 1v2.5" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-      <path d="M4 8l1.5 1.5L9 7" stroke="white" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <ClockIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconLanguage() {
-  return (
-    <svg width="14" height="13" viewBox="0 0 14 13" fill="none" aria-hidden>
-      <path d="M2 3h5M4.5 1.5v1.5M1 3c.5 2 2 3.5 4.5 4.5" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-      <path d="M3 5.5c.5 1 1.5 2 2.5 2.5" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-      <path d="M7.5 9.5l2-6 2 6M8.2 7.5h2.6" stroke="white" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <TranslateIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconSoftwareUpdate() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-      <circle cx="6.5" cy="6.5" r="5.5" stroke="white" strokeWidth="1.1" />
-      <path d="M6.5 3.5v4M4.5 6l2 2 2-2" stroke="white" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <ArrowsClockwiseIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 
 // ---------------------------------------------------------------------------
 // iCloud service icons
 // ---------------------------------------------------------------------------
 export function IconPhotos() {
-  return (
-    <svg width="14" height="13" viewBox="0 0 14 13" fill="none" aria-hidden>
-      <circle cx="4" cy="4" r="2" fill="white" opacity="0.9" />
-      <circle cx="10" cy="4" r="2" fill="white" opacity="0.7" />
-      <circle cx="4" cy="9.5" r="2" fill="white" opacity="0.5" />
-      <circle cx="10" cy="9.5" r="2" fill="white" opacity="0.85" />
-    </svg>
-  );
+  return <FlowerIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconMail() {
-  return (
-    <svg width="14" height="11" viewBox="0 0 14 11" fill="none" aria-hidden>
-      <rect x="1" y="1" width="12" height="9" rx="1.5" stroke="white" strokeWidth="1.2" />
-      <path d="M1 2.5l6 4.5 6-4.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <EnvelopeSimpleIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconContacts() {
-  return (
-    <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden>
-      <circle cx="6" cy="5" r="2.2" stroke="white" strokeWidth="1.2" />
-      <path d="M1 13c.7-2.8 2.7-4.5 5-4.5S10.3 10.2 11 13" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M11.5 4v2.5M13 5.25h-3" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
+  return <AddressBookIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconCalendar() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-      <rect x="1" y="2.5" width="11" height="9" rx="1.5" stroke="white" strokeWidth="1.1" />
-      <path d="M1 5.5h11" stroke="white" strokeWidth="1.1" />
-      <path d="M4.2 1v2.5M8.8 1v2.5" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-      <text x="4.2" y="10.5" fill="white" fontSize="4.5" fontWeight="700" fontFamily="system-ui">7</text>
-    </svg>
-  );
+  return <CalendarBlankIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconReminders() {
-  return (
-    <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden>
-      <path d="M2 2.5h8a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z" stroke="white" strokeWidth="1.1" />
-      <circle cx="3.5" cy="6" r="0.9" fill="white" />
-      <circle cx="3.5" cy="9" r="0.9" fill="white" />
-      <path d="M5.5 6h4M5.5 9h4" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
+  return <ListChecksIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconSafari() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-      <circle cx="6.5" cy="6.5" r="5.5" stroke="white" strokeWidth="1.1" />
-      <path d="M6.5 1v1.5M6.5 10v1.5M1 6.5h1.5M10 6.5h1.5" stroke="white" strokeWidth="1" strokeLinecap="round" />
-      <path d="M8.5 4.5L5.5 7.5M5.5 4.5l1.5 1.5" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
+  return <CompassIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconNotes() {
-  return (
-    <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden>
-      <rect x="1" y="1" width="10" height="12" rx="1.5" stroke="white" strokeWidth="1.1" />
-      <path d="M3.5 4.5h5M3.5 7h5M3.5 9.5h3" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
+  return <NoteIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconMessages() {
-  return (
-    <svg width="14" height="13" viewBox="0 0 14 13" fill="none" aria-hidden>
-      <path d="M1 1.5h12a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H4L1 12.5V2a.5.5 0 0 1 0 0Z" stroke="white" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M4.5 5.5h5M4.5 7.5h3" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
+  return <ChatCircleIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconFindMy() {
-  return (
-    <svg width="13" height="14" viewBox="0 0 13 14" fill="none" aria-hidden>
-      <circle cx="6.5" cy="6.5" r="5.5" stroke="white" strokeWidth="1.1" />
-      <circle cx="6.5" cy="6.5" r="2" fill="white" opacity="0.6" />
-      <circle cx="6.5" cy="6.5" r="0.8" fill="white" />
-    </svg>
-  );
+  return <CrosshairIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconSiri() {
-  return (
-    <svg width="14" height="12" viewBox="0 0 14 12" fill="none" aria-hidden>
-      <path d="M1 6c0-3 1.5-5 3-5s2.5 1.5 3 4c.5 2.5 1.5 4 3 4s3-2 3-5" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
+  return <WaveformIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 export function IconHome() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-      <path d="M1.5 6L6.5 1.5 11.5 6V12h-3.5V9h-2v3H1.5V6Z" stroke="white" strokeWidth="1.2" strokeLinejoin="round" />
-    </svg>
-  );
+  return <HouseIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconFreeform() {
-  return (
-    <svg width="14" height="13" viewBox="0 0 14 13" fill="none" aria-hidden>
-      <path d="M2 10C2 7 5 2 7 2s3 3 3 6-1 4-2 4-3-2-3-5" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M7 2c2 0 5 3 5 6" stroke="white" strokeWidth="1.1" strokeLinecap="round" opacity="0.6" />
-    </svg>
-  );
+  return <ScribbleIcon size={15} weight="bold" color="#fff" aria-hidden />;
 }
 
 // ---------------------------------------------------------------------------
 // SVG icons — security
 // ---------------------------------------------------------------------------
 export function IconPhone() {
-  return (
-    <svg width="11" height="14" viewBox="0 0 11 14" fill="none" aria-hidden>
-      <path d="M2 1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1Z" stroke="white" strokeWidth="1.2" />
-      <circle cx="5.5" cy="11.5" r="0.8" fill="white" />
-    </svg>
-  );
+  return <PhoneIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconLock() {
-  return (
-    <svg width="11" height="14" viewBox="0 0 11 14" fill="none" aria-hidden>
-      <rect x="1" y="6" width="9" height="7" rx="1.5" stroke="white" strokeWidth="1.2" />
-      <path d="M3 6V4.5a2.5 2.5 0 0 1 5 0V6" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-      <circle cx="5.5" cy="9.5" r="1" fill="white" />
-    </svg>
-  );
+  return <LockIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconKey() {
-  return (
-    <svg width="14" height="12" viewBox="0 0 14 12" fill="none" aria-hidden>
-      <circle cx="4.5" cy="6" r="3.5" stroke="white" strokeWidth="1.2" />
-      <path d="M7.5 6h6M11 6v2M13 6v1.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
+  return <KeyIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 
 // ---------------------------------------------------------------------------
 // SVG icons — Media & Purchases
 // ---------------------------------------------------------------------------
 export function IconAppleMusic() {
-  return (
-    <svg width="13" height="14" viewBox="0 0 13 14" fill="none" aria-hidden>
-      <path d="M12 1.5L5 3.5v7.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M5 3.5l7-2" stroke="white" strokeWidth="1.1" strokeLinecap="round" />
-      <circle cx="3.5" cy="11" r="1.8" stroke="white" strokeWidth="1.1" />
-      <circle cx="10.5" cy="9" r="1.8" stroke="white" strokeWidth="1.1" />
-    </svg>
-  );
+  return <MusicNoteIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconAppleTV() {
-  return (
-    <svg width="14" height="11" viewBox="0 0 14 11" fill="none" aria-hidden>
-      <rect x="1" y="1" width="12" height="8" rx="1.5" stroke="white" strokeWidth="1.2" />
-      <path d="M5 5.5l3-2v4l-3-2Z" fill="white" />
-    </svg>
-  );
+  return <TelevisionSimpleIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 export function IconArcade() {
-  return (
-    <svg width="14" height="12" viewBox="0 0 14 12" fill="none" aria-hidden>
-      <rect x="1" y="2.5" width="12" height="8" rx="2" stroke="white" strokeWidth="1.2" />
-      <path d="M5 5.5v2M4 6.5h2" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-      <circle cx="9.5" cy="6.5" r="0.9" fill="white" />
-      <circle cx="11" cy="5.5" r="0.7" fill="white" opacity="0.6" />
-    </svg>
-  );
+  return <GameControllerIcon size={15} weight="fill" color="#fff" aria-hidden />;
 }
 
 // ---------------------------------------------------------------------------

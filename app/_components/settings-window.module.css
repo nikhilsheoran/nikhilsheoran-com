@@ -183,17 +183,17 @@
 /* ========== Icon badges — liquid glass style ========== */
 
 .iconBadge {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   background: linear-gradient(160deg, #9d9d9d 0%, #7d7d7d 100%);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  box-shadow: 
+    0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0.5px 0 rgb(255 255 255 / 0.35);
   position: relative;
 }
 
@@ -209,9 +209,9 @@
 
 /* Large badge variant */
 .iconBadgeLg {
-  width: 54px;
-  height: 54px;
-  border-radius: 14px;
+  width: 60px;
+  height: 60px;
+  border-radius: 15px;
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.22),
     inset 0 1.5px 0 rgba(255, 255, 255, 0.36);
@@ -223,6 +223,7 @@
 
 /* ── Blue — networking / system ── */
 .iconBadge_wifi,
+.iconBadge_cloud,
 .iconBadge_bluetooth,
 .iconBadge_network,
 .iconBadge_accessibility,
@@ -231,7 +232,7 @@
 .iconBadge_softwareupdate,
 .iconBadge_safari,
 .iconBadge_findmy {
-  background: linear-gradient(160deg, #4cb8ff 0%, #0d72dc 100%);
+  background: linear-gradient(180deg, #3aa0ff 0%, #0a7aff 100%);
 }
 
 /* ── Gray — general system ── */
@@ -244,15 +245,14 @@
 .iconBadge_lock,
 .iconBadge_key,
 .iconBadge_contacts {
-  background: linear-gradient(160deg, #a8adb6 0%, #81858f 100%);
+  background: linear-gradient(180deg, #a3a3a8 0%, #8e8e93 100%);
 }
 
 /* ── Green — iCloud / cloud ── */
-.iconBadge_cloud,
 .iconBadge_reminders,
 .iconBadge_home,
 .iconBadge_phone {
-  background: linear-gradient(160deg, #72cf6a 0%, #30a243 100%);
+  background: linear-gradient(180deg, #5bd96a 0%, #34c759 100%);
 }
 
 /* ── Teal — store / freeform ── */
