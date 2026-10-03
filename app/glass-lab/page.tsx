@@ -1,172 +1,160 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import {
+  type CSSProperties,
+  type PointerEvent,
+  type ReactNode,
+  useState,
+} from "react";
 import { ArrowUpRightIcon, XLogoIcon } from "@phosphor-icons/react";
 import { Glass } from "@/app/_components/journey/glass";
 import { journeySerif } from "@/app/_components/journey/fonts";
 import styles from "./lab.module.css";
 
 /**
- * Material lab: the same four elements in a set of liquid-glass recipes, over
- * the room. Pick a letter; that recipe becomes the site's glass. Chromium only
- * (the lens needs backdrop-filter: url()).
+ * Glass lab, round three. The material is fixed (recipe 2, "Halfway": a clear
+ * pane with a deep refracting rim). Each section varies one thing so it can be
+ * judged on its own: text contrast, hover, press, corner radius, text layout.
+ * Chromium only (the lens needs backdrop-filter: url()).
  */
-interface Recipe {
-  id: string;
-  name: string;
-  note: string;
-  lens: {
-    bezel: number;
-    depth: number;
-    blur: number;
-    saturate: number;
-    fringe: number;
-    rimPower: number;
-    rimGain: number;
-    bevelGain: number;
-  };
-  vars: Record<string, string>;
-}
-
-const WHITE_TEXT = {
+const LENS = {
+  bezel: 26,
+  depth: 57,
+  blur: 0.35,
+  saturate: 1.28,
+  fringe: 0.095,
+  rimPower: 5,
+  rimGain: 1.2,
+  bevelGain: 0.95,
+};
+const VARS = {
   "--ink": "#fff",
   "--ink-soft": "rgb(255 255 255 / 0.86)",
   "--ink-muted": "rgb(255 255 255 / 0.62)",
   "--go-ink": "#121512",
   "--glass-text-shadow": "0 1px 2px rgb(0 0 0 / 0.4), 0 0 14px rgb(0 0 0 / 0.28)",
-};
-const SOFT_SHADOW =
-  "0 16px 36px -14px rgb(30 26 18 / 0.36), 0 4px 10px -4px rgb(30 26 18 / 0.16)";
-
-const CLEAR = (shadow: string, tint = 0.03): Record<string, string> => ({
-  ...WHITE_TEXT,
-  "--glass-top": `rgb(255 255 255 / ${tint + 0.02})`,
-  "--glass-bottom": `rgb(255 255 255 / ${tint})`,
-  "--glass-shadow": shadow,
-});
-const FLAT = `${SOFT_SHADOW}, inset 0 0 0 0.5px rgb(255 255 255 / 0.18)`;
-const DROP =
-  "0 18px 30px -12px rgb(20 18 12 / 0.5), inset 0 2px 1px rgb(255 255 255 / 0.5), inset 0 -3px 6px rgb(0 0 0 / 0.14)";
-const HALF =
-  "0 17px 32px -13px rgb(20 18 12 / 0.44), inset 0 1.5px 1px rgb(255 255 255 / 0.34), inset 0 -2px 4px rgb(0 0 0 / 0.08)";
-
-const RECIPES: Recipe[] = [
-  {
-    id: "A",
-    name: "Clear lens (reference)",
-    note: "No frost, no tint; a thin bending rim.",
-    lens: { bezel: 22, depth: 44, blur: 0.4, saturate: 1.2, fringe: 0.05, rimPower: 6, rimGain: 1, bevelGain: 0.6 },
-    vars: { ...CLEAR(FLAT), "--glass-rim": "0.7" },
-  },
-  {
-    id: "F",
-    name: "Water drop (reference)",
-    note: "Very deep bezel, strong magnifying rim, colour fringe.",
-    lens: { bezel: 30, depth: 70, blur: 0.3, saturate: 1.35, fringe: 0.14, rimPower: 4, rimGain: 1.4, bevelGain: 1.3 },
-    vars: CLEAR(DROP),
-  },
-  {
-    id: "1",
-    name: "A leaning to F",
-    note: "A, with a slightly deeper rim and a touch more fringe.",
-    lens: { bezel: 24, depth: 50, blur: 0.4, saturate: 1.25, fringe: 0.07, rimPower: 5.5, rimGain: 1.1, bevelGain: 0.8 },
-    vars: { ...CLEAR(FLAT), "--glass-rim": "0.8" },
-  },
-  {
-    id: "2",
-    name: "Halfway",
-    note: "Even blend of A and F.",
-    lens: { bezel: 26, depth: 57, blur: 0.35, saturate: 1.28, fringe: 0.095, rimPower: 5, rimGain: 1.2, bevelGain: 0.95 },
-    vars: CLEAR(HALF),
-  },
-  {
-    id: "3",
-    name: "F leaning to A",
-    note: "F, a little shallower and calmer.",
-    lens: { bezel: 28, depth: 64, blur: 0.3, saturate: 1.32, fringe: 0.12, rimPower: 4.5, rimGain: 1.3, bevelGain: 1.15 },
-    vars: CLEAR(DROP),
-  },
-  {
-    id: "4",
-    name: "A body, F rim",
-    note: "A's flat clear pane with F's bright, fringed rim.",
-    lens: { bezel: 22, depth: 48, blur: 0.4, saturate: 1.25, fringe: 0.14, rimPower: 4, rimGain: 1.4, bevelGain: 0.7 },
-    vars: CLEAR(FLAT),
-  },
-  {
-    id: "5",
-    name: "F depth, no rainbow",
-    note: "F's deep magnifying bezel with A's faint fringe.",
-    lens: { bezel: 30, depth: 70, blur: 0.3, saturate: 1.3, fringe: 0.03, rimPower: 5, rimGain: 1.1, bevelGain: 1.1 },
-    vars: CLEAR(DROP),
-  },
-  {
-    id: "6",
-    name: "Halfway, dimmed",
-    note: "Blend 2 with a faint smoke so white text always reads.",
-    lens: { bezel: 26, depth: 57, blur: 0.5, saturate: 1.28, fringe: 0.095, rimPower: 5, rimGain: 1.2, bevelGain: 0.95 },
-    vars: {
-      ...CLEAR(HALF),
-      "--glass-top": "rgb(30 32 36 / 0.14)",
-      "--glass-bottom": "rgb(22 24 28 / 0.24)",
-    },
-  },
-  {
-    id: "7",
-    name: "Wide soft bezel",
-    note: "A broad, gentle bending band instead of a tight one.",
-    lens: { bezel: 36, depth: 54, blur: 0.35, saturate: 1.28, fringe: 0.08, rimPower: 5, rimGain: 1.1, bevelGain: 0.9 },
-    vars: CLEAR(HALF),
-  },
-  {
-    id: "8",
-    name: "Halfway, wet rim",
-    note: "Blend 2 with longer, brighter specular arcs.",
-    lens: { bezel: 26, depth: 57, blur: 0.35, saturate: 1.3, fringe: 0.1, rimPower: 2.6, rimGain: 1.7, bevelGain: 1.2 },
-    vars: CLEAR(DROP),
-  },
-];
-
-/** Years as a tab bar. The selection slides: its leading edge goes first and
- * the trailing edge catches up, so the pill stretches like liquid, then settles. */
-function Tabs({
-  recipe,
-  style,
-}: {
-  recipe: Recipe;
-  style: CSSProperties;
-}) {
-  const [year, setYear] = useState(2);
-  const [forward, setForward] = useState(true);
-  return (
-    <Glass
-      className={styles.tabs}
-      style={{ ...style, "--i": year } as CSSProperties}
-      data-forward={forward}
-      {...recipe.lens}
-    >
-      <span className={styles.selection} aria-hidden />
-      {[2022, 2023, 2024, 2025, 2026].map((y, index) => (
-        <button
-          key={y}
-          aria-current={year === index ? "step" : undefined}
-          onClick={() => {
-            setForward(index > year);
-            setYear(index);
-          }}
-        >
-          {y}
-        </button>
-      ))}
-    </Glass>
-  );
-}
+  "--glass-top": "rgb(255 255 255 / 0.05)",
+  "--glass-bottom": "rgb(255 255 255 / 0.03)",
+  "--glass-shadow":
+    "0 17px 32px -13px rgb(20 18 12 / 0.44), inset 0 1.5px 1px rgb(255 255 255 / 0.34), inset 0 -2px 4px rgb(0 0 0 / 0.08)",
+} as CSSProperties;
 
 const BACKDROPS = [
   ["Room", "/journey/lab-room.jpg"],
   ["Tweet (dark)", "/journey/works/first-dollar.jpg"],
   ["Thumbnail (colour)", "/journey/works/first-video.jpg"],
 ] as const;
+
+function Words({ align = "left" }: { align?: "left" | "center" }) {
+  return (
+    <div style={{ textAlign: align, flex: 1 }}>
+      <p className={styles.when}>October 2024, age 18</p>
+      <h2>A hackathon, won</h2>
+      <p className={styles.line}>
+        We won it, and I ended up demoing our project to the Director General
+        of Police.
+      </p>
+    </div>
+  );
+}
+const Go = () => (
+  <span className={styles.go}>
+    <ArrowUpRightIcon size={18} weight="bold" />
+  </span>
+);
+
+function Cell({ id, name, note, children }: { id: string; name: string; note: string; children: ReactNode }) {
+  return (
+    <section className={styles.cell}>
+      <p className={styles.label}>
+        <b>{id}</b> {name}
+        <span>{note}</span>
+      </p>
+      {children}
+    </section>
+  );
+}
+
+/** Click effects that need the pointer position or a one-shot animation. */
+function press(kind: string, event: PointerEvent<HTMLElement>) {
+  const node = event.currentTarget;
+  if (kind === "jelly") {
+    node.animate(
+      [
+        { transform: "scale(1)" },
+        { transform: "scale(1.07, 0.9)", offset: 0.25 },
+        { transform: "scale(0.95, 1.06)", offset: 0.5 },
+        { transform: "scale(1.02, 0.98)", offset: 0.75 },
+        { transform: "scale(1)" },
+      ],
+      { duration: 560, easing: "ease-out" },
+    );
+    return;
+  }
+  if (kind !== "ripple" && kind !== "flash") return;
+  const box = node.getBoundingClientRect();
+  const layer = document.createElement("span");
+  layer.className = styles.fx;
+  const mark = document.createElement("span");
+  mark.className = kind === "ripple" ? styles.ripple : styles.flash;
+  mark.style.left = `${event.clientX - box.left}px`;
+  mark.style.top = `${event.clientY - box.top}px`;
+  layer.append(mark);
+  node.append(layer);
+  mark.addEventListener("animationend", () => layer.remove());
+}
+
+const CONTRAST = [
+  { id: "C1", name: "Nothing", note: "The bare material.", core: 0, extra: {} },
+  { id: "C2", name: "Soft centre blur", note: "Interior blurred 5px; rim stays sharp.", core: 5, extra: {} },
+  { id: "C3", name: "Strong centre blur", note: "Interior blurred 11px; rim stays sharp.", core: 11, extra: {} },
+  {
+    id: "C4",
+    name: "Shadow pool",
+    note: "A soft dark pool behind the text, no blur.",
+    core: 0,
+    extra: { "--pool": "0.34" },
+  },
+  {
+    id: "C5",
+    name: "Blur + faint pool",
+    note: "Centre blur 5px with a light pool.",
+    core: 5,
+    extra: { "--pool": "0.18" },
+  },
+  {
+    id: "C6",
+    name: "Smoke tint",
+    note: "The whole pane very slightly dimmed.",
+    core: 0,
+    extra: { "--glass-top": "rgb(30 32 36 / 0.16)", "--glass-bottom": "rgb(22 24 28 / 0.26)" },
+  },
+];
+
+const HOVER = [
+  { id: "H1", name: "Lift", note: "Rises, shadow deepens, rim turns to the pointer.", cls: "" },
+  { id: "H2", name: "Tilt", note: "Leans toward the pointer in 3D.", cls: styles.hTilt },
+  { id: "H3", name: "Magnify", note: "Grows, like a lens coming closer.", cls: styles.hGrow },
+  { id: "H4", name: "Sheen", note: "A band of light sweeps across.", cls: styles.hSheen },
+  { id: "H5", name: "Rim only", note: "No movement; just the rim catching light.", cls: styles.hRim },
+  { id: "H6", name: "Magnetic", note: "Drifts a few pixels toward the pointer.", cls: styles.hMagnet },
+];
+
+const PRESS = [
+  { id: "P1", name: "Squish", note: "Shrinks a little, springs back.", cls: styles.pSquish, fx: "" },
+  { id: "P2", name: "Deep press", note: "Sinks further and darkens.", cls: styles.pDeep, fx: "" },
+  { id: "P3", name: "Jelly", note: "Wobbles wide, then tall, then settles.", cls: styles.pNone, fx: "jelly" },
+  { id: "P4", name: "Ripple", note: "A ring spreads from where you pressed.", cls: styles.pSquish, fx: "ripple" },
+  { id: "P5", name: "Flash", note: "A brief bloom of light under the finger.", cls: styles.pSquish, fx: "flash" },
+];
+
+const RADII = [
+  { id: "R1", name: "Capsule", note: "Fully round ends.", radius: 999 },
+  { id: "R2", name: "32", note: "Large, soft corners.", radius: 32 },
+  { id: "R3", name: "24", note: "Medium corners.", radius: 24 },
+  { id: "R4", name: "16", note: "Tighter corners.", radius: 16 },
+  { id: "R5", name: "10", note: "Nearly square.", radius: 10 },
+];
 
 export default function GlassLab() {
   const [backdrop, setBackdrop] = useState(0);
@@ -177,55 +165,178 @@ export default function GlassLab() {
     >
       <div className={styles.switcher}>
         {BACKDROPS.map(([label], index) => (
-          <button
-            key={label}
-            aria-pressed={backdrop === index}
-            onClick={() => setBackdrop(index)}
-          >
+          <button key={label} aria-pressed={backdrop === index} onClick={() => setBackdrop(index)}>
             {label}
           </button>
         ))}
       </div>
+
+      <h1 className={styles.heading}>Text contrast: what sits behind the words</h1>
       <div className={styles.grid}>
-        {RECIPES.map((recipe) => {
-          const style = recipe.vars as CSSProperties;
+        {CONTRAST.map(({ id, name, note, core, extra }) => (
+          <Cell key={id} id={id} name={name} note={note}>
+            <Glass
+              className={`${styles.now} ${styles.pool}`}
+              style={{ ...VARS, ...extra } as CSSProperties}
+              {...LENS}
+              coreBlur={core}
+            >
+              <Words />
+              <Go />
+            </Glass>
+          </Cell>
+        ))}
+      </div>
+
+      <h1 className={styles.heading}>Hover: move the pointer over each</h1>
+      <div className={styles.grid}>
+        {HOVER.map(({ id, name, note, cls }) => (
+          <Cell key={id} id={id} name={name} note={note}>
+            <div className={styles.row}>
+              <Glass as="button" className={`${styles.pill} ${cls}`} style={VARS} {...LENS}>
+                Nikhil Sheoran
+              </Glass>
+              <Glass as="button" className={`${styles.circle} ${cls}`} style={VARS} {...LENS} bezel={16}>
+                <XLogoIcon size={18} />
+              </Glass>
+            </div>
+            <Glass as="button" className={`${styles.now} ${styles.asButton} ${cls}`} style={VARS} {...LENS}>
+              <Words />
+              <Go />
+            </Glass>
+          </Cell>
+        ))}
+      </div>
+
+      <h1 className={styles.heading}>Press: click each</h1>
+      <div className={styles.grid}>
+        {PRESS.map(({ id, name, note, cls, fx }) => (
+          <Cell key={id} id={id} name={name} note={note}>
+            <div className={styles.row}>
+              <Glass
+                as="button"
+                className={`${styles.pill} ${cls}`}
+                style={VARS}
+                {...LENS}
+                onPointerDown={(event: PointerEvent<HTMLElement>) => press(fx, event)}
+              >
+                Nikhil Sheoran
+              </Glass>
+              <Glass
+                as="button"
+                className={`${styles.circle} ${cls}`}
+                style={VARS}
+                {...LENS}
+                bezel={16}
+                onPointerDown={(event: PointerEvent<HTMLElement>) => press(fx, event)}
+              >
+                <XLogoIcon size={18} />
+              </Glass>
+            </div>
+            <Glass
+              as="button"
+              className={`${styles.now} ${styles.asButton} ${cls}`}
+              style={VARS}
+              {...LENS}
+              onPointerDown={(event: PointerEvent<HTMLElement>) => press(fx, event)}
+            >
+              <Words />
+              <Go />
+            </Glass>
+          </Cell>
+        ))}
+      </div>
+
+      <h1 className={styles.heading}>Corner radius</h1>
+      <div className={styles.grid}>
+        {RADII.map(({ id, name, note, radius }) => {
+          const style = { ...VARS, "--radius": `${radius}px` } as CSSProperties;
           return (
-            <section key={recipe.id} className={styles.cell}>
-              <p className={styles.label}>
-                <b>{recipe.id}</b> {recipe.name}
-                <span>{recipe.note}</span>
-              </p>
+            <Cell key={id} id={id} name={name} note={note}>
               <div className={styles.row}>
-                <Glass as="button" className={styles.pill} style={style} {...recipe.lens}>
+                <Glass as="button" className={styles.pill} style={style} {...LENS}>
                   Nikhil Sheoran
                 </Glass>
-                <Glass
-                  as="button"
-                  className={styles.circle}
-                  style={style}
-                  {...recipe.lens}
-                  bezel={Math.min(recipe.lens.bezel, 16)}
-                >
+                <Glass as="button" className={styles.circle} style={style} {...LENS} bezel={16}>
                   <XLogoIcon size={18} />
                 </Glass>
               </div>
-              <Glass className={styles.now} style={style} {...recipe.lens}>
-                <div>
-                  <p className={styles.when}>October 2024, age 18</p>
-                  <h2>A hackathon, won</h2>
-                  <p className={styles.line}>
-                    We won it, and I ended up demoing our project to the
-                    Director General of Police.
-                  </p>
-                </div>
-                <span className={styles.go}>
-                  <ArrowUpRightIcon size={18} weight="bold" />
-                </span>
+              <Glass className={styles.now} style={style} {...LENS}>
+                <Words />
+                <Go />
               </Glass>
-              <Tabs recipe={recipe} style={style} />
-            </section>
+            </Cell>
           );
         })}
+      </div>
+
+      <h1 className={styles.heading}>Text layout inside the pane</h1>
+      <div className={styles.grid}>
+        <Cell id="T1" name="Left, action right" note="Date, title, line; arrow at the end.">
+          <Glass className={styles.now} style={VARS} {...LENS}>
+            <Words />
+            <Go />
+          </Glass>
+        </Cell>
+        <Cell id="T2" name="Centred" note="Everything centred, action beneath.">
+          <Glass className={`${styles.now} ${styles.stack}`} style={VARS} {...LENS}>
+            <Words align="center" />
+            <span className={styles.textAction}>
+              Read the post <ArrowUpRightIcon size={13} weight="bold" />
+            </span>
+          </Glass>
+        </Cell>
+        <Cell id="T3" name="Title leads" note="Big title first; date and action on one quiet row.">
+          <Glass className={`${styles.now} ${styles.column}`} style={VARS} {...LENS}>
+            <h2 className={styles.big}>A hackathon, won</h2>
+            <p className={styles.line}>
+              We won it, and I ended up demoing our project to the Director
+              General of Police.
+            </p>
+            <p className={styles.meta}>
+              <span>October 2024, age 18</span>
+              <span className={styles.textAction}>
+                Read the post <ArrowUpRightIcon size={13} weight="bold" />
+              </span>
+            </p>
+          </Glass>
+        </Cell>
+        <Cell id="T4" name="Thumbnail left" note="Artwork, then the words, then the arrow.">
+          <Glass className={styles.now} style={VARS} {...LENS}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Lab sample. */}
+            <img className={styles.art} src="/journey/works/goa-police-hackathon.jpg" alt="" />
+            <Words />
+            <Go />
+          </Glass>
+        </Cell>
+        <Cell id="T5" name="Date as a tag" note="Date floats above as its own small pill.">
+          <Glass as="p" className={styles.tag} style={VARS} {...LENS} bezel={12}>
+            October 2024, age 18
+          </Glass>
+          <Glass className={styles.now} style={VARS} {...LENS}>
+            <div style={{ flex: 1 }}>
+              <h2>A hackathon, won</h2>
+              <p className={styles.line}>
+                We won it, and I ended up demoing our project to the Director
+                General of Police.
+              </p>
+            </div>
+            <Go />
+          </Glass>
+        </Cell>
+        <Cell id="T6" name="Title only" note="Just the title in glass; the line sits beneath as plain text.">
+          <Glass className={styles.now} style={VARS} {...LENS}>
+            <div style={{ flex: 1 }}>
+              <p className={styles.when}>October 2024, age 18</p>
+              <h2 className={styles.big}>A hackathon, won</h2>
+            </div>
+            <Go />
+          </Glass>
+          <p className={styles.bare}>
+            We won it, and I ended up demoing our project to the Director
+            General of Police.
+          </p>
+        </Cell>
       </div>
     </main>
   );

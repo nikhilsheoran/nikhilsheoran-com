@@ -36,6 +36,19 @@
   background: #fff;
   color: #111;
 }
+.heading {
+  margin: 56px 0 22px;
+  padding: 8px 14px;
+  display: inline-block;
+  border-radius: 10px;
+  background: #fffd;
+  color: #111;
+  font-size: 15px;
+  font-weight: 600;
+}
+.heading:first-of-type {
+  margin-top: 0;
+}
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
@@ -90,6 +103,7 @@
   gap: 16px;
   width: 440px;
   padding: 14px 16px 14px 24px;
+  color: var(--ink);
 }
 .when {
   margin: 0 0 3px;
@@ -121,57 +135,163 @@
   color: var(--go-ink, #fff);
   text-shadow: none;
 }
-.tabs {
-  --radius: 26px;
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(5, 76px);
-  height: 52px;
-  padding: 5px;
-}
-/* Leading edge first, trailing edge after: the pill stretches, then settles. */
-.selection {
-  position: absolute;
-  top: 5px;
-  bottom: 5px;
-  left: calc(5px + var(--i) * 76px);
-  right: calc(5px + (4 - var(--i)) * 76px);
-  border-radius: 21px;
-  background: color-mix(in srgb, var(--ink) 16%, transparent);
-  box-shadow:
-    inset 0 1px 0.5px rgb(255 255 255 / 0.45),
-    inset 0 -1px 0.5px rgb(0 0 0 / 0.12),
-    0 2px 6px -2px rgb(0 0 0 / 0.25);
-  transition:
-    left var(--lead) cubic-bezier(0.3, 1.4, 0.5, 1),
-    right var(--trail) cubic-bezier(0.3, 1.4, 0.5, 1);
-}
-.tabs[data-forward="true"] .selection {
-  --lead: 0.62s;
-  --trail: 0.34s;
-}
-.tabs[data-forward="false"] .selection {
-  --lead: 0.34s;
-  --trail: 0.62s;
-}
-.tabs button {
-  position: relative;
-  border: 0;
-  border-radius: 21px;
-  background: none;
+.asButton {
   font: inherit;
-  font-size: 13px;
-  color: var(--ink-muted);
-  text-shadow: inherit;
+  text-align: left;
   cursor: pointer;
-  transition:
-    color 0.25s,
-    transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
 }
-.tabs button:active {
+.art {
+  flex: none;
+  width: 68px;
+  height: 68px;
+  border-radius: 22px;
+  object-fit: cover;
+}
+
+/* Text contrast: an optional dark pool behind the words. */
+.pool {
+  background-image:
+    radial-gradient(
+      ellipse 75% 95% at 38% 50%,
+      rgb(0 0 0 / var(--pool, 0)),
+      transparent 72%
+    ),
+    linear-gradient(180deg, var(--glass-top), var(--glass-bottom));
+}
+
+/* Hover variants (H1 is the default lift from the site's glass). */
+.lab .hTilt:hover {
+  transform: perspective(700px) rotateX(calc(var(--py, 0) * -9deg))
+    rotateY(calc(var(--px, 0) * 9deg)) scale(1.02);
+  transition-duration: 0.12s;
+}
+.lab .hGrow:hover {
+  transform: scale(1.065);
+}
+.lab .hRim:hover {
+  transform: none;
+}
+.lab .hRim:hover::after {
+  opacity: 0;
+}
+.lab .hMagnet:hover {
+  transform: translate(calc(var(--px, 0) * 7px), calc(var(--py, 0) * 5px));
+  transition-duration: 0.15s;
+}
+.lab .hSheen:hover {
+  transform: none;
+}
+.lab .hSheen::after {
+  box-shadow: none;
+  opacity: 1;
+  background: linear-gradient(
+    110deg,
+    transparent 38%,
+    rgb(255 255 255 / 0.4) 50%,
+    transparent 62%
+  );
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  transition: background-position 0s;
+}
+.lab .hSheen:hover::after {
+  background-position: -30% 0;
+  transition: background-position 0.75s ease;
+}
+
+/* Press variants. */
+.lab .pSquish:active {
+  transform: scale(0.95);
+}
+.lab .pDeep:active {
   transform: scale(0.9);
+  filter: brightness(0.82);
 }
-.tabs button[aria-current] {
-  color: var(--ink);
+.lab .pNone:active {
+  transform: none;
+}
+.fx {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ripple,
+.flash {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+}
+.ripple {
+  border: 1.5px solid rgb(255 255 255 / 0.8);
+  animation: ripple 0.65s ease-out forwards;
+}
+.flash {
+  background: radial-gradient(circle, rgb(255 255 255 / 0.7), transparent 70%);
+  animation: flash 0.5s ease-out forwards;
+}
+@keyframes ripple {
+  to {
+    transform: scale(34);
+    opacity: 0;
+  }
+}
+@keyframes flash {
+  from {
+    transform: scale(4);
+  }
+  to {
+    transform: scale(22);
+    opacity: 0;
+  }
+}
+
+/* Text layouts. */
+.stack {
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 24px;
+}
+.column {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 20px 24px;
+}
+.big {
+  font-size: 36px !important;
+}
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.textAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
   font-weight: 600;
+  color: var(--ink);
+}
+.tag {
+  margin: 0 0 -4px 16px;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.bare {
+  width: 440px;
+  margin: 0;
+  padding: 0 24px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #fff;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6), 0 0 16px rgb(0 0 0 / 0.4);
 }

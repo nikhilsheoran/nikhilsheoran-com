@@ -39,6 +39,8 @@ interface Lens {
   map: string;
   specular: string;
   bevel: string;
+  /** Alpha mask of the pane's interior, fading out across the bezel. */
+  core: string;
   scale: number;
 }
 
@@ -145,12 +147,25 @@ function buildLens(
     image.data[k * 4 + 3] = Math.min(1, Math.abs(shade[k]) * (lit ? 0.26 : 0.3) * bevelGain) * 255;
   }
   ctx.putImageData(image, 0, 0);
+  const bevel = canvas.toDataURL();
+
+  for (let j = 0; j < height; j++) {
+    for (let i = 0; i < width; i++) {
+      const inside = -roundedRect(i + 0.5, j + 0.5, width, height, r);
+      const t = Math.min(1, Math.max(0, (inside - edge * 0.5) / (edge * 1.2)));
+      const k = j * width + i;
+      image.data[k * 4] = image.data[k * 4 + 1] = image.data[k * 4 + 2] = 255;
+      image.data[k * 4 + 3] = t * t * (3 - 2 * t) * 255;
+    }
+  }
+  ctx.putImageData(image, 0, 0);
   return {
     width,
     height,
     map,
     specular,
-    bevel: canvas.toDataURL(),
+    bevel,
+    core: canvas.toDataURL(),
     scale: peak * 2,
   };
 }
@@ -177,6 +192,8 @@ type GlassProps<T extends ElementType> = {
   rimGain?: number;
   /** Strength of the raised-edge light and shade. */
   bevelGain?: number;
+  /** Blur (px) of the pane's interior only; the rim stays sharp. Aids text contrast. */
+  coreBlur?: number;
 } & ComponentPropsWithoutRef<T>;
 
 export function Glass<T extends ElementType = "div">({
@@ -189,6 +206,7 @@ export function Glass<T extends ElementType = "div">({
   rimPower = 5,
   rimGain = 1,
   bevelGain = 1,
+  coreBlur = 0,
   className,
   style,
   children,
@@ -232,6 +250,9 @@ export function Glass<T extends ElementType = "div">({
             const box = event.currentTarget.getBoundingClientRect();
             const dx = event.clientX - (box.left + box.width / 2);
             const dy = event.clientY - (box.top + box.height / 2);
+            // Pointer position in -1..1, for hover effects that tilt or follow.
+            event.currentTarget.style.setProperty("--px", (dx / (box.width / 2)).toFixed(3));
+            event.currentTarget.style.setProperty("--py", (dy / (box.height / 2)).toFixed(3));
             event.currentTarget.style.setProperty(
               "--light",
               `${Math.round((Math.atan2(dx, -dy) * 180) / Math.PI)}deg`,
@@ -299,7 +320,19 @@ export function Glass<T extends ElementType = "div">({
                 height={lens.height}
                 result="bevel"
               />
-              <feComposite in="bevel" in2="rich" operator="over" result="raised" />
+              {/* Optional: frost only the interior, leaving the rim clear. */}
+              <feGaussianBlur in="rich" stdDeviation={Math.max(coreBlur, 0.01)} result="deep" />
+              <feImage
+                href={lens.core}
+                x="0"
+                y="0"
+                width={lens.width}
+                height={lens.height}
+                result="coreMask"
+              />
+              <feComposite in="deep" in2="coreMask" operator="in" result="deepCore" />
+              <feComposite in="deepCore" in2="rich" operator="over" result="body" />
+              <feComposite in="bevel" in2="body" operator="over" result="raised" />
               {/* The rim's shine comes from its surroundings: a wide, brightened
                   blur of what is behind the pane, shown only along the rim. */}
               <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="ambient" />
