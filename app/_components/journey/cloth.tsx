@@ -107,7 +107,7 @@ const fragmentShader = `
     // Atmospheric depth, like Greta: distant sheets dissolve into the room's
     // warm daylight haze instead of turning transparent.
     float haze = smoothstep(uHazeNear, uHazeFar, -vView.z);
-    color = mix(color, vec3(.86,.84,.8), haze * .15);
+    color = mix(color, vec3(.86,.84,.8), haze * .15 + uDefocus * .22);
     // Edge of the sheet, with corners rounded by uRound (in sheet widths).
     vec2 q = abs(vUv - .5) * vec2(1., ASPECT) - (vec2(.5, .5 * ASPECT) - uRound);
     float edge = 1. - smoothstep(-.004, 0., length(max(q, 0.)) + min(max(q.x, q.y), 0.) - uRound);
@@ -251,8 +251,12 @@ export function Cloth({
     const dt = Math.min(delta, 1 / 30);
     const p = tuning.panels;
     body.target.fromArray(pose.position);
+    // On the helix a sheet is fixed to its place on the spiral: it moves only
+    // along that path, never trailing behind it or swinging off to the side.
+    const fixed = tuning.lab.path === 2;
     if (
       !body.ready ||
+      fixed ||
       motion.reducedMotion ||
       body.position.distanceToSquared(body.target) > 9
     ) {
@@ -273,7 +277,7 @@ export function Cloth({
     }
     // Slow air currents, out of step from sheet to sheet.
     const t = clock.elapsedTime;
-    const drift = motion.reducedMotion ? 0 : p.drift;
+    const drift = motion.reducedMotion || fixed ? 0 : p.drift;
     group.position.set(
       body.position.x + drift * Math.sin(t * 0.37 + index * 1.3),
       body.position.y + drift * 1.4 * Math.sin(t * 0.53 + index * 2.1),

@@ -167,7 +167,7 @@ test("a direct approach starts on the rail and arrives at the resting pose", () 
   }
 });
 
-test("the vortex holds a handful of works at once and the reading one is nearest", () => {
+test("the helix keeps every work above the floor and the reading one is nearest", () => {
   for (let i = 0; i <= 2000; i++) {
     const progress = i / 2000;
     const camera = railPose(progress, 16 / 9, 40, T).position;
@@ -175,7 +175,6 @@ test("the vortex holds a handful of works at once and the reading one is nearest
       panelPose(index, progress, B, T, camera),
     );
     const visible = poses.filter((pose) => pose.opacity > 0.02);
-    assert.ok(visible.length <= 7, `${visible.length} visible at ${progress}`);
     for (const pose of visible)
       assert.ok(pose.position[1] > 0.4, "visible panels stay above the floor");
   }

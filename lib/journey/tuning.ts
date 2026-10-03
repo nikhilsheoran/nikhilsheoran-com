@@ -39,8 +39,8 @@ export const DEFAULT_TUNING = {
     fov: 40,
   },
   panels: {
-    /** Radius at the reading moment, early and late in the story. */
-    startRadius: 2,
+    /** The helix's widest and tightest radius (early and late in the story). */
+    startRadius: 3,
     endRadius: 1.65,
     /** Radius of the vortex a work drifts back out to between its moments. */
     orbitRadius: 3.2,
@@ -65,10 +65,12 @@ export const DEFAULT_TUNING = {
     maxViewFraction: 0.42,
     /** Helix: how much lower each next work hangs than the one before it. */
     descent: 0.16,
-    /** Helix: the turn between one work and the next (radians). */
-    spacing: 0.9,
+    /** Helix: how far its centre sits from the Mac toward the person while it is wide. */
+    around: 1.24,
+    /** Helix: the least distance kept between the camera and the sheet in front of it. */
+    clearance: 1.2,
     /** How many chapters either side of the current one stay in the air. */
-    visibleChapters: 3,
+    visibleChapters: 5,
     /** Each work's own tumble while out in the vortex (radians); it squares up to be read. */
     tumble: 0.45,
     /** Opacity of a work once it's back out in the vortex. */
