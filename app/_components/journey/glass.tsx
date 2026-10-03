@@ -194,10 +194,6 @@ type GlassProps<T extends ElementType> = {
   bevelGain?: number;
   /** Blur (px) of the pane's interior only; the rim stays sharp. Aids text contrast. */
   coreBlur?: number;
-  /** Interior blur to ease to while the pointer is over the pane. */
-  hoverBlur?: number;
-  /** Interior blur to ease to while the pane is pressed. */
-  pressBlur?: number;
 } & ComponentPropsWithoutRef<T>;
 
 export function Glass<T extends ElementType = "div">({
@@ -212,8 +208,6 @@ export function Glass<T extends ElementType = "div">({
   rimGain = 1.2,
   bevelGain = 0.95,
   coreBlur = 0,
-  hoverBlur,
-  pressBlur,
   className,
   style,
   children,
@@ -222,21 +216,6 @@ export function Glass<T extends ElementType = "div">({
   const ref = useRef<HTMLElement>(null);
   const id = `glass-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const [lens, setLens] = useState<Lens | null>(null);
-  const deepRef = useRef<SVGFEGaussianBlurElement>(null);
-  const blurNow = useRef(coreBlur);
-  const blurFrame = useRef(0);
-  /** Ease the interior blur toward a value without re-rendering. */
-  const easeBlur = (target: number) => {
-    cancelAnimationFrame(blurFrame.current);
-    const tick = () => {
-      blurNow.current += (target - blurNow.current) * 0.22;
-      if (Math.abs(target - blurNow.current) < 0.05) blurNow.current = target;
-      deepRef.current?.setAttribute("stdDeviation", String(Math.max(blurNow.current, 0.01)));
-      if (blurNow.current !== target) blurFrame.current = requestAnimationFrame(tick);
-    };
-    tick();
-  };
-
   useEffect(() => {
     const node = ref.current;
     if (!node || !supportsLens) return;
@@ -271,26 +250,12 @@ export function Glass<T extends ElementType = "div">({
             const box = event.currentTarget.getBoundingClientRect();
             const dx = event.clientX - (box.left + box.width / 2);
             const dy = event.clientY - (box.top + box.height / 2);
-            // Pointer position in -1..1, for hover effects that tilt or follow.
-            event.currentTarget.style.setProperty("--px", (dx / (box.width / 2)).toFixed(3));
-            event.currentTarget.style.setProperty("--py", (dy / (box.height / 2)).toFixed(3));
             event.currentTarget.style.setProperty(
               "--light",
               `${Math.round((Math.atan2(dx, -dy) * 180) / Math.PI)}deg`,
             );
           },
-          onPointerDown: (event: PointerEvent<HTMLElement>) => {
-            if (pressBlur !== undefined) easeBlur(pressBlur);
-            (rest as { onPointerDown?: (e: PointerEvent<HTMLElement>) => void }).onPointerDown?.(event);
-          },
-          onPointerUp: () => {
-            if (pressBlur !== undefined) easeBlur(hoverBlur ?? coreBlur);
-          },
-          onPointerEnter: () => {
-            if (hoverBlur !== undefined) easeBlur(hoverBlur);
-          },
           onPointerLeave: (event: PointerEvent<HTMLElement>) => {
-            if (hoverBlur !== undefined || pressBlur !== undefined) easeBlur(coreBlur);
             event.currentTarget.style.removeProperty("--light");
           },
           style: lens
@@ -354,7 +319,6 @@ export function Glass<T extends ElementType = "div">({
               />
               {/* Optional: frost only the interior, leaving the rim clear. */}
               <feGaussianBlur
-                ref={deepRef}
                 in="rich"
                 stdDeviation={Math.max(coreBlur, 0.01)}
                 result="deep"

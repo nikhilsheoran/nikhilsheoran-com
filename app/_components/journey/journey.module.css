@@ -112,7 +112,7 @@
 }
 
 /*
- * Liquid glass (chosen in /glass-lab): a clear pane with white type. The lens
+ * Liquid glass: a clear pane with white type. The lens
  * in glass.tsx (Chromium) bends the room in a deep band at the rim; here: a
  * whisper of tint, the lip and cast shadow, and a sparse rim that turns with
  * the window's direction (--light) or toward the pointer.

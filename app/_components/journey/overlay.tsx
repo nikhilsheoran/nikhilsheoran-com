@@ -2,12 +2,7 @@
 
 import { type CSSProperties, type RefObject, useState } from "react";
 import Link from "next/link";
-import {
-  ArrowUpRightIcon,
-  InstagramLogoIcon,
-  LinkedinLogoIcon,
-  XLogoIcon,
-} from "@phosphor-icons/react";
+import { ArrowUpRightIcon, XLogoIcon } from "@phosphor-icons/react";
 import { HANDOFF, INTRO } from "@/lib/journey/timeline";
 import { works, yearStops } from "@/lib/journey/works";
 import { Glass } from "./glass";
@@ -15,16 +10,6 @@ import styles from "./journey.module.css";
 
 const SOCIALS = [
   { label: "X", href: "https://x.com/_nikhilsheoran", Icon: XLogoIcon },
-  {
-    label: "Instagram",
-    href: "https://instagram.com/thenikhilsheoran/",
-    Icon: InstagramLogoIcon,
-  },
-  {
-    label: "LinkedIn",
-    href: "https://linkedin.com/in/nikhilsheoran/",
-    Icon: LinkedinLogoIcon,
-  },
 ];
 
 const ACTION_LABEL = {
