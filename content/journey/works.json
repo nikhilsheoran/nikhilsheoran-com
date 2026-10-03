@@ -1,5 +1,83 @@
 [
   {
+    "slug": "first-money",
+    "year": "2022",
+    "date": "2022-12",
+    "age": 16,
+    "kind": "youtube",
+    "url": "https://www.youtube.com/shorts/sKaP7oxbdAo",
+    "image": "/journey/works/first-money.jpg",
+    "title": "First ₹600",
+    "subtitle": "First time I ever made money was editing videos. I made ₹600 for a 30-minute edit, and that was the best feeling in the world.",
+    "source": "YouTube thumbnail",
+    "videoTitle": "I started my first business in College | BITS Goa #bitspilani"
+  },
+  {
+    "slug": "hostel-life",
+    "year": "2023",
+    "date": "2023-02",
+    "kind": "youtube",
+    "url": "https://www.youtube.com/watch?v=sNO5pibczTI",
+    "image": "/journey/works/hostel-life.jpg",
+    "title": "BITS Goa",
+    "subtitle": "I got into electronics engineering at BITS Goa but quickly figured out it wasn’t for me.",
+    "source": "YouTube thumbnail",
+    "videoTitle": "BITS Goa Hostel life | My experience | Nikhil Sheoran",
+    "age": 17
+  },
+  {
+    "slug": "fastcut-launch",
+    "year": "2023",
+    "date": null,
+    "age": 17,
+    "kind": "youtube",
+    "url": "https://www.youtube.com/watch?v=B4xWW3MAb6I",
+    "image": "/journey/works/fastcut-launch.jpg",
+    "title": "I launched FastCut",
+    "subtitle": "I built FastCut - AI short-form video editor and launched it from my hostel room (15k+ users across 38 countries over the next couple of months).",
+    "source": "YouTube thumbnail",
+    "videoTitle": "i am trying to build a startup in college..."
+  },
+  {
+    "slug": "goa-police-hackathon",
+    "year": "2024",
+    "date": "2024-10",
+    "kind": "x",
+    "url": "https://x.com/_nikhilsheoran/status/1849360705084121385",
+    "image": "/journey/works/goa-police-hackathon.jpg",
+    "title": "SpotTheScam",
+    "subtitle": "Built SpotTheScam - fraud detection agents. Got adopted by I4C and Goa State Police. Launched by the Chief Minister of Goa.",
+    "source": "tweet card",
+    "tweetText": "Woah so I showcased our hackathon project to DGP Goa today.\n\nThis hackathon thing is interesting.",
+    "age": 18
+  },
+  {
+    "slug": "remote-job",
+    "year": "2025",
+    "date": null,
+    "age": 19,
+    "kind": "x",
+    "url": "https://x.com/_nikhilsheoran/status/2063923410225553579",
+    "image": "/journey/works/remote-job.jpg",
+    "title": "50 LPA at 19",
+    "subtitle": "I got a remote job paying 50 LPA. At the time, I thought I was crushing it in life.",
+    "source": "tweet card",
+    "tweetText": "How I Got a 50 LPA job at 19 (twice)"
+  },
+  {
+    "slug": "backdoor-vlog",
+    "year": "2026",
+    "date": null,
+    "age": 20,
+    "kind": "youtube",
+    "url": "https://www.youtube.com/watch?v=HzZhAqmAPno",
+    "image": "/journey/works/backdoor-vlog.jpg",
+    "title": "Backdoor",
+    "subtitle": "I graduated from BITS, turned down a job, and decided to go all in on my new startup Backdoor.",
+    "source": "YouTube thumbnail",
+    "videoTitle": "Day of a 20 y/o startup founder in bangalore"
+  },
+  {
     "slug": "first-video",
     "year": "2022",
     "date": "2022-02",
@@ -10,7 +88,8 @@
     "subtitle": "My first YouTube channel died after one video. A year later I filmed myself learning to spin a basketball on one finger, and this time I didn’t quit.",
     "source": "YouTube thumbnail",
     "videoTitle": "How I Learned to Spin A Ball on Finger (Hindi)",
-    "age": 16
+    "age": 16,
+    "hidden": true
   },
   {
     "slug": "first-dollar",
@@ -24,20 +103,6 @@
     "source": "tweet card",
     "tweetText": "Today, for the first time in my life, I earned money and it’s the best feeling. 🥳\n\nI am 16 btw. 😄",
     "age": 16,
-    "hidden": true
-  },
-  {
-    "slug": "hostel-life",
-    "year": "2023",
-    "date": "2023-02",
-    "kind": "youtube",
-    "url": "https://www.youtube.com/watch?v=sNO5pibczTI",
-    "image": "/journey/works/hostel-life.jpg",
-    "title": "No plan, just a camera",
-    "subtitle": "I landed in an electronics degree I had zero interest in. So I kept making videos.",
-    "source": "YouTube thumbnail",
-    "videoTitle": "BITS Goa Hostel life | My experience | Nikhil Sheoran",
-    "age": 17,
     "hidden": true
   },
   {
@@ -65,20 +130,8 @@
     "title": "FastCut",
     "subtitle": "Every client wanted the same edit, so Harsh and I automated it. 13,000 users in 38 countries, no investors. Then it ran out of momentum.",
     "source": "homepage screenshot",
-    "age": 17
-  },
-  {
-    "slug": "goa-police-hackathon",
-    "year": "2024",
-    "date": "2024-10",
-    "kind": "x",
-    "url": "https://x.com/_nikhilsheoran/status/1849360705084121385",
-    "image": "/journey/works/goa-police-hackathon.jpg",
-    "title": "A hackathon, won",
-    "subtitle": "Goa Police ran a hackathon. We won it, and I ended up demoing our project to the Director General of Police.",
-    "source": "tweet card",
-    "tweetText": "Woah so I showcased our hackathon project to DGP Goa today.\n\nThis hackathon thing is interesting.",
-    "age": 18
+    "age": 17,
+    "hidden": true
   },
   {
     "slug": "spotthescam",
@@ -104,7 +157,8 @@
     "subtitle": "Founding engineer at a startup, my first job. It lasted two months. I moved cities, ran a 10k and started over.",
     "source": "tweet card",
     "tweetText": "Time to reintroduce myself here:\n\n> 19, ece@BITS goa\n> fullstack web dev\n> love tech & video editing\n> built a startup around that, failed\n> got a 50LPA remote job soon after\n> didn’t work out, had to part ways\n> moved to blr recently\n\nFiguring out what’s next, hit me up if you…",
-    "age": 19
+    "age": 19,
+    "hidden": true
   },
   {
     "slug": "backdoor",
@@ -116,6 +170,7 @@
     "title": "Backdoor",
     "subtitle": "I had a job offer on the table. I turned it down to bet on myself again: an AI agent that lands you interviews at early-stage startups.",
     "source": "homepage screenshot",
-    "age": 20
+    "age": 20,
+    "hidden": true
   }
 ]

@@ -13,6 +13,7 @@
  *                     (darkened for vertical/short thumbnails).
  *   kind "x"       -> tweet card rendered from X's public syndication JSON
  *                     (the endpoint react-tweet uses) through an HTML template.
+ *                     An X Article is drawn as its cover image over its title.
  *   kind "web"     -> 1440x900 screenshot of `captureUrl ?? url`, placed in a
  *                     browser-window frame on a solid background.
  *
@@ -316,6 +317,12 @@ type Syndication = {
   };
   user: { name: string; screen_name: string; profile_image_url_https: string; is_blue_verified?: boolean };
   mediaDetails?: { type: string; media_url_https: string }[];
+  /** Present when the post is an X Article: only its title, opening and cover are public. */
+  article?: {
+    title: string;
+    preview_text?: string;
+    cover_media?: { media_info?: { original_img_url?: string } };
+  };
 };
 
 function tweetId(url: string) {
@@ -348,8 +355,45 @@ function tweetBodyText(t: Syndication) {
 const X_LOGO = `<svg viewBox="0 0 24 24" width="52" height="52" fill="#e7e9ea"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
 const BADGE = `<svg viewBox="0 0 22 22" width="40" height="40"><path fill="#1d9bf0" d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z"/></svg>`;
 
+/** An X Article: the cover across the top, then who wrote it and the title. */
+async function buildArticle(work: Work, t: Syndication, chrome: Chrome, tmp: string) {
+  const article = t.article!;
+  work.tweetText = article.title;
+  const avatar = await fetchBuffer(t.user.profile_image_url_https.replace("_normal", "_400x400"));
+  const coverUrl = article.cover_media?.media_info?.original_img_url;
+  const cover = coverUrl ? await fetchBuffer(`${coverUrl}?name=large`) : null;
+  const opening = (article.preview_text ?? "").split("\n")[0].trim();
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: ${W}px; height: ${H}px; background: #000; overflow: hidden; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+         color: #e7e9ea; -webkit-font-smoothing: antialiased; }
+  .card { position: absolute; inset: 0; padding: 64px 96px; display: flex; flex-direction: column; justify-content: center; gap: 44px; }
+  .cover { width: 100%; height: 500px; border-radius: 28px; object-fit: cover; border: 2px solid #2f3336; display: block; }
+  .head { display: flex; align-items: center; gap: 22px; }
+  .avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; flex: none; }
+  .name { font-size: 36px; font-weight: 700; display: flex; align-items: center; gap: 10px; line-height: 1.1; }
+  .handle { font-size: 30px; color: #71767b; margin-top: 4px; }
+  .x { margin-left: auto; }
+  .title { font-size: 66px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+  .opening { font-size: 36px; line-height: 1.35; color: #8b98a5; }
+  </style></head><body><div class="card">
+    ${cover ? `<img class="cover" src="${dataUri(cover)}">` : ""}
+    <div class="head">
+      ${avatar ? `<img class="avatar" src="${dataUri(avatar)}">` : ""}
+      <div><div class="name">${esc(t.user.name)}${t.user.is_blue_verified ? BADGE : ""}</div>
+      <div class="handle">@${esc(t.user.screen_name)}</div></div>
+      <div class="x">${X_LOGO}</div>
+    </div>
+    <div class="title">${esc(article.title)}</div>
+    ${cover || !opening ? "" : `<div class="opening">${esc(opening)}</div>`}
+  </div></body></html>`;
+  return chrome.renderHtml(html, tmp, work.slug);
+}
+
 async function buildTweet(work: Work, chrome: Chrome, tmp: string) {
   const t = await fetchTweet(tweetId(work.url));
+  if (t.article) return buildArticle(work, t, chrome, tmp);
   const { text, truncated } = tweetBodyText(t);
   work.tweetText = text;
 
