@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Dock, type DockAppId } from "@/app/_components/dock";
 import { TopBar } from "@/app/_components/top-bar";
-import { MobileNotes } from "@/app/_components/mobile-notes";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useMusicPlayer } from "@/lib/use-music-player";
 import { useJourneyMusicBridge } from "@/app/_components/journey/music-bridge";
@@ -223,26 +222,6 @@ export function DesktopShell({
       openApp(appId);
     }
   };
-
-  // ── Mobile view ──
-  if (isMobile) {
-    return (
-      <div className="desktop-root fixed inset-0">
-        <Image
-          src="/wallpapers/Sonoma.jpeg"
-          alt="Background"
-          fill
-          priority
-          className="-z-10 inset-0 object-cover"
-        />
-        <MobileNotes
-          notesData={notesData}
-          selectedNoteSlug={resolvedNoteSlug}
-          onNoteSelect={selectNote}
-        />
-      </div>
-    );
-  }
 
   // ── Desktop view ──
   return (

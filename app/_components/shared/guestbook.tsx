@@ -66,7 +66,10 @@ export function Guestbook() {
       messages={messages}
       signedInAs={session ? (session.user.name ?? "you") : null}
       onSignIn={() =>
-        authClient.signIn.social({ provider: "google", callbackURL: window.location.href })
+        authClient.signIn.social({
+          provider: "google",
+          callbackURL: window.location.href,
+        })
       }
       onSignOut={() => authClient.signOut()}
       onSend={async (message) => {
@@ -127,7 +130,9 @@ export function GuestbookView({
           data-1p-ignore
           data-lpignore="true"
           className={styles.input}
-          placeholder={signedInAs ? "Leave a message" : "Sign in to leave a message"}
+          placeholder={
+            signedInAs ? "Leave a message" : "Sign in to leave a message"
+          }
           aria-label="Your message"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
@@ -147,7 +152,11 @@ export function GuestbookView({
             Send
           </button>
         ) : (
-          <button type="button" className={`${styles.button} ${styles.signIn}`} onClick={onSignIn}>
+          <button
+            type="button"
+            className={`${styles.button} ${styles.signIn}`}
+            onClick={onSignIn}
+          >
             <GoogleG />
             Sign in
           </button>
@@ -167,43 +176,38 @@ export function GuestbookView({
       ) : messages.length === 0 ? (
         <p className={styles.note}>No messages yet. Be the first.</p>
       ) : (
-        <>
-          <p className={styles.count}>
-            {messages.length} message{messages.length === 1 ? "" : "s"}
-          </p>
-          <ul className={styles.entries}>
-            {messages.map((entry) => (
-              <li key={entry._id} className={styles.entry}>
-                {entry.avatarUrl ? (
-                  <Image
-                    src={entry.avatarUrl}
-                    alt=""
-                    width={36}
-                    height={36}
-                    className={styles.avatar}
-                    unoptimized
-                  />
-                ) : (
-                  <span className={styles.initial} aria-hidden>
-                    {entry.name.trim().charAt(0).toUpperCase() || "?"}
-                  </span>
-                )}
-                <div className={styles.body}>
-                  <p className={styles.who}>
-                    <span className={styles.name}>{entry.name}</span>
-                    <time
-                      className={styles.when}
-                      dateTime={new Date(entry._creationTime).toISOString()}
-                    >
-                      {day.format(entry._creationTime)}
-                    </time>
-                  </p>
-                  <p className={styles.message}>{entry.message}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </>
+        <ul className={styles.entries}>
+          {messages.map((entry) => (
+            <li key={entry._id} className={styles.entry}>
+              {entry.avatarUrl ? (
+                <Image
+                  src={entry.avatarUrl}
+                  alt=""
+                  width={26}
+                  height={26}
+                  className={styles.avatar}
+                  unoptimized
+                />
+              ) : (
+                <span className={styles.initial} aria-hidden>
+                  {entry.name.trim().charAt(0).toUpperCase() || "?"}
+                </span>
+              )}
+              <div className={styles.body}>
+                <p className={styles.who}>
+                  <span className={styles.name}>{entry.name}</span>
+                  <time
+                    className={styles.when}
+                    dateTime={new Date(entry._creationTime).toISOString()}
+                  >
+                    {day.format(entry._creationTime)}
+                  </time>
+                </p>
+                <p className={styles.message}>{entry.message}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </section>
   );

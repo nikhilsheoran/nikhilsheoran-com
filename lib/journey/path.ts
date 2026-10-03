@@ -359,9 +359,11 @@ function helix(
   // Distance, and with it haze, blur and dimness, all grow with this.
   // Around its own moment a sheet is held fully present (solid and sharp); the
   // falling away only starts once it has moved off to the side.
-  const held = smoothStep((Math.abs(phase) - p.hold) / 0.45);
+  const held = smoothStep((Math.abs(phase) - p.hold) / 0.3);
+  // Past that it drops off quickly: a sheet a quarter turn round is already
+  // most of the way to its faintest.
   const away =
-    held * smoothStep((1 - Math.cos(Math.min(Math.PI, Math.abs(turn)))) / 1.7);
+    held * smoothStep((1 - Math.cos(Math.min(Math.PI, Math.abs(turn)))) / 0.9);
   const elevation = Math.atan2(
     now.view.position[1] - now.view.target[1],
     now.view.radius,

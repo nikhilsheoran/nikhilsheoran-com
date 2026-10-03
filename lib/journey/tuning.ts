@@ -70,9 +70,9 @@ export const DEFAULT_TUNING = {
     /** Each work's own tumble while out in the vortex (radians); it squares up to be read. */
     tumble: 0.45,
     /** Chapters either side of its moment for which a work stays fully solid. */
-    hold: 0.3,
+    hold: 0.12,
     /** Opacity of a work once it's back out in the vortex. */
-    farOpacity: 0.32,
+    farOpacity: 0.16,
     /** Depth-of-field blur of a work out in the vortex (0 = sharp). */
     farBlur: 1,
     /** Distance (scene units) where the haze starts and where it is thickest. */

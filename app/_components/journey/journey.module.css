@@ -886,13 +886,22 @@ button.glass:active {
   outline-offset: 3px;
 }
 
+/*
+ * Phones: the name and tagline take the top, the story card and timeline the
+ * bottom, each the full width. The age clock and the music player are left
+ * out so nothing competes for the room.
+ */
 @media (max-width: 767px) {
   .journey {
     --edge: 14px;
     --control: 44px;
   }
-  .dock {
-    bottom: calc(var(--edge) + 76px + var(--gap));
+  .clock,
+  .playing {
+    display: none;
+  }
+  .identity {
+    width: calc(100vw - 2 * var(--edge));
   }
   .now {
     --radius: 26px;
@@ -902,25 +911,18 @@ button.glass:active {
     font-size: 24px;
   }
   .tabs {
-    --tab: 58px;
+    --tab: 50px;
   }
   .tabs button {
     font-size: 12px;
   }
-  .playing {
-    left: var(--edge);
+  .home {
+    width: 46px;
+    height: 46px;
   }
-  .playing .tag {
-    display: none;
-  }
-  .player {
-    width: 100%;
-    padding: 8px;
-  }
-  .cover {
-    width: 60px;
-    height: 60px;
-    border-radius: 16px;
+  .homeMark {
+    width: 36px;
+    height: 36px;
   }
 }
 
