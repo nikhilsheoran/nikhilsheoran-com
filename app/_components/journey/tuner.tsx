@@ -55,6 +55,7 @@ const RANGES: Record<string, Range> = {
   "panels.bank": [0, 3, 0.05],
   "panels.drift": [0, 0.15, 0.005],
   "motion.spring": [2, 30, 0.5],
+  "motion.settleSpring": [1, 20, 0.25],
   "motion.dragSpring": [5, 60, 0.5],
 };
 

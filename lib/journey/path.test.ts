@@ -252,10 +252,19 @@ test("scrolling past the settle point glides into the Mac; a reverse scroll retu
 });
 
 test("stopping partway down the descent never leaves the camera hanging", () => {
+  // A small overscroll past the last work eases back to it.
+  const overscroll = createMotion();
+  overscroll.progress = overscroll.target = B.handoffStart - 0.01;
+  nudge(overscroll, 0.02, B);
+  run(overscroll, 3);
+  assert.equal(overscroll.mode, "orbit");
+  assert.ok(Math.abs(overscroll.progress - B.returnTo) < 0.005);
+
+  // Scrolling on past settleArm glides into the Mac.
   const forward = createMotion();
-  forward.progress = forward.target = B.handoffStart - 0.01;
+  forward.progress = forward.target = B.settleArm - 0.01;
   nudge(forward, 0.02, B);
-  run(forward, 3);
+  run(forward, 5);
   assert.equal(forward.mode, "focused");
 
   const backward = createMotion();

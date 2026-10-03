@@ -145,7 +145,11 @@ export function step(
     return null;
   }
 
-  const omega = m.dragging ? tuning.motion.dragSpring : tuning.motion.spring;
+  const omega = m.dragging
+    ? tuning.motion.dragSpring
+    : m.mode === "settling"
+      ? tuning.motion.settleSpring
+      : tuning.motion.spring;
   const next = advanceSpring(m.progress, m.velocity, m.target, dt, omega);
   m.progress = m.reducedMotion ? m.target : clamp01(next.value);
   m.velocity = m.reducedMotion ? 0 : next.velocity;
@@ -162,15 +166,17 @@ export function step(
   }
 
   // The descent to the screen is never a resting place: moving forward past
-  // settleArm glides in; coming to rest inside it resolves to the nearer intent.
+  // settleArm glides in; coming to rest before it returns to the last work.
   if (m.dragging || m.progress <= beat.handoffStart) return null;
   const resting =
     Math.abs(m.target - m.progress) < AT_REST_DISTANCE &&
     Math.abs(m.velocity) < AT_REST_SPEED;
-  if (m.heading > 0 && (m.progress >= beat.settleArm || resting)) {
+  if (m.heading > 0 && m.progress >= beat.settleArm) {
     m.mode = "settling";
     m.target = 1;
-  } else if (m.heading < 0 && resting) {
+  } else if (resting) {
+    // Stopping short of settleArm, in either direction, eases back to the
+    // last work: a small overscroll is not a decision to open the Mac.
     m.target = beat.returnTo;
   }
   return null;

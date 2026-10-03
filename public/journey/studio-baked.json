@@ -23,9 +23,9 @@
     },
     "desk": {
       "atlas": 4096,
-      "triangles": 20266,
-      "px_per_metre": 1689,
-      "kneed_texels_pct": 5.355
+      "triangles": 20490,
+      "px_per_metre": 1697,
+      "kneed_texels_pct": 5.376
     },
     "decor": {
       "atlas": 2048,
@@ -46,7 +46,7 @@
       "kneed_texels_pct": 5.929
     }
   },
-  "triangles": 392837,
+  "triangles": 393061,
   "windowView": true,
   "statue": true,
   "bakeSamples": 512,
