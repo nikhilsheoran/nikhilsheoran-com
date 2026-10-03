@@ -35,6 +35,7 @@ const RANGES: Record<string, Range> = {
   "panels.counterSpin": [-2, 2, 0.01],
   "panels.rise": [-1.5, 1.5, 0.01],
   "panels.spacing": [0.3, 2, 0.01],
+  "panels.descent": [-0.6, 0.6, 0.01],
   "panels.viewOffset": [-0.6, 0.6, 0.01],
   "panels.faceCamera": [0, 1, 0.01],
   "panels.passRoll": [0, 1, 0.01],

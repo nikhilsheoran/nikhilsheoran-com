@@ -40,12 +40,12 @@ export const DEFAULT_TUNING = {
   },
   panels: {
     /** Radius at the reading moment, early and late in the story. */
-    startRadius: 2.3,
+    startRadius: 2,
     endRadius: 1.65,
     /** Radius of the vortex a work drifts back out to between its moments. */
     orbitRadius: 3.2,
-    /** The band of clear air the works stay inside (above the statue, below the ceiling). */
-    floor: 2.9,
+    /** The band of air the works stay inside (above the desk and laptop, below the ceiling). */
+    floor: 2.15,
     ceiling: 5.2,
     /** How much each work's orbit radius and height differ from its neighbours'. */
     orbitSpread: 0.18,
@@ -53,8 +53,8 @@ export const DEFAULT_TUNING = {
     counterSpin: 0.7,
     /** Height gained per chapter: upcoming works rise from below. */
     rise: 0.16,
-    /** Where the reading panel sits in view, right of centre (radians). */
-    viewOffset: 0.2,
+    /** Where the reading panel sits in view: 0 = dead centre, positive = right (radians). */
+    viewOffset: 0,
     /** 0 = faces straight out from the axis, 1 = faces the camera. */
     faceCamera: 0.75,
     /** Roll while a panel passes. */
@@ -63,6 +63,8 @@ export const DEFAULT_TUNING = {
     width: 1.55,
     /** Largest share of the frame width a passing panel may cover. */
     maxViewFraction: 0.42,
+    /** Helix: how much lower each next work hangs than the one before it. */
+    descent: 0.16,
     /** Helix: the turn between one work and the next (radians). */
     spacing: 0.9,
     /** How many chapters either side of the current one stay in the air. */
