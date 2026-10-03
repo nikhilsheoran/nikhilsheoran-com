@@ -783,6 +783,9 @@ button.glass:active {
 }
 .laptopTooltip {
   /* A small glass capsule, cut from the same glass as the name pill. */
+  display: flex;
+  align-items: center;
+  gap: 5px;
   padding: 7px 14px;
   font-size: 12px;
   font-weight: 600;

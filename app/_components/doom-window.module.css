@@ -1,3 +1,7 @@
+.window[hidden] {
+  display: none;
+}
+
 .window {
   position: fixed;
   top: 0;
@@ -30,8 +34,8 @@
   flex: none;
   display: flex;
   align-items: center;
-  height: 52px;
-  padding: 0 20px;
+  height: 44px;
+  padding: 0 18px;
 }
 
 .title {
@@ -46,14 +50,11 @@
   pointer-events: none;
 }
 
-/* The game, at DOS's own 16:10. */
+/* The game fills the window edge to edge under the title bar. */
 .screen {
   position: relative;
   flex: 1;
   min-height: 0;
-  margin: 0 10px;
-  border-radius: 10px;
-  overflow: hidden;
   background: #000;
 }
 
@@ -69,60 +70,13 @@
   pointer-events: none;
 }
 
-.start {
+.loading {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  align-content: center;
-  gap: 14px;
-  border: 0;
-  background: radial-gradient(circle at 50% 40%, #3a100c, #0b0303 70%);
-  color: #f5f5f7;
-  font: inherit;
-  text-align: center;
-}
-
-.startIcon {
-  width: 96px;
-  height: 96px;
-}
-
-.startTitle {
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.startHint {
-  margin: 0;
-  font-size: 13px;
-  color: rgb(255 255 255 / 0.6);
-}
-
-.startButton {
-  margin-top: 6px;
-  padding: 9px 22px;
-  border-radius: 999px;
-  background: #fa3b1f;
-  color: #fff;
+  background: #000;
   font-size: 14px;
-  font-weight: 600;
-}
-
-.start:hover .startButton {
-  background: #ff5236;
-}
-
-.status {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  height: 34px;
-  padding: 0 20px;
-  font-size: 12px;
-  color: rgb(255 255 255 / 0.5);
+  color: rgb(255 255 255 / 0.6);
 }

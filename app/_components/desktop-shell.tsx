@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Dock, type DockAppId } from "@/app/_components/dock";
@@ -189,6 +189,14 @@ export function DesktopShell({
   const isSettingsOpen = windowStack.includes("system-settings");
   const isTVOpen = windowStack.includes("tv");
   const isDoomOpen = windowStack.includes("doom");
+  // Once the desktop has settled, mount Doom hidden so it loads in the
+  // background and opens instantly. It never competes with the first paint.
+  const [doomWarm, setDoomWarm] = useState(false);
+  useEffect(() => {
+    if (isMobile) return;
+    const timer = window.setTimeout(() => setDoomWarm(true), 2500);
+    return () => window.clearTimeout(timer);
+  }, [isMobile]);
 
   // ── Running apps for dock indicator ──
   const runningApps = useMemo(
@@ -299,9 +307,9 @@ export function DesktopShell({
         />
       )}
 
-      {isDoomOpen && (
+      {(doomWarm || isDoomOpen) && (
         <DoomWindow
-          isOpen
+          isOpen={isDoomOpen}
           onClose={() => closeWindow("doom")}
           onActivate={() => activateWindow("doom")}
           zIndex={zIndex.doom}

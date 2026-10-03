@@ -20,6 +20,7 @@ import {
 import { createScreenTexture } from "./textures";
 import { useStaticModel } from "./static-model";
 import baked from "@/public/journey/studio-baked.json";
+import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { Glass } from "./glass";
 import styles from "./journey.module.css";
 import type { JourneyRuntime, SceneProps } from "./runtime";
@@ -440,6 +441,8 @@ export function DeskLink({
         >
           <Glass as="div" className={styles.laptopTooltip} role="tooltip">
             {link.label}
+            {/* It opens in a new tab. */}
+            <ArrowUpRightIcon size={12} weight="bold" aria-hidden />
           </Glass>
         </Html>
       )}

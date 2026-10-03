@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDraggableWindow } from "@/lib/use-draggable-window";
 import {
   getDesktopWindowBounds,
@@ -16,30 +16,74 @@ interface DoomWindowProps {
   zIndex?: number;
 }
 
+type Phase = "loading" | "ready" | "running" | "error";
+
 /**
  * Doom, the 1993 shareware episode, running in DOSBox compiled for the browser
- * (js-dos). The emulator lives in /games/doom.html inside a sandboxed frame:
- * nothing is fetched until Play is pressed (the game is a few megabytes), and
- * the frame has no access to the rest of the site.
+ * (js-dos). The emulator lives in /games/doom.html inside a sandboxed frame
+ * with no access to the rest of the site.
+ *
+ * The window is mounted (hidden) as soon as the desktop is idle, so the frame
+ * fetches the emulator and the game in the background. Opening the window then
+ * only has to say "start"; closing it says "stop" and keeps everything loaded.
  */
-export function DoomWindow({ isOpen, onClose, onActivate, zIndex }: DoomWindowProps) {
-  const { windowRef, position, isDragging, handleDragStart } = useDraggableWindow({
-    initialPosition: { x: 250, y: 74 },
-    getBounds: getDesktopWindowBounds,
-    disabled: !isOpen,
-  });
-  const [playing, setPlaying] = useState(false);
+export function DoomWindow({
+  isOpen,
+  onClose,
+  onActivate,
+  zIndex,
+}: DoomWindowProps) {
+  const { windowRef, position, isDragging, handleDragStart } =
+    useDraggableWindow({
+      initialPosition: { x: 190, y: 44 },
+      getBounds: getDesktopWindowBounds,
+      disabled: !isOpen,
+    });
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [phase, setPhase] = useState<Phase>("loading");
 
-  if (!isOpen) return null;
+  // What the frame reports. It is sandboxed (no origin), so check the sender.
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (
+        event.source !== frameRef.current?.contentWindow ||
+        event.data?.source !== "doom"
+      )
+        return;
+      if (event.data.type === "ready")
+        setPhase((now) => (now === "running" ? now : "ready"));
+      if (event.data.type === "started") setPhase("running");
+      if (event.data.type === "error") setPhase("error");
+    };
+    window.addEventListener("message", receive);
+    return () => window.removeEventListener("message", receive);
+  }, []);
+
+  // Start when the window opens (or as soon as the game has loaded), stop when it closes.
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame?.contentWindow || phase === "loading" || phase === "error")
+      return;
+    if (isOpen && phase === "ready") {
+      frame.contentWindow.postMessage({ type: "doom:start" }, "*");
+      frame.focus();
+    }
+    if (!isOpen && phase === "running") {
+      frame.contentWindow.postMessage({ type: "doom:stop" }, "*");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Mirrors the frame, which has just been told to stop.
+      setPhase("ready");
+    }
+  }, [isOpen, phase]);
 
   return (
     <section
       ref={windowRef}
       className={styles.window}
+      hidden={!isOpen}
       onPointerDownCapture={onActivate}
       style={getDesktopWindowFrameStyle({
-        maxWidth: 860,
-        maxHeight: 620,
+        maxWidth: 1060,
+        maxHeight: 706,
         position,
         zIndex,
         isDragging,
@@ -50,35 +94,20 @@ export function DoomWindow({ isOpen, onClose, onActivate, zIndex }: DoomWindowPr
         <p className={styles.title}>Doom</p>
       </header>
       <div className={styles.screen}>
-        {playing ? (
-          <iframe
-            className={`${styles.frame} ${isDragging ? styles.frameDragging : ""}`}
-            src="/games/doom.html"
-            title="Doom"
-            sandbox="allow-scripts allow-pointer-lock"
-            allow="autoplay; fullscreen"
-          />
-        ) : (
-          <button
-            type="button"
-            className={styles.start}
-            data-window-drag-ignore
-            onClick={() => setPlaying(true)}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- A static icon. */}
-            <img className={styles.startIcon} src="/icons/doom.svg" alt="" />
-            <p className={styles.startTitle}>Doom</p>
-            <p className={styles.startHint}>
-              The 1993 shareware episode. About 6 MB to load.
-            </p>
-            <span className={styles.startButton}>Play</span>
-          </button>
+        <iframe
+          ref={frameRef}
+          className={`${styles.frame} ${isDragging ? styles.frameDragging : ""}`}
+          src="/games/doom.html"
+          title="Doom"
+          sandbox="allow-scripts allow-pointer-lock"
+          allow="autoplay; fullscreen"
+        />
+        {phase !== "running" && (
+          <p className={styles.loading}>
+            {phase === "error" ? "Doom could not be loaded." : "Loading Doom…"}
+          </p>
         )}
       </div>
-      <footer className={styles.status}>
-        <span>Arrows to move, Ctrl to fire, Space to open doors</span>
-        <span>Runs on js-dos and DOSBox</span>
-      </footer>
     </section>
   );
 }

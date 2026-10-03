@@ -7,8 +7,12 @@
     <title>Doom</title>
     <!--
       The shareware episode of Doom, run by js-dos (DOSBox compiled for the
-      browser). This page is only ever shown inside the Doom window's sandboxed
+      browser). This page only ever lives inside the Doom window's sandboxed
       frame, so the emulator's script cannot reach the rest of the site.
+
+      The frame is created in the background once the desktop has loaded. It
+      fetches the emulator and the game straight away and then waits; the
+      window tells it when to start and stop, so opening Doom is instant.
     -->
     <link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css" />
     <style>
@@ -27,14 +31,56 @@
     <div id="dos"></div>
     <script src="https://v8.js-dos.com/latest/js-dos.js"></script>
     <script>
-      Dos(document.getElementById("dos"), {
-        url: "/games/doom.jsdos",
-        autoStart: true,
-        kiosk: true,
-        noCloud: true,
-        noNetworking: true,
-        theme: "dark",
+      const root = document.getElementById("dos");
+      const tell = (type) => parent.postMessage({ source: "doom", type }, "*");
+      let bundle = null; // blob URL of the game, once fetched
+      let player = null;
+      let wanted = false;
+
+      function start() {
+        wanted = true;
+        if (!bundle || player) return;
+        player = Dos(root, {
+          url: bundle,
+          autoStart: true,
+          kiosk: true,
+          noCloud: true,
+          noNetworking: true,
+          // Keyboard only: no pointer-lock prompt over the game.
+          mouseCapture: false,
+          theme: "dark",
+        });
+        tell("started");
+      }
+
+      function stop() {
+        wanted = false;
+        if (!player) return;
+        const running = player;
+        player = null;
+        Promise.resolve()
+          .then(() => running.stop())
+          .catch(() => {})
+          .finally(() => root.replaceChildren());
+      }
+
+      addEventListener("message", (event) => {
+        if (event.source !== parent) return;
+        if (event.data?.type === "doom:start") start();
+        if (event.data?.type === "doom:stop") stop();
       });
+
+      fetch("/games/doom.jsdos")
+        .then((response) => {
+          if (!response.ok) throw new Error(String(response.status));
+          return response.blob();
+        })
+        .then((blob) => {
+          bundle = URL.createObjectURL(blob);
+          tell("ready");
+          if (wanted) start();
+        })
+        .catch(() => tell("error"));
     </script>
   </body>
 </html>
