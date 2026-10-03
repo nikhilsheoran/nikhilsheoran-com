@@ -1,48 +1,54 @@
 {
-  "exposureScale": 2.5,
-  "K": 0.4,
-  "notes": "Baked Cycles lighting (albedo x direct+indirect diffuse light, plus emission; no glossy). Every material is unlit; the base-colour texture stores linear radiance * 0.400 encoded as sRGB. Multiply colour by exposureScale in linear space (e.g. material.color.setScalar(exposureScale) on MeshBasicMaterial), then AgX tone mapping at toneMappingExposure 1.0 matches Blender AgX with exposure 0 (the review PNGs). studio-foliage uses alphaTest 0.5, double sided. studio-window-view is the skyline backdrop (same encoding). The laptop is not included.",
+  "exposureScale": 2.2222,
+  "K": 0.45,
+  "notes": "Baked Cycles lighting (albedo x direct+indirect diffuse light, plus emission; no glossy). Every material is unlit; the base-colour texture stores linear radiance * 0.450 encoded as sRGB. Multiply colour by exposureScale in linear space (e.g. material.color.setScalar(exposureScale) on MeshBasicMaterial), then AgX tone mapping at toneMappingExposure 1.0 matches Blender AgX with exposure 0 (the review PNGs). studio-foliage uses alphaTest 0.5, double sided. studio-window-view is the skyline backdrop (same encoding). The laptop is not included.",
   "groups": {
     "architecture": {
       "atlas": 4096,
       "triangles": 24692,
       "px_per_metre": 177,
-      "kneed_texels_pct": 4.001
+      "kneed_texels_pct": 4.476
     },
     "floor": {
       "atlas": 4096,
       "triangles": 2576,
       "px_per_metre": 283,
-      "kneed_texels_pct": 1.444
+      "kneed_texels_pct": 1.964
     },
     "furniture": {
       "atlas": 4096,
-      "triangles": 98756,
-      "px_per_metre": 289,
-      "kneed_texels_pct": 9.211
+      "triangles": 84516,
+      "px_per_metre": 303,
+      "kneed_texels_pct": 8.773
     },
     "desk": {
       "atlas": 4096,
       "triangles": 20266,
       "px_per_metre": 1689,
-      "kneed_texels_pct": 5.65
+      "kneed_texels_pct": 5.355
     },
     "decor": {
       "atlas": 2048,
       "triangles": 114060,
       "px_per_metre": 290,
-      "kneed_texels_pct": 3.447
+      "kneed_texels_pct": 3.683
     },
     "foliage": {
       "atlas": 2048,
       "triangles": 88839,
       "px_per_metre": 298,
-      "kneed_texels_pct": 0.563
+      "kneed_texels_pct": 0.696
+    },
+    "statue": {
+      "atlas": 2048,
+      "triangles": 59700,
+      "px_per_metre": 969,
+      "kneed_texels_pct": 5.929
     }
   },
-  "triangles": 349189,
+  "triangles": 394649,
   "windowView": true,
-  "statue": false,
+  "statue": true,
   "bakeSamples": 512,
   "quick": false
 }
