@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
+import { track } from "@/lib/analytics";
 import { GoogleG } from "./icons";
 import styles from "./guestbook.module.css";
 
@@ -65,12 +66,13 @@ export function Guestbook() {
     <GuestbookView
       messages={messages}
       signedInAs={session ? (session.user.name ?? "you") : null}
-      onSignIn={() =>
-        authClient.signIn.social({
+      onSignIn={() => {
+        track("guestbook_sign_in_started");
+        return authClient.signIn.social({
           provider: "google",
           callbackURL: window.location.href,
-        })
-      }
+        });
+      }}
       onSignOut={() => authClient.signOut()}
       onSend={async (message) => {
         const response = await fetch("/api/guestbook", {
@@ -79,6 +81,7 @@ export function Guestbook() {
           body: JSON.stringify({ message }),
         });
         if (!response.ok) throw new Error(String(response.status));
+        track("guestbook_signed");
         await refresh();
       }}
     />

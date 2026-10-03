@@ -15,8 +15,9 @@ import { DesktopShell } from "@/app/_components/desktop-shell";
 import type { NotesData } from "@/lib/mock-desktop-data";
 import { focus, leave, seek, type Mode } from "@/lib/journey/machine";
 import { activeChapter, INTRO } from "@/lib/journey/timeline";
+import { works } from "@/lib/journey/works";
 import { loadSavedTuning } from "@/lib/journey/tuning";
-import { track } from "@/lib/analytics";
+import { relayTrackedEvent, track } from "@/lib/analytics";
 import { createRuntime, type FrameReport } from "./runtime";
 import { useJourneyInput } from "./use-journey-input";
 import { Overlay } from "./overlay";
@@ -61,6 +62,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   const rangeRef = useRef<HTMLInputElement>(null);
   const soundRef = useRef<RoomSound | null>(null);
   const lastChapterRef = useRef(INTRO);
+  const deepestRef = useRef(INTRO);
 
   const [mode, setMode] = useState<Mode>("orbit");
   const [chapter, setChapter] = useState(INTRO);
@@ -124,8 +126,14 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         rangeRef.current.value = String(Math.round(progress * 1000));
       setMode(next);
       setNearScreen(progress >= runtime.beats.handoffStart);
-        const nextChapter = activeChapter(progress, runtime.beats);
+      const nextChapter = activeChapter(progress, runtime.beats);
       if (nextChapter !== lastChapterRef.current) {
+        // How far into the story people get: each card, once per visit.
+        if (nextChapter > deepestRef.current) {
+          deepestRef.current = nextChapter;
+          const work = works[nextChapter];
+          track("story_card_reached", { card: work.slug, year: work.year });
+        }
         if (nextChapter >= 0) soundRef.current?.pass();
         lastChapterRef.current = nextChapter;
       }
@@ -178,6 +186,7 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
         event.source !== iframeRef.current?.contentWindow
       )
         return;
+      if (relayTrackedEvent(event.data)) return;
       const runtime = runtimeRef.current;
       switch (event.data?.type) {
         case "journey:ready":

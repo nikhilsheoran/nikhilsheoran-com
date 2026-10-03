@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useEffect } from "react";
 import { create } from "zustand";
 import {
@@ -23,7 +24,7 @@ import {
 
 function activateInStack(
   stack: DesktopAppId[],
-  appId: DesktopAppId
+  appId: DesktopAppId,
 ): DesktopAppId[] {
   return [...stack.filter((item) => item !== appId), appId];
 }
@@ -149,6 +150,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     if (isDesktopAppId(appId)) {
       const nextStack = activateInStack(state.windowStack, appId);
       set({ windowStack: nextStack });
+      if (!wasOpen) track("app_opened", { app: appId });
 
       if (appId === "notes") {
         const slug = state.getResolvedNoteSlug();
@@ -191,24 +193,22 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const state = get();
     if (!state.notesData) return;
 
-    const firstNoteSlug = getFirstNoteSlugForFolder(
-      state.notesData,
-      folderId
-    );
+    const firstNoteSlug = getFirstNoteSlugForFolder(state.notesData, folderId);
     const nextStack = activateInStack(state.windowStack, "notes");
     set({
       selectedFolderId: folderId,
       selectedNoteSlug: firstNoteSlug,
       windowStack: nextStack,
     });
-    state.navigate(
-      firstNoteSlug ? getNoteRoutePath(firstNoteSlug) : "/notes",
-      { replace: true }
-    );
+    state.navigate(firstNoteSlug ? getNoteRoutePath(firstNoteSlug) : "/notes", {
+      replace: true,
+    });
   },
 
   selectNote: (noteSlug) => {
     const state = get();
+    if (noteSlug !== state.selectedNoteSlug)
+      track("note_opened", { note: noteSlug });
     const nextStack = activateInStack(state.windowStack, "notes");
     set({
       selectedNoteSlug: noteSlug,
@@ -269,9 +269,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const activeId = state.getActiveWindowId();
     if (activeId) return getDesktopAppName(activeId);
     const route = parseDesktopPath(state.pathname);
-    return getDesktopAppName(
-      state.pathname === "/" ? "finder" : route.appId
-    );
+    return getDesktopAppName(state.pathname === "/" ? "finder" : route.appId);
   },
 
   isWindowOpen: (appId) => get().windowStack.includes(appId),
