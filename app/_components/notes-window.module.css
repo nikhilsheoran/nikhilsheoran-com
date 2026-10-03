@@ -241,6 +241,8 @@
 
 .headerEditor {
   grid-area: editor-header;
+  /* Its own corner: the window's clipping is unreliable beside the glass search field. */
+  border-top-right-radius: 26px;
   justify-content: space-between;
   gap: 10px;
   padding: 0 14px 0 16px;

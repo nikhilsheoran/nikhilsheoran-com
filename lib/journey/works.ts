@@ -14,14 +14,8 @@ export interface Work {
   subtitle: string;
 }
 
-/**
- * Chronological, one work per year so the panels match the timeline. Entries
- * marked "hidden" in the JSON are kept for later but not shown. Regenerate
- * artwork with `bun scripts/works/build.ts`.
- */
-export const works: Work[] = (data as (Work & { hidden?: boolean })[])
-  .filter((work) => !work.hidden)
-  .map(
+/** Chronological. Regenerate artwork with `bun scripts/works/build.ts`. */
+export const works: Work[] = (data as Work[]).map(
   ({ slug, year, date, age, kind, url, image, title, subtitle }) => ({
     slug,
     year,
