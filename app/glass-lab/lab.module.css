@@ -200,13 +200,34 @@
   transform: translateY(-1.5px) scale(1.02);
 }
 
-/* Press variants. */
-.lab .pSquish:active {
-  transform: scale(0.95);
+/* Press variants: all faint. They come after the hover rules so they win. */
+.lab .pTiny:active {
+  transform: scale(0.985);
+  transition-duration: 0.09s;
 }
-.lab .pDeep:active {
-  transform: scale(0.9);
-  filter: brightness(0.82);
+.lab .pDim:active {
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 0 0 200px rgb(8 10 12 / 0.1);
+  transition-duration: 0.09s;
+}
+.lab .pSettle:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 9px 18px -10px rgb(20 18 12 / 0.5),
+    inset 0 1.5px 1px rgb(255 255 255 / 0.34),
+    inset 0 -2px 4px rgb(0 0 0 / 0.08);
+  transition-duration: 0.09s;
+}
+.lab .pRim:active::before {
+  filter: brightness(3.2);
+}
+.lab .pWell:active {
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 2px 5px rgb(0 0 0 / 0.16),
+    inset 0 -1px 1px rgb(255 255 255 / 0.2);
+  transition-duration: 0.09s;
 }
 .lab .pNone:active {
   transform: none;
@@ -218,36 +239,36 @@
   overflow: hidden;
   pointer-events: none;
 }
-.ripple,
-.flash {
+.ripple {
   position: absolute;
   width: 10px;
   height: 10px;
   margin: -5px 0 0 -5px;
   border-radius: 50%;
-}
-.ripple {
-  border: 1.5px solid rgb(255 255 255 / 0.8);
-  animation: ripple 0.65s ease-out forwards;
-}
-.flash {
-  background: radial-gradient(circle, rgb(255 255 255 / 0.7), transparent 70%);
-  animation: flash 0.5s ease-out forwards;
+  border: 1px solid rgb(255 255 255 / 0.3);
+  animation: ripple 0.5s ease-out forwards;
 }
 @keyframes ripple {
   to {
-    transform: scale(34);
+    transform: scale(9);
     opacity: 0;
   }
 }
-@keyframes flash {
-  from {
-    transform: scale(4);
-  }
-  to {
-    transform: scale(22);
-    opacity: 0;
-  }
+
+.locked {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.goGlass {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  cursor: pointer;
 }
 
 /* Text layouts. */
@@ -349,7 +370,7 @@
   color: var(--ink);
 }
 .tabs button:active {
-  transform: scale(0.9);
+  transform: scale(0.97);
 }
 .tabs button[aria-current] {
   color: var(--ink);

@@ -196,6 +196,8 @@ type GlassProps<T extends ElementType> = {
   coreBlur?: number;
   /** Interior blur to ease to while the pointer is over the pane. */
   hoverBlur?: number;
+  /** Interior blur to ease to while the pane is pressed. */
+  pressBlur?: number;
 } & ComponentPropsWithoutRef<T>;
 
 export function Glass<T extends ElementType = "div">({
@@ -210,6 +212,7 @@ export function Glass<T extends ElementType = "div">({
   bevelGain = 1,
   coreBlur = 0,
   hoverBlur,
+  pressBlur,
   className,
   style,
   children,
@@ -275,11 +278,18 @@ export function Glass<T extends ElementType = "div">({
               `${Math.round((Math.atan2(dx, -dy) * 180) / Math.PI)}deg`,
             );
           },
+          onPointerDown: (event: PointerEvent<HTMLElement>) => {
+            if (pressBlur !== undefined) easeBlur(pressBlur);
+            (rest as { onPointerDown?: (e: PointerEvent<HTMLElement>) => void }).onPointerDown?.(event);
+          },
+          onPointerUp: () => {
+            if (pressBlur !== undefined) easeBlur(hoverBlur ?? coreBlur);
+          },
           onPointerEnter: () => {
             if (hoverBlur !== undefined) easeBlur(hoverBlur);
           },
           onPointerLeave: (event: PointerEvent<HTMLElement>) => {
-            if (hoverBlur !== undefined) easeBlur(coreBlur);
+            if (hoverBlur !== undefined || pressBlur !== undefined) easeBlur(coreBlur);
             event.currentTarget.style.removeProperty("--light");
           },
           style: lens
