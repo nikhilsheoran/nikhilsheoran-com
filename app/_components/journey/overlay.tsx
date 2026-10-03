@@ -132,9 +132,13 @@ export function Overlay({
       if (localStorage.getItem(CLEAN_KEY) === "1") setClean(true);
     } catch {}
   }, []);
+  // True only while the panes are fading out.
+  const [leaving, setLeaving] = useState(false);
   const toggleClean = () => {
     const next = !clean;
     setClean(next);
+    setLeaving(next);
+    if (next) window.setTimeout(() => setLeaving(false), 360);
     try {
       localStorage.setItem(CLEAN_KEY, next ? "1" : "0");
     } catch {}
@@ -154,7 +158,7 @@ export function Overlay({
     <div
       data-journey-ui
       data-ready={ready ? "" : undefined}
-      data-clean={clean ? "" : undefined}
+      data-clean={clean ? (leaving ? "leaving" : "gone") : undefined}
       className={`${styles.ui} ${hidden ? styles.faded : ""}`}
       inert={hidden}
       aria-hidden={hidden}

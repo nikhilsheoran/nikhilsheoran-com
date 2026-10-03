@@ -141,8 +141,16 @@
  * back. Showing them again replays the arrival fade.
  */
 .ui[data-clean] :is(.glass, .haze):not(.keep) {
-  animation: vanish 0.35s ease forwards;
   pointer-events: none !important;
+}
+/* The fade plays only at the moment of hiding. Afterwards panes are simply
+   absent, so one that mounts later (the age pill, say) never flashes in. */
+.ui[data-clean="leaving"] :is(.glass, .haze):not(.keep) {
+  animation: vanish 0.35s ease forwards;
+}
+.ui[data-clean="gone"] :is(.glass, .haze):not(.keep) {
+  animation: none;
+  opacity: 0;
 }
 .ui[data-clean] :is(.glass, .haze):not(.keep) * {
   pointer-events: none !important;
