@@ -272,6 +272,13 @@ function DocumentBody({ meta }: { meta: RouteMeta }): ReactNode {
       return <FinderDocument title={title} description={description} />;
     case "system-settings":
       return <SettingsDocument title={accountInfo.name} description={description} />;
+    case "doom":
+      return (
+        <>
+          <h1 className={styles.title}>{title}</h1>
+          <p>{description}</p>
+        </>
+      );
     default: {
       const _exhaustive: never = appId;
       return _exhaustive;

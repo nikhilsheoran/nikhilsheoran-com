@@ -70,6 +70,8 @@ function sidebarItemForPath(path: string): string | null {
 
 interface FinderWindowProps {
   isOpen: boolean;
+  /** The front window: only then does it answer the keyboard. */
+  isActive?: boolean;
   onClose: () => void;
   onActivate?: () => void;
   zIndex?: number;
@@ -77,6 +79,7 @@ interface FinderWindowProps {
 
 export function FinderWindow({
   isOpen,
+  isActive,
   onClose,
   onActivate,
   zIndex,
@@ -181,6 +184,34 @@ export function FinderWindow({
     },
     [navigateTo],
   );
+
+  // Arrow keys move the selection through the list; Return opens it.
+  useEffect(() => {
+    if (!isOpen || !isActive) return;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea")) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const at = filteredContents.findIndex(
+        (node) => node.name === selectedRow,
+      );
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        const next =
+          filteredContents[
+            at < 0 ? 0 : at + (event.key === "ArrowDown" ? 1 : -1)
+          ];
+        if (next) {
+          event.preventDefault();
+          setSelectedRow(next.name);
+        }
+      } else if (event.key === "Enter" && at >= 0) {
+        event.preventDefault();
+        handleRowDoubleClick(filteredContents[at]);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, isActive, filteredContents, selectedRow, handleRowDoubleClick]);
 
   const toggleSearch = useCallback(() => {
     setSearchActive((prev) => {

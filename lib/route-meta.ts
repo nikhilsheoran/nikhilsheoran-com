@@ -11,6 +11,7 @@ import { getCanonicalUrl, getSiteTagline } from "@/lib/site";
 const APP_DESCRIPTIONS: Record<Exclude<DesktopAppId, "notes">, string> = {
   music: `Albums, artists, and tracks in ${accountInfo.name}'s library.`,
   tv: `Shows and movies ${accountInfo.name} has been watching.`,
+  doom: `Doom, playable in ${accountInfo.name}'s Mac.`,
   finder: `Files, projects, and apps on ${accountInfo.name}'s desktop.`,
   "system-settings": `About ${accountInfo.name}.`,
 };
@@ -98,6 +99,7 @@ export function getRouteMeta(pathname: string): RouteMeta {
     }
     case "music":
     case "tv":
+    case "doom":
     case "finder":
     case "system-settings":
       return appMeta(pathname, canonical, appId);

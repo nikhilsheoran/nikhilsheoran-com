@@ -46,6 +46,17 @@ const config: NextConfig = {
           { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
         ],
       },
+      {
+        // The Doom window frames its emulator page (sandboxed) from this origin.
+        source: "/games/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+          // The sandboxed frame has no origin of its own, so it reads the game
+          // bundle as a cross-origin request.
+          { key: "Access-Control-Allow-Origin", value: "*" },
+        ],
+      },
     ];
   },
 };

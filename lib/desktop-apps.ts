@@ -49,6 +49,16 @@ export const desktopApps = [
     finderAppName: "TV.app",
     finderAppSize: "38 MB",
   },
+  {
+    id: "doom",
+    name: "Doom",
+    icon: "/icons/doom.svg",
+    route: "/doom",
+    dock: true,
+    defaultRunning: false,
+    finderAppName: "Doom.app",
+    finderAppSize: "6 MB",
+  },
 ] as const;
 
 export type DesktopApp = (typeof desktopApps)[number];

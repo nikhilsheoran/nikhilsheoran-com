@@ -10,22 +10,68 @@ import { useMediaQuery } from "@/lib/use-media-query";
 import { useMusicPlayer } from "@/lib/use-music-player";
 import { useJourneyMusicBridge } from "@/app/_components/journey/music-bridge";
 import { isDesktopAppId, type DesktopAppId } from "@/lib/desktop-apps";
-import { useDesktopStore, useSyncFolderToNote } from "@/lib/stores/desktop-store";
-import type { NotesData } from "@/lib/mock-desktop-data";
+import {
+  useDesktopStore,
+  useSyncFolderToNote,
+} from "@/lib/stores/desktop-store";
+import {
+  getGroupedNotesForFolder,
+  type NotesData,
+} from "@/lib/mock-desktop-data";
 
 // Lazy-load window components — only loaded when first opened
-const FinderWindow = dynamic(() => import("@/app/_components/finder-window").then((m) => ({ default: m.FinderWindow })), { ssr: false });
-const NotesWindow = dynamic(() => import("@/app/_components/notes-window").then((m) => ({ default: m.NotesWindow })), { ssr: false });
-const SettingsWindow = dynamic(() => import("@/app/_components/settings-window").then((m) => ({ default: m.SettingsWindow })), { ssr: false });
-const MusicWindow = dynamic(() => import("@/app/_components/music-window").then((m) => ({ default: m.MusicWindow })), { ssr: false });
-const TVWindow = dynamic(() => import("@/app/_components/tv-window").then((m) => ({ default: m.TVWindow })), { ssr: false });
+const FinderWindow = dynamic(
+  () =>
+    import("@/app/_components/finder-window").then((m) => ({
+      default: m.FinderWindow,
+    })),
+  { ssr: false },
+);
+const NotesWindow = dynamic(
+  () =>
+    import("@/app/_components/notes-window").then((m) => ({
+      default: m.NotesWindow,
+    })),
+  { ssr: false },
+);
+const SettingsWindow = dynamic(
+  () =>
+    import("@/app/_components/settings-window").then((m) => ({
+      default: m.SettingsWindow,
+    })),
+  { ssr: false },
+);
+const MusicWindow = dynamic(
+  () =>
+    import("@/app/_components/music-window").then((m) => ({
+      default: m.MusicWindow,
+    })),
+  { ssr: false },
+);
+const DoomWindow = dynamic(
+  () =>
+    import("@/app/_components/doom-window").then((m) => ({
+      default: m.DoomWindow,
+    })),
+  { ssr: false },
+);
+const TVWindow = dynamic(
+  () =>
+    import("@/app/_components/tv-window").then((m) => ({
+      default: m.TVWindow,
+    })),
+  { ssr: false },
+);
 
 interface DesktopShellProps {
   initialPathname: string;
   notesData: NotesData;
 }
 
-export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) {
+export function DesktopShell({
+  initialPathname,
+  notesData,
+}: DesktopShellProps) {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const didInitRef = useRef(false);
 
@@ -75,6 +121,7 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
       "system-settings": baseZ,
       music: baseZ,
       tv: baseZ,
+      doom: baseZ,
     };
     windowStack.forEach((appId, i) => {
       zMap[appId] = baseZ + i;
@@ -93,11 +140,55 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
     if (!isMusicOpen) musicPlayer.pause();
   }, [isMusicOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const toggleMusic = musicPlayer.togglePlay;
+
+  // ── Keyboard: arrows step through notes, Space plays or pauses music, and
+  // Escape closes the front window (in the 3D room Escape is taken: it steps
+  // back from the Mac). Typing in a field, and Doom, are left alone.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']"))
+        return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const state = useDesktopStore.getState();
+      const active = state.windowStack[state.windowStack.length - 1] ?? null;
+      if (!active || active === "doom") return;
+      if (event.key === "Escape") {
+        if (window.parent === window) state.closeWindow(active);
+        return;
+      }
+      if (event.key === " " && active === "music") {
+        event.preventDefault();
+        toggleMusic();
+        return;
+      }
+      if (
+        active === "notes" &&
+        (event.key === "ArrowDown" || event.key === "ArrowUp")
+      ) {
+        const slugs = getGroupedNotesForFolder(
+          notesData,
+          state.selectedFolderId,
+        ).flatMap((group) => group.items.map((note) => note.slug));
+        const at = slugs.indexOf(state.getResolvedNoteSlug() ?? "");
+        const next = slugs[at + (event.key === "ArrowDown" ? 1 : -1)];
+        if (next) {
+          event.preventDefault();
+          state.selectNote(next);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [notesData, toggleMusic]);
+
   // ── Window open flags ──
   const isFinderOpen = windowStack.includes("finder");
   const isNotesOpen = windowStack.includes("notes");
   const isSettingsOpen = windowStack.includes("system-settings");
   const isTVOpen = windowStack.includes("tv");
+  const isDoomOpen = windowStack.includes("doom");
 
   // ── Running apps for dock indicator ──
   const runningApps = useMemo(
@@ -107,8 +198,16 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
       "system-settings": isSettingsOpen,
       music: isMusicOpen,
       tv: isTVOpen,
+      doom: isDoomOpen,
     }),
-    [isFinderOpen, isNotesOpen, isSettingsOpen, isMusicOpen, isTVOpen],
+    [
+      isFinderOpen,
+      isNotesOpen,
+      isSettingsOpen,
+      isMusicOpen,
+      isTVOpen,
+      isDoomOpen,
+    ],
   );
 
   const handleAppOpen = (appId: DockAppId) => {
@@ -153,6 +252,7 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
           isOpen
           onClose={() => closeWindow("finder")}
           onActivate={() => activateWindow("finder")}
+          isActive={activeWindowId === "finder"}
           zIndex={zIndex.finder}
         />
       )}
@@ -196,6 +296,15 @@ export function DesktopShell({ initialPathname, notesData }: DesktopShellProps) 
           onClose={() => closeWindow("tv")}
           onActivate={() => activateWindow("tv")}
           zIndex={zIndex.tv}
+        />
+      )}
+
+      {isDoomOpen && (
+        <DoomWindow
+          isOpen
+          onClose={() => closeWindow("doom")}
+          onActivate={() => activateWindow("doom")}
+          zIndex={zIndex.doom}
         />
       )}
 

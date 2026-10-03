@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Doom</title>
+    <!--
+      The shareware episode of Doom, run by js-dos (DOSBox compiled for the
+      browser). This page is only ever shown inside the Doom window's sandboxed
+      frame, so the emulator's script cannot reach the rest of the site.
+    -->
+    <link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css" />
+    <style>
+      html,
+      body,
+      #dos {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: #000;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="dos"></div>
+    <script src="https://v8.js-dos.com/latest/js-dos.js"></script>
+    <script>
+      Dos(document.getElementById("dos"), {
+        url: "/games/doom.jsdos",
+        autoStart: true,
+        kiosk: true,
+        noCloud: true,
+        noNetworking: true,
+        theme: "dark",
+      });
+    </script>
+  </body>
+</html>
