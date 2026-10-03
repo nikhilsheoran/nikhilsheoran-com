@@ -21,6 +21,7 @@ import { createScreenTexture } from "./textures";
 import { useStaticModel } from "./static-model";
 import baked from "@/public/journey/studio-baked.json";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
+import { track } from "@/lib/analytics";
 import { Glass } from "./glass";
 import styles from "./journey.module.css";
 import type { JourneyRuntime, SceneProps } from "./runtime";
@@ -330,6 +331,7 @@ export function ClockEgg({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
           document.body.style.removeProperty("--journey-cursor");
           runtime.detour.heldTarget = runtime.motion.target;
           runtime.detour.active = true;
+          track("clock_found");
         }}
       >
         <boxGeometry args={clockEgg.size} />

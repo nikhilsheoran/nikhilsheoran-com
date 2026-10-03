@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { accountInfo } from "@/lib/settings-data";
 import { getSiteKeywords, getSiteTagline, getSiteUrl } from "@/lib/site";
-import Script from "next/script";
+import { Analytics } from "@/app/_components/analytics";
 
 const SITE_URL = getSiteUrl();
 const siteTagline = getSiteTagline();
@@ -96,12 +96,11 @@ export default function RootLayout({
         <noscript>
           <style>{`.desktop-root { display: none !important; }`}</style>
         </noscript>
-        <Script
-          src="https://cdn.visitors.now/v.js"
-          data-token="d502ca42-8a2f-41a4-8a35-56450cb6af1a"
-        />
       </head>
-      <body className={inter.variable}>{children}</body>
+      <body className={inter.variable}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

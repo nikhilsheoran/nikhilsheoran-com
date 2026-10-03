@@ -267,6 +267,8 @@ export function Overlay({
                 href={work.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-visitors-event="story_card_opened"
+                data-visitors-card={work.slug}
                 aria-label={`${ACTION_LABEL[work.kind]} (opens in a new tab)`}
                 title={ACTION_LABEL[work.kind]}
               >

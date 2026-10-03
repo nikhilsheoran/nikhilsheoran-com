@@ -3,7 +3,7 @@
  * window and the phone view show exactly the same thing.
  */
 .guestbook {
-  margin-top: 16px;
+  margin-top: 0;
   color: #1d1d1f;
 }
 
@@ -12,8 +12,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
+  height: 42px;
   padding: 0 5px 0 14px;
+  border-radius: 12px;
+  background: #f2f2f4;
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.06);
+  transition: box-shadow 0.15s ease;
+}
+
+.composer:focus-within {
+  box-shadow: inset 0 0 0 1.5px rgb(10 122 255 / 0.55);
 }
 
 .input {
@@ -68,12 +76,15 @@
 }
 
 .signIn {
-  background: rgb(0 0 0 / 0.06);
+  background: #fff;
   color: #1d1d1f;
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.1),
+    0 1px 2px rgb(0 0 0 / 0.08);
 }
 
 .signIn:hover {
-  background: rgb(0 0 0 / 0.1);
+  background: #fafafa;
 }
 
 .account {
@@ -93,7 +104,7 @@
 /* ── The messages ── */
 
 .entries {
-  margin: 14px 0 0;
+  margin: 10px 0 0;
   padding: 0;
   list-style: none;
 }

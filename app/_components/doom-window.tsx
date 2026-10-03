@@ -6,6 +6,7 @@ import {
   getDesktopWindowBounds,
   getDesktopWindowFrameStyle,
 } from "@/lib/desktop-window";
+import { track } from "@/lib/analytics";
 import { WindowControls } from "./window-controls";
 import styles from "./doom-window.module.css";
 
@@ -52,7 +53,10 @@ export function DoomWindow({
         return;
       if (event.data.type === "ready")
         setPhase((now) => (now === "running" ? now : "ready"));
-      if (event.data.type === "started") setPhase("running");
+      if (event.data.type === "started") {
+        setPhase("running");
+        track("doom_played");
+      }
       if (event.data.type === "error") setPhase("error");
     };
     window.addEventListener("message", receive);

@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { track } from "@/lib/analytics";
 import { tuning } from "@/lib/journey/tuning";
 import { panelPose, panelScale, smoothStep } from "@/lib/journey/path";
 import type { Work } from "@/lib/journey/works";
@@ -382,6 +383,7 @@ export function Cloth({
             performance.now() < runtime.suppressClickUntil
           )
             return;
+          track("story_card_opened", { card: work.slug });
           window.open(work.url, "_blank", "noopener,noreferrer");
         }}
       >

@@ -3,8 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
-import { Glass } from "../journey/glass";
-import { APP_GLASS, appGlass } from "./app-glass";
 import { GoogleG } from "./icons";
 import styles from "./guestbook.module.css";
 
@@ -120,12 +118,7 @@ export function GuestbookView({
 
   return (
     <section className={styles.guestbook} data-window-drag-ignore>
-      <Glass
-        as="div"
-        {...APP_GLASS}
-        className={`${appGlass} ${styles.composer}`}
-        style={{ "--radius": "23px" } as React.CSSProperties}
-      >
+      <div className={styles.composer}>
         <input
           type="text"
           autoComplete="off"
@@ -163,7 +156,7 @@ export function GuestbookView({
             Sign in
           </button>
         )}
-      </Glass>
+      </div>
       {signedInAs && (
         <p className={styles.account}>
           Signed in as {signedInAs}.{" "}

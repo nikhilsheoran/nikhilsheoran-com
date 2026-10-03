@@ -16,6 +16,7 @@ import type { NotesData } from "@/lib/mock-desktop-data";
 import { focus, leave, seek, type Mode } from "@/lib/journey/machine";
 import { activeChapter, INTRO } from "@/lib/journey/timeline";
 import { loadSavedTuning } from "@/lib/journey/tuning";
+import { track } from "@/lib/analytics";
 import { createRuntime, type FrameReport } from "./runtime";
 import { useJourneyInput } from "./use-journey-input";
 import { Overlay } from "./overlay";
@@ -207,7 +208,9 @@ export function JourneyPortal({ notesData }: { notesData: NotesData }) {
   }, [backToDesk]);
 
   useEffect(() => {
-    if (focused) iframeRef.current?.focus();
+    if (!focused) return;
+    iframeRef.current?.focus();
+    track("mac_opened");
   }, [focused]);
 
   return (
