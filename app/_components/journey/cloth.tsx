@@ -111,7 +111,10 @@ const fragmentShader = `
     // Edge of the sheet, with corners rounded by uRound (in sheet widths).
     vec2 q = abs(vUv - .5) * vec2(1., ASPECT) - (vec2(.5, .5 * ASPECT) - uRound);
     float edge = 1. - smoothstep(-.004, 0., length(max(q, 0.)) + min(max(q.x, q.y), 0.) - uRound);
-    gl_FragColor = vec4(color,uOpacity*edge*(1. - haze * .5));
+    // Distance thins a sheet only once it has left the reading spot: the one
+    // being read is solid, so nothing shows through it.
+    float thin = haze * .5 * smoothstep(0., .3, uDefocus);
+    gl_FragColor = vec4(color,uOpacity*edge*(1. - thin));
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }

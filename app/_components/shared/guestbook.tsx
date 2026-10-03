@@ -1,28 +1,31 @@
 "use client";
 
-import { Component, useState, useRef, type ReactNode } from "react";
+import { Component, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { authClient } from "@/lib/auth-client";
 import { ConvexClientProvider } from "@/app/_components/convex-provider";
+import { Glass } from "../journey/glass";
+import { APP_GLASS, appGlass } from "./app-glass";
 import { GoogleG } from "./icons";
+import styles from "./guestbook.module.css";
 
-interface GuestbookProps {
-  styles: Record<string, string>;
+export interface GuestbookMessage {
+  _id: string;
+  _creationTime: number;
+  name: string;
+  avatarUrl?: string;
+  message: string;
 }
 
-/**
- * Shared Guestbook component used by both desktop NotesWindow and MobileNotes.
- * Expects the consumer to pass a CSS modules styles object with keys:
- * guestBook, guestBookDivider, commentRow, commentAvatar, commentAvatarEmpty,
- * commentBubble, editorBody / commentText, commentInputRow, commentInputWrapper,
- * commentInput, commentSubmitBtn, commentSignOutBtn / signOutBtn
- */
-class GuestbookBoundary extends Component<
-  { children: ReactNode; styles: Record<string, string> },
-  { failed: boolean }
-> {
+const day = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+class GuestbookBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
@@ -30,160 +33,167 @@ class GuestbookBoundary extends Component<
   }
 
   render() {
-    if (this.state.failed) {
+    if (this.state.failed)
       return (
-        <div className={this.props.styles.guestBook}>
-          <div className={this.props.styles.guestBookDivider} />
-        </div>
+        <section className={styles.guestbook}>
+          <p className={styles.note}>The guestbook can’t be reached right now.</p>
+        </section>
       );
-    }
     return this.props.children;
   }
 }
 
-export function Guestbook({ styles }: GuestbookProps) {
+/** The guestbook under a shared note, on both the desktop and the phone view. */
+export function Guestbook() {
   return (
-    <GuestbookBoundary styles={styles}>
+    <GuestbookBoundary>
       <ConvexClientProvider>
-        <GuestbookInner styles={styles} />
+        <GuestbookLive />
       </ConvexClientProvider>
     </GuestbookBoundary>
   );
 }
 
-function GuestbookInner({ styles }: GuestbookProps) {
-  const [commentText, setCommentText] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
+function GuestbookLive() {
   const { data: session } = authClient.useSession();
   const messages = useQuery(api.guestbook.list);
   const addMessage = useMutation(api.guestbook.add);
+  const signIn = () =>
+    authClient.signIn.social({ provider: "google", callbackURL: window.location.href });
+  return (
+    <GuestbookView
+      messages={messages}
+      signedInAs={session ? (session.user.name ?? "you") : null}
+      onSignIn={signIn}
+      onSignOut={() => authClient.signOut()}
+      onSend={(message) => addMessage({ message })}
+    />
+  );
+}
 
-  const handleSignIn = () => {
-    authClient.signIn.social({
-      provider: "google",
-      callbackURL: window.location.href,
-    });
-  };
+/** Everything the guestbook shows, with no knowledge of where the data comes from. */
+export function GuestbookView({
+  messages,
+  signedInAs,
+  onSignIn,
+  onSignOut,
+  onSend,
+}: {
+  /** `undefined` while loading. Newest first. */
+  messages: GuestbookMessage[] | undefined;
+  signedInAs: string | null;
+  onSignIn: () => void;
+  onSignOut: () => void;
+  onSend: (message: string) => Promise<unknown>;
+}) {
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
 
-  const handleSignOut = () => authClient.signOut();
-
-  const handleSubmit = async () => {
-    if (!session) {
-      handleSignIn();
-      return;
-    }
-    const trimmed = commentText.trim();
-    if (!trimmed || isSubmitting) return;
-    setIsSubmitting(true);
+  const send = async () => {
+    if (!signedInAs) return onSignIn();
+    const text = draft.trim();
+    if (!text || sending) return;
+    setSending(true);
     try {
-      await addMessage({ message: trimmed });
-      setCommentText("");
+      await onSend(text);
+      setDraft("");
     } finally {
-      setIsSubmitting(false);
+      setSending(false);
     }
   };
-
-  // Support both desktop and mobile style key names
-  const signOutBtnClass =
-    styles.commentSignOutBtn ?? styles.signOutBtn ?? "";
-  const messageTextClass =
-    styles.editorBody ?? styles.commentText ?? "";
 
   return (
-    <div className={styles.guestBook}>
-      <div className={styles.guestBookDivider} />
-
-      {messages?.map((msg) => (
-        <div key={msg._id} className={styles.commentRow}>
-          {msg.avatarUrl ? (
-            <Image
-              src={msg.avatarUrl}
-              alt={msg.name}
-              width={30}
-              height={30}
-              className={styles.commentAvatar}
-              unoptimized
-            />
-          ) : (
-            <span className={styles.commentAvatarEmpty} aria-hidden />
-          )}
-          <div className={styles.commentBubble}>
-            <span className={messageTextClass}>{msg.message}</span>
-          </div>
-        </div>
-      ))}
-
-      <div
-        className={styles.commentInputRow}
-        data-window-drag-ignore
+    <section className={styles.guestbook} data-window-drag-ignore>
+      <Glass
+        as="div"
+        {...APP_GLASS}
+        className={`${appGlass} ${styles.composer}`}
+        style={{ "--radius": "23px" } as React.CSSProperties}
       >
-        {session ? (
-          <Image
-            src={session.user.image ?? "/nikhil.jpg"}
-            alt={session.user.name ?? "You"}
-            width={30}
-            height={30}
-            className={styles.commentAvatar}
-            unoptimized
-          />
-        ) : (
-          <span className={styles.commentAvatarEmpty} aria-hidden />
-        )}
-        <div className={styles.commentInputWrapper}>
-          <input
-            ref={inputRef}
-            type="text"
-            autoComplete="off"
-            data-1p-ignore
-            data-lpignore="true"
-            className={styles.commentInput}
-            placeholder={
-              session ? "Leave a message…" : "Sign in to leave a message…"
-            }
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSubmit();
-            }}
-            maxLength={280}
-            disabled={isSubmitting}
-          />
-          {session ? (
-            <button
-              type="button"
-              className={styles.commentSubmitBtn}
-              onClick={handleSubmit}
-              disabled={isSubmitting || !commentText.trim()}
-              aria-label="Submit message"
-            >
-              <span>Send</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={styles.commentSubmitBtn}
-              onClick={handleSignIn}
-              aria-label="Sign in with Google to submit"
-            >
-              <GoogleG />
-              <span>Sign in</span>
-            </button>
-          )}
-        </div>
-        {session && (
+        <input
+          type="text"
+          autoComplete="off"
+          data-1p-ignore
+          data-lpignore="true"
+          className={styles.input}
+          placeholder={signedInAs ? "Leave a message" : "Sign in to leave a message"}
+          aria-label="Your message"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") void send();
+          }}
+          maxLength={280}
+          disabled={sending}
+        />
+        {signedInAs ? (
           <button
             type="button"
-            className={signOutBtnClass}
-            onClick={handleSignOut}
-            aria-label="Sign out"
-            data-window-drag-ignore
+            className={`${styles.button} ${styles.send}`}
+            onClick={() => void send()}
+            disabled={sending || !draft.trim()}
           >
-            Sign out
+            Send
+          </button>
+        ) : (
+          <button type="button" className={`${styles.button} ${styles.signIn}`} onClick={onSignIn}>
+            <GoogleG />
+            Sign in
           </button>
         )}
-      </div>
-    </div>
+      </Glass>
+      {signedInAs && (
+        <p className={styles.account}>
+          Signed in as {signedInAs}.{" "}
+          <button type="button" className={styles.signOut} onClick={onSignOut}>
+            Sign out
+          </button>
+        </p>
+      )}
+
+      {messages === undefined ? (
+        <p className={styles.note}>Loading messages…</p>
+      ) : messages.length === 0 ? (
+        <p className={styles.note}>No messages yet. Be the first.</p>
+      ) : (
+        <>
+          <p className={styles.count}>
+            {messages.length} message{messages.length === 1 ? "" : "s"}
+          </p>
+          <ul className={styles.entries}>
+            {messages.map((entry) => (
+              <li key={entry._id} className={styles.entry}>
+                {entry.avatarUrl ? (
+                  <Image
+                    src={entry.avatarUrl}
+                    alt=""
+                    width={36}
+                    height={36}
+                    className={styles.avatar}
+                    unoptimized
+                  />
+                ) : (
+                  <span className={styles.initial} aria-hidden>
+                    {entry.name.trim().charAt(0).toUpperCase() || "?"}
+                  </span>
+                )}
+                <div className={styles.body}>
+                  <p className={styles.who}>
+                    <span className={styles.name}>{entry.name}</span>
+                    <time
+                      className={styles.when}
+                      dateTime={new Date(entry._creationTime).toISOString()}
+                    >
+                      {day.format(entry._creationTime)}
+                    </time>
+                  </p>
+                  <p className={styles.message}>{entry.message}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
   );
 }

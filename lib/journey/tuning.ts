@@ -69,6 +69,8 @@ export const DEFAULT_TUNING = {
     visibleChapters: 3,
     /** Each work's own tumble while out in the vortex (radians); it squares up to be read. */
     tumble: 0.45,
+    /** Chapters either side of its moment for which a work stays fully solid. */
+    hold: 0.3,
     /** Opacity of a work once it's back out in the vortex. */
     farOpacity: 0.32,
     /** Depth-of-field blur of a work out in the vortex (0 = sharp). */

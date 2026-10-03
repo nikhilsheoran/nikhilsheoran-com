@@ -1,0 +1,175 @@
+/*
+ * The guestbook under a shared note. Its own stylesheet, so the desktop Notes
+ * window and the phone view show exactly the same thing.
+ */
+.guestbook {
+  margin-top: 22px;
+  color: #1d1d1f;
+}
+
+/* ── Writing a message ── */
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 6px 0 16px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: #1d1d1f;
+  cursor: text !important;
+}
+
+.input::placeholder {
+  color: #8e8e93;
+}
+
+.button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition:
+    background 0.12s ease,
+    transform 0.12s ease;
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.send {
+  background: #0a7aff;
+  color: #fff;
+}
+
+.send:hover {
+  background: #2a8cff;
+}
+
+.send:disabled {
+  background: rgb(0 0 0 / 0.08);
+  color: #a1a1a6;
+}
+
+.signIn {
+  background: rgb(0 0 0 / 0.06);
+  color: #1d1d1f;
+}
+
+.signIn:hover {
+  background: rgb(0 0 0 / 0.1);
+}
+
+.account {
+  margin: 8px 16px 0;
+  font-size: 12.5px;
+  color: #8e8e93;
+}
+
+.signOut {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: #0a6fe0;
+}
+
+/* ── The messages ── */
+.count {
+  margin: 26px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8e8e93;
+}
+
+.entries {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+}
+
+.entry + .entry {
+  border-top: 0.5px solid #e4e4e6;
+}
+
+.avatar,
+.initial {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.avatar {
+  object-fit: cover;
+}
+
+.initial {
+  display: grid;
+  place-items: center;
+  background: #e6e6e8;
+  color: #6e6e73;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.body {
+  min-width: 0;
+  flex: 1;
+}
+
+.who {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 2px;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.when {
+  flex: none;
+  font-size: 12.5px;
+  color: #8e8e93;
+}
+
+.message {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  margin: 22px 0 0;
+  font-size: 14px;
+  color: #8e8e93;
+}

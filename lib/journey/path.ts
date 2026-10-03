@@ -357,7 +357,11 @@ function helix(
   const height = now.height + p.rise * phase;
   // How far round from the front it is: 0 facing you, 1 across the desk.
   // Distance, and with it haze, blur and dimness, all grow with this.
-  const away = smoothStep((1 - Math.cos(Math.min(Math.PI, Math.abs(turn)))) / 1.7);
+  // Around its own moment a sheet is held fully present (solid and sharp); the
+  // falling away only starts once it has moved off to the side.
+  const held = smoothStep((Math.abs(phase) - p.hold) / 0.45);
+  const away =
+    held * smoothStep((1 - Math.cos(Math.min(Math.PI, Math.abs(turn)))) / 1.7);
   const elevation = Math.atan2(
     now.view.position[1] - now.view.target[1],
     now.view.radius,

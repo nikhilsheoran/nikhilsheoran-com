@@ -339,7 +339,7 @@ export function NotesWindow({
                   <p>No content available.</p>
                 )}
               </div>
-              {isSharedNote && <Guestbook styles={styles} />}
+              {isSharedNote && <Guestbook />}
             </>
           ) : (
             <>

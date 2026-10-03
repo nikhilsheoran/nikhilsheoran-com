@@ -70,7 +70,7 @@ function NoteReader({ note, onBack }: { note: NoteRecord; onBack: () => void }) 
           )}
         </div>
 
-        {note.isShared && <Guestbook styles={styles} />}
+        {note.isShared && <Guestbook />}
       </article>
     </div>
   );

@@ -48,6 +48,7 @@ const RANGES: Record<string, Range> = {
   "panels.hazeFar": [2, 16, 0.1],
   "panels.folds": [0, 1.5, 0.05],
   "panels.tumble": [0, 1.2, 0.01],
+  "panels.hold": [0, 1, 0.01],
   "panels.farOpacity": [0, 1, 0.01],
   "panels.farBlur": [0, 2, 0.05],
   "panels.orbitSpread": [0, 0.5, 0.01],
