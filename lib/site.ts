@@ -1,3 +1,4 @@
+import { story } from "@/lib/journey/story";
 import { accountInfo } from "@/lib/settings-data";
 
 export function getSiteUrl(): string {
@@ -14,8 +15,16 @@ export function getCanonicalUrl(pathname: string): string {
 }
 
 export function getSiteTagline(): string {
-  return `Personal website of ${accountInfo.name}, ${accountInfo.jobTitle.toLowerCase()} and ${accountInfo.alumniOf} alum. Presented as a macOS desktop.`;
+  return `I'm ${accountInfo.name.split(" ")[0]}. ${story.tagline} Scroll through my story, then use the Mac on my desk.`;
 }
+
+/** The picture links to the site unfurl with: the opening view of the room. */
+export const socialImage = {
+  url: "/og.jpg",
+  width: 1200,
+  height: 630,
+  alt: `${accountInfo.name} at his desk in a sunlit studio above the city`,
+} as const;
 
 export function getSiteKeywords(): string[] {
   return [

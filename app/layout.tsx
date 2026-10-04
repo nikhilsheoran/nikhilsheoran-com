@@ -2,7 +2,12 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { accountInfo } from "@/lib/settings-data";
-import { getSiteKeywords, getSiteTagline, getSiteUrl } from "@/lib/site";
+import {
+  getSiteKeywords,
+  getSiteTagline,
+  getSiteUrl,
+  socialImage,
+} from "@/lib/site";
 import { Analytics } from "@/app/_components/analytics";
 
 const SITE_URL = getSiteUrl();
@@ -24,20 +29,13 @@ export const metadata: Metadata = {
     siteName: accountInfo.name,
     title: accountInfo.name,
     description: siteTagline,
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: accountInfo.name,
-      },
-    ],
+    images: [socialImage],
   },
   twitter: {
     card: "summary_large_image",
     title: accountInfo.name,
     description: siteTagline,
-    images: ["/og.png"],
+    images: [socialImage],
     creator: `@${accountInfo.twitterHandle}`,
   },
   alternates: {

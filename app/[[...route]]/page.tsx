@@ -8,7 +8,7 @@ import { pathnameFromRoute } from "@/lib/desktop-path";
 import { buildNotesData } from "@/lib/mock-desktop-data";
 import { getRouteMeta } from "@/lib/route-meta";
 import { accountInfo } from "@/lib/settings-data";
-import { getSiteUrl } from "@/lib/site";
+import { getSiteUrl, socialImage } from "@/lib/site";
 import { serialize } from "next-mdx-remote/serialize";
 import type { MDXRemoteSerializeResult } from "next-mdx-remote";
 
@@ -46,6 +46,8 @@ export async function generateMetadata({
       description: meta.description,
       url: meta.canonical,
       siteName: accountInfo.name,
+      // A page's own openGraph replaces the layout's, so the picture is repeated here.
+      images: [socialImage],
       ...(meta.ogType === "article" && meta.note
         ? {
             publishedTime: meta.note.frontmatter.date,
@@ -55,6 +57,8 @@ export async function generateMetadata({
         : {}),
     },
     twitter: {
+      card: "summary_large_image",
+      images: [socialImage],
       title: meta.title,
       description: meta.description,
       creator: `@${accountInfo.twitterHandle}`,

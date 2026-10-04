@@ -41,7 +41,10 @@ function notesMeta(
     noteSlug: note.slug,
     note,
     title: pathname === "/" ? accountInfo.name : note.frontmatter.title,
-    description: note.preview || note.frontmatter.preview || note.frontmatter.title,
+    description:
+      pathname === "/"
+        ? getSiteTagline()
+        : note.preview || note.frontmatter.preview || note.frontmatter.title,
     ogType: pathname === "/" ? "profile" : "article",
   };
 }
