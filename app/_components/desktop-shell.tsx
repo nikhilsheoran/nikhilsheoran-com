@@ -1,5 +1,6 @@
 "use client";
 
+import { isSmallDevice } from "@/lib/journey/device";
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -192,7 +193,8 @@ export function DesktopShell({
   // background and opens instantly. It never competes with the first paint.
   const [doomWarm, setDoomWarm] = useState(false);
   useEffect(() => {
-    if (isMobile) return;
+    // Not on phones: the emulator and the game are memory a phone cannot spare.
+    if (isMobile || isSmallDevice()) return;
     const timer = window.setTimeout(() => setDoomWarm(true), 2500);
     return () => window.clearTimeout(timer);
   }, [isMobile]);

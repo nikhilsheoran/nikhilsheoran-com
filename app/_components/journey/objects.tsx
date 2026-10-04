@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Html, useGLTF } from "@react-three/drei";
+import { isSmallDevice } from "@/lib/journey/device";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -47,7 +48,10 @@ export function Desk() {
  * drawn unlit with its colour scaled back up by exposureScale.
  */
 export function BakedStudio() {
-  const { scene } = useGLTF("/journey/studio-baked.glb");
+  // Phones get the same room with every texture at half size (see lib/journey/device.ts).
+  const { scene } = useGLTF(
+    isSmallDevice() ? "/journey/studio-baked-small.glb" : "/journey/studio-baked.glb",
+  );
   const model = useMemo(() => {
     const root = scene.clone(true);
     root.traverse((object) => {

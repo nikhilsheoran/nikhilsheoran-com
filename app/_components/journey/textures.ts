@@ -1,3 +1,4 @@
+import { isSmallDevice } from "@/lib/journey/device";
 import * as THREE from "three";
 import type { Work } from "@/lib/journey/works";
 
@@ -29,12 +30,20 @@ function cover(
   ctx.restore();
 }
 
+/** A 1600 by 1000 print sheet; on phones the same drawing at 0.64 of the size, to save memory. */
+function printCanvas(canvas: HTMLCanvasElement) {
+  const scale = isSmallDevice() ? 0.64 : 1;
+  canvas.width = 1600 * scale;
+  canvas.height = 1000 * scale;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(scale, scale);
+  return ctx;
+}
+
 /** The work's artwork, cover-fitted to the sheet's 16:10 print area. No printed text. */
 export async function createArtworkTexture(work: Work) {
   const canvas = document.createElement("canvas");
-  canvas.width = 1600;
-  canvas.height = 1000;
-  const ctx = canvas.getContext("2d")!;
+  const ctx = printCanvas(canvas);
   ctx.fillStyle = "#3c4540";
   ctx.fillRect(0, 0, 1600, 1000);
   const image = await loadImage(work.image);
@@ -51,9 +60,7 @@ const ACTION_ICON = { youtube: "play", x: "x", web: "globe" } as const;
 /** Transparent printed ink, sampled in the same UV space and lighting as the artwork. */
 export async function createActionTexture(kind: Work["kind"]) {
   const canvas = document.createElement("canvas");
-  canvas.width = 1600;
-  canvas.height = 1000;
-  const ctx = canvas.getContext("2d")!;
+  const ctx = printCanvas(canvas);
   const [icon, arrow] = await Promise.all([
     loadImage(`/journey/action-${ACTION_ICON[kind]}.svg`),
     loadImage("/journey/action-external.svg"),

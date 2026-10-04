@@ -1,6 +1,7 @@
 "use client";
 
 /* eslint-disable react-hooks/immutability -- This pass updates Three.js uniforms and render targets in the render loop. */
+import { isSmallDevice } from "@/lib/journey/device";
 import { useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -55,7 +56,7 @@ export function Lens({ runtimeRef }: Pick<SceneProps, "runtimeRef">) {
     const target = new THREE.WebGLRenderTarget(1, 1, {
       type: THREE.HalfFloatType,
       depthBuffer: true,
-      samples: 2,
+      samples: isSmallDevice() ? 0 : 2,
     });
     target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
     const material = new THREE.ShaderMaterial({

@@ -28,6 +28,7 @@ import { clockEgg, deskLinks } from "@/lib/journey/desk-links";
 import { Cloth } from "./cloth";
 import { Lens } from "./lens";
 import { ScreenProjection } from "./screen";
+import { isSmallDevice } from "@/lib/journey/device";
 import { Diagnostics } from "./diagnostics";
 import type { SceneProps } from "./runtime";
 
@@ -214,7 +215,9 @@ function World(props: SceneProps) {
 
 export function JourneyScene(props: SceneProps) {
   // Start sharp; step the pixel ratio down (and back up) with measured frame rate.
-  const [dpr, setDpr] = useState(2);
+  // Phones stop at 1.5: the extra sharpness is not worth the memory there.
+  const cap = isSmallDevice() ? 1.5 : 2;
+  const [dpr, setDpr] = useState(cap);
   return (
     <Canvas
       eventSource={props.surfaceRef as RefObject<HTMLDivElement>}
@@ -238,7 +241,11 @@ export function JourneyScene(props: SceneProps) {
       camera={{ position: [-4.2, 3.3, -6.3], fov: 40, near: 0.04, far: 120 }}
       dpr={dpr}
       shadows={props.flags.live ? { type: THREE.PCFShadowMap } : false}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      gl={{
+        antialias: !isSmallDevice(),
+        alpha: true,
+        powerPreference: "high-performance",
+      }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.AgXToneMapping;
         gl.toneMappingExposure = 1.0;
@@ -248,7 +255,7 @@ export function JourneyScene(props: SceneProps) {
         bounds={() => [50, 110]}
         flipflops={3}
         onChange={({ factor }) =>
-          setDpr(Math.min(window.devicePixelRatio, 1 + factor))
+          setDpr(Math.min(window.devicePixelRatio, cap, 1 + factor))
         }
       />
       <Suspense fallback={null}>
