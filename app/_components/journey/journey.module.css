@@ -89,23 +89,6 @@
   border: 0;
   filter: saturate(0.9) contrast(0.95) brightness(0.9);
 }
-/* Phones: the focused screen becomes the viewport (mobile desktop layout). */
-.liveScreen[data-fullscreen="true"] {
-  z-index: 3;
-  animation: screenFill 0.35s ease-out both;
-}
-.liveScreen[data-fullscreen="true"]::after {
-  display: none;
-}
-.liveScreen[data-fullscreen="true"] .iframe {
-  filter: none;
-}
-@keyframes screenFill {
-  from {
-    opacity: 0;
-  }
-}
-
 /* ── Overlay: small glass capsules floating round the scene ─────────── */
 @property --light {
   syntax: "<angle>";

@@ -36,7 +36,7 @@ export function ScreenProjection({
   );
   const previous = useMemo(() => new THREE.Matrix4(), []);
   const current = useMemo(() => new THREE.Matrix4(), []);
-  const lastRef = useRef({ width: 0, height: 0, ready: false, full: false });
+  const lastRef = useRef({ width: 0, height: 0, ready: false });
   const interaction = useMemo(() => {
     const origin = new THREE.Vector3(...SCREEN_POSITION);
     const normal = new THREE.Vector3(
@@ -100,27 +100,6 @@ export function ScreenProjection({
     }
     element.style.pointerEvents =
       front && state.frameReady && !obscured ? "auto" : "none";
-    // Phones can't use a 1440-wide desktop in a 16:10 bezel: once focused, the
-    // screen becomes the whole viewport and the desktop switches to its mobile layout.
-    const full = state.motion.mode === "focused" && size.width < 768;
-    if (full !== last.full) {
-      last.full = full;
-      element.dataset.fullscreen = String(full);
-      if (full) {
-        element.style.transform = "none";
-        // Above the canvas. The projection below sets this inline, which outranks the stylesheet,
-        // and left the full-screen desktop showing only through the laptop's screen opening.
-        element.style.zIndex = "3";
-        element.style.width = `${size.width}px`;
-        element.style.height = `${size.height}px`;
-        element.style.visibility = "visible";
-        element.style.pointerEvents = "auto";
-      }
-    }
-    if (full) {
-      element.style.pointerEvents = "auto";
-      return;
-    }
     current.multiplyMatrices(
       camera.projectionMatrix,
       camera.matrixWorldInverse,
