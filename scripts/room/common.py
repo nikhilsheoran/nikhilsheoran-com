@@ -1,7 +1,10 @@
 """Blender MCP modelling helpers. Coordinates use the website's Y-up half-metre units."""
 import bpy, math, random
 from mathutils import Vector
-ROOT='/Users/nikhilsheoran/Documents/Projects/nikhilsheoran-com'
+import os
+# The repository root. These helpers are exec'd inside Blender (no __file__), so it is taken from the
+# NIKHILSHEORAN_COM_ROOT environment variable, or the folder Blender was started from.
+ROOT=os.environ.get('NIKHILSHEORAN_COM_ROOT', os.getcwd())
 scene=bpy.context.scene
 COL='09 - Designed living studio'
 col=bpy.data.collections.get(COL)

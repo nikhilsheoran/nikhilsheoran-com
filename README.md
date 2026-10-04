@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# nikhilsheoran.com
 
-## Getting Started
+My personal site. It opens on a 3D studio with me at a desk; scrolling carries the camera up a spiral of cloth panels that tell my story, and it ends at the laptop, whose screen is a working macOS-style desktop with my notes, files and a guestbook.
 
-First, run the development server:
+## Approach
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**One room, lit once.** The studio is modelled in Blender by scripts, so it can be rebuilt and changed in code. Its lighting is rendered offline and baked into the textures, and the browser draws those textures unlit. The page gets soft daylight, bounce light and shadows at the cost of a few images.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**The scroll is the story.** A single scroll position drives everything: the camera's path, where each panel hangs, what the timeline shows. The path and the panel layout are plain functions of that one number, with tests that keep the camera out of the furniture and the panels readable on every screen shape.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**A site inside the site.** The laptop screen is the real website, running in a frame and talking to the room through messages. The same desktop also opens directly at its own addresses, so every note has a normal link and the content is server-rendered for search engines and readers without WebGL.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+**Content as files.** Notes are Markdown, the story cards are one JSON file, and both feed the 3D panels, the desktop apps and the plain-text version of the site.
 
-## Learn More
+**The person at the desk.** The seated figure is a likeness built from my own photos: reference pictures, an image-to-3D model for the base shape, then code that reshapes the face against the portrait, repaints it through fixed cameras and cleans it up before it is baked into the room. The photos and working files stay out of the repository.
 
-To learn more about Next.js, take a look at the following resources:
+**Built with coding agents.** Nearly all of the code, the Blender scripts and the asset pipeline were written in conversation with Claude and Codex, one small reviewable change at a time.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Next.js and React, three.js with React Three Fiber, Blender with Cycles for the baked room, Postgres on Supabase with Better Auth for the guestbook, deployed on Vercel.
 
-## Deploy on Vercel
+## Credits and licences
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Third-party assets, their licences and trademarks are listed in [public/journey/CREDITS.md](public/journey/CREDITS.md).

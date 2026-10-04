@@ -53,3 +53,11 @@ Lighting, shadows and bounce light are baked with Blender Cycles into the textur
 - Polar Fleece (rug), colormass and Rico Cilliers. https://polyhaven.com/a/polar_fleece
 
 The window view in `studio-baked.glb` is the AI-generated Manhattan-inspired plate credited above (`manhattan-view.png`), mirrored at its far edges and extended with a sky gradient into a panorama. The BITS Pilani mark on the notebook is the official asset credited above. All other room geometry is original Blender work.
+
+## October 4 seated figure, and third-party material
+
+- The seated figure in `studio-baked.glb` is a likeness of me. Reference pictures were made from my own photographs with an image model, turned into a mesh with Tripo (https://www.tripo3d.ai), then reshaped, repainted and cleaned by scripts and baked into the room with Cycles. The photographs, portraits and working models are not in this repository.
+- `macbook-air-calibrated.glb` is derived from "MacBook Air" by riccardo_pavone on Blend Swap, https://www.blendswap.com/blends/view/53154 , Creative Commons Attribution-ShareAlike 3.0. The source and its licence text are in `assets/source-models/MacBook Air/`. The derived model is shared under the same licence. This supersedes the earlier note above that describes the laptop as an original model.
+- `public/games/doom.jsdos` is the shareware episode of DOOM (id Software), run in the browser with js-dos (https://js-dos.com). DOOM is a trademark of id Software; the shareware episode is distributed unmodified.
+- `public/wallpapers/Sonoma.jpeg`, the app icons in `public/icons/` and `public/journey/emoji/distorted-face.png` imitate or reproduce Apple artwork. Apple, macOS and the Apple logo are trademarks of Apple Inc. They are used to evoke the Mac desktop and are not covered by this repository's licence.
+- The BITS Pilani mark is a trademark of BITS Pilani and is not covered by this repository's licence.

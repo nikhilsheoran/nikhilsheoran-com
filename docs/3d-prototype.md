@@ -1,13 +1,11 @@
 # The desk journey
 
 The homepage opens on a 3D studio: a desk, a 2017 MacBook Air with its glowing
-logo, and a seated statue. Scrolling (or dragging, or the timeline) carries the
+logo, and a seated figure of me. Scrolling (or dragging, or the timeline) carries the
 camera up a tightening helix around the desk while cloth panels, one per piece
 of work, spiral the other way. The helix ends in a descent over the statue's
 shoulder to the laptop, whose screen is the real macOS-style site running in an
 iframe. Deep links (`/notes/...`, `/finder`, ...) still open the desktop directly.
-
-Branch: `codex/3d-portfolio-prototype`. Nothing here is deployed.
 
 ## Run it
 
