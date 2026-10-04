@@ -24,12 +24,45 @@ const stamp = new Intl.DateTimeFormat("en-GB", {
 });
 
 /**
+ * Google sign-in. On its own page the site simply goes to Google and comes
+ * back. Inside the 3D Mac the site is in a frame, where Google refuses to
+ * show its page, so sign-in runs in a small pop-up and the Mac stays put.
+ */
+async function signIn() {
+  if (window.self === window.top) {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: window.location.href,
+    });
+    return;
+  }
+  // Opened before any await, or the browser treats it as an unasked pop-up.
+  const popup = window.open(
+    "",
+    "google-sign-in",
+    `popup,width=480,height=640,left=${Math.round(window.screenX + (window.outerWidth - 480) / 2)},top=${Math.round(window.screenY + (window.outerHeight - 640) / 2)}`,
+  );
+  const { data } = await authClient.signIn.social({
+    provider: "google",
+    callbackURL: "/auth/done",
+    disableRedirect: true,
+  });
+  if (!data?.url) {
+    popup?.close();
+    return;
+  }
+  if (popup) popup.location.href = data.url;
+  // Pop-up blocked: sign in with the whole page instead.
+  else window.top!.location.href = data.url;
+}
+
+/**
  * The guestbook under a shared note, on both the desktop and the phone view.
  * Messages live in the site's database behind /api/guestbook; signing in is
  * Google, through Better Auth.
  */
 export function Guestbook() {
-  const { data: session } = authClient.useSession();
+  const { data: session, refetch } = authClient.useSession();
   const [messages, setMessages] = useState<GuestbookMessage[] | undefined>();
   const [failed, setFailed] = useState(false);
 
@@ -55,6 +88,13 @@ export function Guestbook() {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [refresh]);
 
+  // A sign-in pop-up (see signIn below) reports back on this channel.
+  useEffect(() => {
+    const channel = new BroadcastChannel("auth");
+    channel.onmessage = () => void refetch();
+    return () => channel.close();
+  }, [refetch]);
+
   if (failed && !messages)
     return (
       <section className={styles.guestbook}>
@@ -68,10 +108,7 @@ export function Guestbook() {
       signedInAs={session ? (session.user.name ?? "you") : null}
       onSignIn={() => {
         track("guestbook_sign_in_started");
-        return authClient.signIn.social({
-          provider: "google",
-          callbackURL: window.location.href,
-        });
+        return signIn();
       }}
       onSignOut={() => authClient.signOut()}
       onSend={async (message) => {
