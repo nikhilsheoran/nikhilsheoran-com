@@ -28,6 +28,7 @@ import { clockEgg, deskLinks } from "@/lib/journey/desk-links";
 import { Cloth } from "./cloth";
 import { Lens } from "./lens";
 import { ScreenProjection } from "./screen";
+import { Diagnostics } from "./diagnostics";
 import type { SceneProps } from "./runtime";
 
 /** The one camera driver: the rail, or the direct arc after a laptop click. */
@@ -206,6 +207,7 @@ function World(props: SceneProps) {
       <CameraRig runtimeRef={props.runtimeRef} onFrame={props.onFrame} />
       <ScreenProjection {...props} />
       <Lens runtimeRef={props.runtimeRef} />
+      <Diagnostics runtimeRef={props.runtimeRef} />
     </>
   );
 }
