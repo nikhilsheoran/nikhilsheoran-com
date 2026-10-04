@@ -13,19 +13,19 @@
       "atlas": 4096,
       "triangles": 2576,
       "px_per_metre": 283,
-      "kneed_texels_pct": 1.964
+      "kneed_texels_pct": 1.994
     },
     "furniture": {
       "atlas": 4096,
       "triangles": 84516,
       "px_per_metre": 303,
-      "kneed_texels_pct": 8.773
+      "kneed_texels_pct": 8.77
     },
     "desk": {
       "atlas": 4096,
       "triangles": 20490,
       "px_per_metre": 1697,
-      "kneed_texels_pct": 5.376
+      "kneed_texels_pct": 4.751
     },
     "decor": {
       "atlas": 2048,
@@ -40,13 +40,13 @@
       "kneed_texels_pct": 0.696
     },
     "statue": {
-      "atlas": 2048,
-      "triangles": 59700,
-      "px_per_metre": 969,
-      "kneed_texels_pct": 5.929
+      "atlas": 4096,
+      "triangles": 89999,
+      "px_per_metre": 1507,
+      "kneed_texels_pct": 1.511
     }
   },
-  "triangles": 393061,
+  "triangles": 423360,
   "windowView": true,
   "statue": true,
   "bakeSamples": 512,

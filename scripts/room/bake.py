@@ -57,7 +57,7 @@ GROUPS = {
     'desk': 4096,
     'decor': 2048,
     'foliage': 2048,
-    'statue': 2048,
+    'statue': 4096,       # the seated figure: the face is looked at up close
 }
 
 # ---------------------------------------------------------------- arguments
@@ -342,6 +342,11 @@ def build_group(g, objs):
         nz = np.zeros(len(me.polygons) * 3, np.float32); me.polygons.foreach_get('normal', nz)
         cz = np.zeros(len(me.polygons) * 3, np.float32); me.polygons.foreach_get('center', cz)
         down = (nz[2::3] < -0.6) & (cz[2::3] < 6.0)
+        if g == 'statue':
+            # the head gets the texels (it is what the camera comes close to), and its undersides
+            # (chin, nose, brow) are in plain view, so they are not discounted
+            head = cz[2::3] > cz[2::3].max() - 0.62
+            w[head] *= 2.2; down &= ~head
         w[down] *= 0.2
         attr = me.attributes.new('lm_weight', 'FLOAT', 'FACE'); attr.data.foreach_set('value', w)
         ob = bpy.data.objects.new('Bake / ' + g + ' / ' + o.name, me)

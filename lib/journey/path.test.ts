@@ -22,11 +22,11 @@ const B = beats(T, WORKS);
 const VIEWPORTS = [16 / 9, 16 / 10, 4 / 3, 0.46];
 
 /**
- * The seated statue, reclined in the lounge chair (measured from
- * assets/_local/statue/statue.blend; head top at three (0.03, 2.54, 2.12)).
+ * The seated figure in the lounge chair (measured from
+ * assets/_local/statue/statue.blend; head top at three (0, 2.63, 1.9)).
  */
-const HEAD = { center: [0, 2.28, 2.05] as Vec3, radius: 0.3 };
-const TORSO = { min: [-0.96, 0.9, 0.9], max: [0.96, 2.1, 2.4] };
+const HEAD = { center: [0, 2.32, 1.76] as Vec3, radius: 0.33 };
+const TORSO = { min: [-0.63, 0.9, 0.51], max: [0.63, 2.13, 2.01] };
 
 const distance = (a: readonly number[], b: readonly number[]) =>
   Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
