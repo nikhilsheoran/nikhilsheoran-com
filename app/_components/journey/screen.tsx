@@ -108,6 +108,9 @@ export function ScreenProjection({
       element.dataset.fullscreen = String(full);
       if (full) {
         element.style.transform = "none";
+        // Above the canvas. The projection below sets this inline, which outranks the stylesheet,
+        // and left the full-screen desktop showing only through the laptop's screen opening.
+        element.style.zIndex = "3";
         element.style.width = `${size.width}px`;
         element.style.height = `${size.height}px`;
         element.style.visibility = "visible";
