@@ -42,8 +42,8 @@
     "statue": {
       "atlas": 4096,
       "triangles": 89999,
-      "px_per_metre": 1507,
-      "kneed_texels_pct": 1.511
+      "px_per_metre": 1506,
+      "kneed_texels_pct": 1.497
     }
   },
   "triangles": 423360,
