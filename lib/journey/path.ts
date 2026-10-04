@@ -499,16 +499,17 @@ export function panelPose(
   // Far works fade toward farOpacity (unless the lab keeps them solid) and
   // the shader blurs them by `away`.
   const farOpacity = tuning.lab.far === 0 ? p.farOpacity : 1;
-  // At home, before the story starts, every work hangs back: faint and out of
-  // focus. They come up as the scroll begins.
-  const begun = smoothStep(progress / (beat.firstChapter * 0.7));
+  // At home, before the story starts, there are no works in the air at all
+  // (so nothing to see or click). They fade up, out of focus first, as the
+  // scroll begins.
+  const begun = smoothStep((progress - 0.004) / (beat.firstChapter * 0.7));
   const away = Math.max(flight.away, 1 - begun);
   return {
     position: flight.position,
     rotation: flight.rotation,
     phase,
     opacity:
-      flight.presence * handoff * lerp(1, farOpacity, away) * lerp(0.35, 1, begun),
+      flight.presence * handoff * lerp(1, farOpacity, away) * begun,
     away,
     scale: flight.scale ?? 1,
     curve: flight.curve ?? 0,
